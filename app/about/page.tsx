@@ -45,7 +45,7 @@ export default function AboutPage() {
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
             A modern, educational streaming platform that breaks down barriers to quality entertainment, 
-            making movies, TV shows, and live sports accessible to everyone.
+            making movies, TV shows, and live sports accessible to everyone for free.
           </p>
         </div>
       </div>
