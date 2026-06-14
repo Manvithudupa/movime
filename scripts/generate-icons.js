@@ -9,9 +9,10 @@ const sharp = require('sharp');
     const iconsDir = path.join(publicDir, 'icons');
 
     if (!fs.existsSync(src)) {
-      console.error('Source logo not found at public/logo.png');
-      process.exit(1);
+      console.warn('ℹ Source logo not found at public/logo.png - skipping icon generation');
+      process.exit(0); // Exit gracefully without error
     }
+    
     if (!fs.existsSync(iconsDir)) {
       fs.mkdirSync(iconsDir);
     }
@@ -24,12 +25,12 @@ const sharp = require('sharp');
         .resize(size, size, { fit: 'cover' })
         .png({ compressionLevel: 9, quality: 90 })
         .toFile(out);
-      console.log(`Generated ${out}`);
+      console.log(`✔ Generated ${out}`);
     }
 
-    console.log('Icons generated successfully.');
+    console.log('✔ Icons generated successfully.');
   } catch (e) {
-    console.error('Failed to generate icons:', e);
+    console.error('✘ Failed to generate icons:', e.message);
     process.exit(1);
   }
 })();
