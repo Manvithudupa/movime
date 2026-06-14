@@ -1,0 +1,44 @@
+{
+  "name": "movime",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && node scripts/generate-icons.js && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^6.27.1",
+    "@prisma/client": "^6.12.0",
+    "@vercel/analytics": "^1.5.0",
+    "@vercel/speed-insights": "^1.2.0",
+    "@vidstack/react": "^1.12.13",
+    "autoprefixer": "^10.0.1",
+    "claude": "^0.1.1",
+    "framer-motion": "^12.23.12",
+    "hls.js": "^1.6.14",
+    "next": "15.3.8",
+    "next-pwa": "^5.6.0",
+    "postcss": "^8",
+    "prisma": "^6.12.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "sonner": "^1.7.4",
+    "svix": "^1.69.0",
+    "tailwindcss": "^3.3.0",
+    "zustand": "^4.5.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "^15.3.1",
+    "sharp": "^0.34.3",
+    "typescript": "^5"
+  }
+}

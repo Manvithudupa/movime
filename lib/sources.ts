@@ -1,0 +1,338 @@
+export const availableSources = [
+    {
+        id: 'CinemaOS',
+        name: 'CinemaOS',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://cinemaos.tech/player/{id}',
+            tv: 'https://cinemaos.tech/player/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'VidNest',
+        name: 'VidNest',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidnest.fun/movie/{id}',
+            tv: 'https://vidnest.fun/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'MappleTV',
+        name: 'MappleTV',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://mapple.uk/watch/movie/{id}?autoPlay=true&theme=#9900ff',
+            tv: 'https://mapple.uk/watch/tv/{id}-{season}-{episode}?nextButton=true&autoPlay=true&theme=#9900ff'
+        }
+    },
+    {
+        id: 'SuperEmbed',
+        name: 'SuperEmbed',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://multiembed.mov/directstream.php?video_id={id}&tmdb=1',
+            tv: 'https://multiembed.mov/directstream.php?video_id={id}&tmdb=1&s={season}&e={episode}'
+        }
+    },
+    {
+        id: 'multiembed',
+        name: 'MultiEmbed',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://multiembed.mov/?video_id={id}&tmdb=1',
+            tv: 'https://multiembed.mov/?video_id={id}&tmdb=1&s={season}&e={episode}'
+        }
+    },
+    {
+        id: 'moviesapi',
+        name: 'MoviesAPI',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://moviesapi.club/movie/{id}',
+            tv: 'https://moviesapi.club/tv/{id}-{season}-{episode}'
+        }
+    },
+    {
+        id: 'rive',
+        name: 'RiveStream',
+        isFrench: false,
+        urls: {
+            movie: 'https://rivestream.live/embed?type=movie&id={id}',
+            tv: 'https://rivestream.live/embed?type=tv&id={id}&season={season}&episode={episode}'
+        }
+    },
+    {
+        id: 'GoDrive',
+        name: 'GoDrive',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://godriveplayer.com/player.php?tmdb={id}',
+            tv: 'https://godriveplayer.com/player.php?type=series&tmdb={id}&season={season}&episode={episode}'
+        }
+    },
+    {
+        id: 'AutoEmbed',
+        name: 'AutoEmbed',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://autoembed.co/movie/tmdb/{id}',
+            tv: 'https://autoembed.co/tv/tmdb/{id}-{season}-{episode}'
+        }
+    },
+    {
+        id: 'pstream',
+        name: 'P-Stream',
+        isFrench: false,
+        requiresNoSandbox: false,
+        urls: {
+            movie: 'https://iframe.pstream.org/embed/tmdb-movie-{id}',
+            tv: 'https://iframe.pstream.org/embed/tmdb-tv-{id}/{season}/{episode}'
+        }
+    },
+    
+    {
+        id: 'embedsu',
+        name: 'EmbedSU',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://embed.su/embed/movie/{id}',
+            tv: 'https://embed.su/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'hexa',
+        name: 'Hexa',
+        isFrench: false,
+        urls: {
+            movie: 'https://api.hexa.watch/movie/{id}',
+            tv: 'https://api.hexa.watch/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidlink',
+        name: 'VidLink',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidlink.pro/movie/{id}',
+            tv: 'https://vidlink.pro/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidsrcTo',
+        name: 'VidSrcTo',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidsrc.to/embed/movie/{id}',
+            tv: 'https://vidsrc.to/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidsrcMe',
+        name: 'VidSrcMe',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidsrc.me/embed/movie?tmdb={id}',
+            tv: 'https://vidsrc.me/embed/tv?tmdb={id}&season={season}&episode={episode}'
+        }
+    },
+    {
+        id: 'vidsrcrip',
+        name: 'VidSrcRIP',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidsrc.rip/embed/movie/{id}',
+            tv: 'https://vidsrc.rip/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidsrcsu',
+        name: 'VidSrcSU',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidsrc.su/embed/movie/{id}',
+            tv: 'https://vidsrc.su/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidsrcvip',
+        name: 'VidSrcVIP',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidsrc.vip/embed/movie/{id}',
+            tv: 'https://vidsrc.vip/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: '2embed',
+        name: '2Embed',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://www.2embed.cc/embed/{id}',
+            tv: 'https://www.2embed.cc/embedtv/{id}&s={season}&e={episode}'
+        }
+    },
+    {
+        id: '123embed',
+        name: '123Embed',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://play2.123embed.net/movie/{id}',
+            tv: 'https://play2.123embed.net/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'smashystream',
+        name: 'SmashyStream',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://embed.smashystream.com/playere.php?tmdb={id}',
+            tv: 'https://embed.smashystream.com/playere.php?tmdb={id}&season={season}&episode={episode}'
+        }
+    },
+    {
+        id: 'autoembed',
+        name: 'AutoEmbed',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://player.autoembed.cc/embed/movie/{id}',
+            tv: 'https://player.autoembed.cc/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'videasy',
+        name: 'VidEasy (4K)',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://player.videasy.net/movie/{id}?color=8834ec',
+            tv: 'https://player.videasy.net/tv/{id}/{season}/{episode}?color=8834ec'
+        }
+    },
+    {
+        id: 'vidfast',
+        name: 'VidFast (4K)',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidfast.pro/movie/{id}',
+            tv: 'https://vidfast.pro/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidify',
+        name: 'Vidify',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidify.top/embed/movie/{id}',
+            tv: 'https://vidify.top/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'flicky',
+        name: 'Flicky',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://flicky.host/embed/movie/?id={id}',
+            tv: 'https://flicky.host/embed/tv/?id={id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidora',
+        name: 'Vidora',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidora.su/movie/{id}',
+            tv: 'https://vidora.su/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidsrccc',
+        name: 'VidSrcCC',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidsrc.cc/v2/embed/movie/{id}?autoPlay=false',
+            tv: 'https://vidsrc.cc/v2/embed/tv/{id}/{season}/{episode}?autoPlay=false'
+        }
+    },
+    {
+        id: 'streamflix',
+        name: 'StreamFlix',
+        isFrench: false,
+        urls: {
+            movie: 'https://watch.streamflix.one/movie/{id}/watch?server=1',
+            tv: 'https://watch.streamflix.one/tv/{id}/watch?server=1&season={season}&episode={episode}'
+        }
+    },
+
+    {
+        id: 'vidjoy',
+        name: 'VidJoy',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidjoy.pro/embed/movie/{id}',
+            tv: 'https://vidjoy.pro/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidzee',
+        name: 'VidZee',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://player.vidzee.wtf/embed/movie/{id}',
+            tv: 'https://player.vidzee.wtf/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    // {
+    //     id: 'spenflix',
+    //     name: 'Spenflix',
+    //     isFrench: false,
+    //     urls: {
+    //         movie: 'https://spencerdevs.xyz/movie/{id}',
+    //         tv: 'https://spencerdevs.xyz/tv/{id}/{season}/{episode}'
+    //     }
+    // },
+    {
+        id: 'frembed',
+        name: 'Frembed',
+        isFrench: true,
+        urls: {
+            movie: 'https://frembed.cc/api/film.php?id={id}',
+            tv: 'https://frembed.cc/api/serie.php?id={id}&sa={season}&epi={episode}'
+        }
+    }
+    // {
+    //     id: 'uembed',
+    //     name: 'UEmbed (premium)',
+    //     isFrench: false,
+    //     urls: {
+    //         movie: 'https://uembed.site/?id={id}&apikey=thisisforsurenotapremiumkey_right?',
+    //         tv: 'https://uembed.site/?id={id}&season={season}&episode={episode}&apikey=thisisforsurenotapremiumkey_right?'
+    //     }
+    // }
+];
