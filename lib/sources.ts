@@ -64,8 +64,8 @@ export const availableSources = [
         name: 'RiveStream',
         isFrench: false,
         urls: {
-            movie: 'https://rivestream.live/embed?type=movie&id={id}',
-            tv: 'https://rivestream.live/embed?type=tv&id={id}&season={season}&episode={episode}'
+            movie: 'https://rivestream.ru/embed?type=movie&id={id}',
+            tv: 'https://rivestream.ru/embed?type=tv&id={id}&season={season}&episode={episode}'
         }
     },
     {
@@ -114,8 +114,8 @@ export const availableSources = [
         name: 'Hexa',
         isFrench: false,
         urls: {
-            movie: 'https://api.hexa.watch/movie/{id}',
-            tv: 'https://api.hexa.watch/tv/{id}/{season}/{episode}'
+            movie: 'https://api.hexa.su/movie/{id}',
+            tv: 'https://api.hexa.su/tv/{id}/{season}/{episode}'
         }
     },
     {
@@ -308,15 +308,15 @@ export const availableSources = [
             tv: 'https://player.vidzee.wtf/embed/tv/{id}/{season}/{episode}'
         }
     },
-    // {
-    //     id: 'spenflix',
-    //     name: 'Spenflix',
-    //     isFrench: false,
-    //     urls: {
-    //         movie: 'https://spencerdevs.xyz/movie/{id}',
-    //         tv: 'https://spencerdevs.xyz/tv/{id}/{season}/{episode}'
-    //     }
-    // },
+    {
+        id: 'spenflix',
+        name: 'Spenflix',
+        isFrench: false,
+        urls: {
+            movie: 'https://spencerdevs.xyz/movie/{id}',
+            tv: 'https://spencerdevs.xyz/tv/{id}/{season}/{episode}'
+       }
+    },
     {
         id: 'frembed',
         name: 'Frembed',
