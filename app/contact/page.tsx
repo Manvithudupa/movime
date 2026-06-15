@@ -110,12 +110,12 @@ export default function ContactPage() {
                     <h3 className="text-lg font-medium text-white mb-2">GitHub</h3>
                     <p className="text-gray-400 mb-2">Report issues, contribute, or follow development</p>
                     <a 
-                      href="https://github.com/mdtahseen7" 
+                      href="https://github.com/Manvith911" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-purple-400 hover:text-purple-300 transition-colors"
                     >
-                      github.com/mdtahseen7
+                      github.com/Manvith911
                     </a>
                   </div>
                 </div>
@@ -131,7 +131,7 @@ export default function ContactPage() {
                     <h3 className="text-lg font-medium text-white mb-2">Email Support</h3>
                     <p className="text-gray-400 mb-2">General inquiries and support requests</p>
                     <a 
-                      href="mailto:mdtahseen2901@gmail.com" 
+                      href="mailto:manvithudupa073@gmail.com" 
                       className="text-purple-400 hover:text-purple-300 transition-colors"
                     >
                       Mail us
@@ -181,7 +181,7 @@ export default function ContactPage() {
                     Can I contribute to the project?
                   </summary>
                   <div className="px-4 pb-4 text-gray-400">
-                    Yes! Movime is open source. You can contribute by reporting issues, submitting pull requests, or helping with documentation on our GitHub repository.
+                    Yes! You can inform me if u want any changes. You can contribute by reporting issues, asking new features , reporting bugs.
                   </div>
                 </details>
               </div>
