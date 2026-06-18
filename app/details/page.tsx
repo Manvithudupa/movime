@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
+import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { 
   fetchContentDetails, 

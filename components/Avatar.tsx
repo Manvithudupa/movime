@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import Image from 'next/image'
+import Image from '@/components/ProxyImage'
 
 interface AvatarProps {
   src: string | null | undefined

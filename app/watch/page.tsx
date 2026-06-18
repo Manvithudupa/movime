@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
+import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 

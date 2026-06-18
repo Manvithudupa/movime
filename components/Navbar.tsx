@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { useUser, UserButton, SignInButton, SignUpButton } from '@clerk/nextjs';
 import { usePathname } from 'next/navigation';

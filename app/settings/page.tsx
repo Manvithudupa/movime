@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { availableSources } from '@/lib/sources';

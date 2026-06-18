@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import Image from 'next/image';
+import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { searchContent, TMDB_IMAGE_BASE_URL, filterAdultContent, blockedMovieIds, getLocalStorage, fetchContentDetails } from '@/lib/utils';
 import type { ContentItem } from '@/lib/types';

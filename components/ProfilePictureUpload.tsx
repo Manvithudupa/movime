@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
-import Image from 'next/image'
+import Image from '@/components/ProxyImage'
 import { useUser } from '@clerk/nextjs'
 import Avatar from './Avatar'
 

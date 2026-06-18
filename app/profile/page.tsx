@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import Image from '@/components/ProxyImage'
 import Link from 'next/link'
 import ProfilePictureUpload from '@/components/ProfilePictureUpload'
 import Navbar from '@/components/Navbar'

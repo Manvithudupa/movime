@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import Image from 'next/image';
+import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { TMDB_IMAGE_BASE_URL } from '@/lib/utils';
