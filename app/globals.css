@@ -129,8 +129,8 @@ body::-webkit-scrollbar {
   inset: -2px;
   background: radial-gradient(
     circle at var(--mouse-x, center) var(--mouse-y, center),
-    rgba(168, 85, 247, 0.5) 0%,
-    rgba(168, 85, 247, 0.2) 25%,
+    rgba(255, 255, 255, 0.25) 0%,
+    rgba(255, 255, 255, 0.1) 25%,
     transparent 70%
   );
   border-radius: 9999px;
@@ -163,9 +163,9 @@ body::-webkit-scrollbar {
   inset: -1px;
   background: linear-gradient(
     35deg,
-    rgba(168, 85, 247, 0.4),
-    rgba(168, 85, 247, 0),
-    rgba(139, 92, 246, 0.4)
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.08)
   );
   border-radius: 0.5rem;
   z-index: -1;
@@ -225,13 +225,13 @@ body::-webkit-scrollbar {
   height: 2px;
   bottom: 0;
   left: 50%;
-  background: linear-gradient(to right, #a78bfa, #4c1d95);
+  background: linear-gradient(to right, rgba(255,255,255,0.4), rgba(255,255,255,0.15));
   transition: all 0.3s ease;
   transform: translateX(-50%);
 }
 
 .nav-link:hover {
-  color: #a78bfa;
+  color: #ffffff;
 }
 
 .nav-link:hover::after {
@@ -259,7 +259,7 @@ body::-webkit-scrollbar {
 
 /* Search input focus effects */
 .search-input:focus {
-  box-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
   transform: scale(1.02);
   background: rgba(31, 41, 55, 0.9);
 }
@@ -360,16 +360,16 @@ iframe[src*="popup"],
 }
 
 .movime-outline {
-  box-shadow: 0 0 0 1px rgba(168,85,247,0.45), 0 0 12px -2px rgba(168,85,247,0.35);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 0 12px -2px rgba(255,255,255,0.08);
 }
 
-/* Purple-tinted translucent navbar surfaces */
+/* Dark navbar surfaces */
 .movime-navbar-glass {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  background: linear-gradient(120deg, rgba(25,0,40,0.78), rgba(15,0,28,0.62));
-  border-bottom: 1px solid rgba(168,85,247,0.12);
-  box-shadow: 0 2px 6px -1px rgba(0,0,0,0.5), 0 4px 14px -6px rgba(110,0,155,0.35);
+  background: rgba(0, 0, 0, 0.78);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 2px 6px -1px rgba(0,0,0,0.4), 0 4px 14px -6px rgba(0,0,0,0.4);
 }
 
 .movime-navbar-top {
@@ -379,15 +379,16 @@ iframe[src*="popup"],
   border-bottom: none;
 }
 
-/* Search input variant matching screenshot */
+/* Dark search input styling */
 .movime-search-input {
-  background: rgba(25,0,45,0.50);
-  border: 1px solid rgba(168,85,247,0.45);
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 0 10px -3px rgba(168,85,247,0.45);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 0 10px -3px rgba(255,255,255,0.08);
   transition: background .3s, box-shadow .35s, border-color .35s;
+  color: white;
 }
 .movime-search-input:focus {
-  border-color: rgba(216,180,254,0.8);
-  box-shadow: 0 0 0 1px rgba(216,180,254,0.8), 0 0 16px -2px rgba(216,180,254,0.65);
-  background: rgba(35,0,65,0.70);
+  border-color: rgba(255,255,255,0.8);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.15), 0 0 16px -2px rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08);
 }

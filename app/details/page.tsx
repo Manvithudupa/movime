@@ -529,7 +529,7 @@ function DetailsPageContent() {
         <div className="py-8 sm:py-10 md:py-14 bg-black/40 border-t border-white/5">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-6 sm:mb-8">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-wide bg-gradient-to-r from-fuchsia-300 via-purple-300 to-fuchsia-400 bg-clip-text text-transparent">Recommended for You</h2>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-wide text-white">Recommended for You</h2>
               <span className="text-[10px] sm:text-xs uppercase tracking-widest text-gray-400">Based on this {contentType === 'movie' ? 'movie' : 'show'}</span>
             </div>
             <div className="episodes-slider group relative">
@@ -544,7 +544,7 @@ function DetailsPageContent() {
                       <Link
                         key={item.id}
                         href={`/details?id=${item.id}&type=${mediaType}`}
-                        className="group/card w-44 sm:w-48 md:w-52 flex-shrink-0 rounded-xl overflow-hidden bg-gray-900/60 border border-white/10 hover:border-fuchsia-400/40 transition-all hover:shadow-[0_4px_18px_-4px_rgba(168,85,247,0.45)]"
+                        className="group/card w-44 sm:w-48 md:w-52 flex-shrink-0 rounded-xl overflow-hidden bg-gray-900/60 border border-white/10 hover:border-white/30 transition-all hover:shadow-[0_4px_18px_-4px_rgba(255,255,255,0.18)]"
                       >
                         <div className="relative aspect-[2/3]">
                           <Image
@@ -563,7 +563,7 @@ function DetailsPageContent() {
                           )}
                         </div>
                         <div className="p-2.5 sm:p-3 space-y-1">
-                          <h3 className="text-xs sm:text-sm font-semibold leading-snug line-clamp-2 group-hover/card:text-fuchsia-300 transition-colors">{title}</h3>
+                          <h3 className="text-xs sm:text-sm font-semibold leading-snug line-clamp-2 group-hover/card:text-white transition-colors">{title}</h3>
                           <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-gray-400">
                             <span>{year}</span>
                             {item.vote_average > 0 && (

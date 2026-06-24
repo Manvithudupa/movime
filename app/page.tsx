@@ -42,6 +42,11 @@ const ContentCard = memo(({
   const posterPath = item.poster_path || item.poster;
   const rating = item.vote_average || 0;
   const type = item.type || item.media_type || (item.title ? 'movie' : 'tv');
+  const router = useRouter();
+
+  const handleCardClick = () => {
+    router.push(`/details?id=${item.id}&type=${type}`);
+  };
 
   return (
     <motion.div 
@@ -50,6 +55,16 @@ const ContentCard = memo(({
       whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
       whileTap={{ scale: 0.95 }}
       style={{ willChange: 'transform' }}
+      onClick={handleCardClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`View details for ${title}`}
     >
       <div className="relative aspect-[5/7]">
         {posterPath ? (
@@ -70,6 +85,7 @@ const ContentCard = memo(({
         {/* Bookmark icon */}
         <button
           onClick={(e) => {
+            e.stopPropagation();
             e.preventDefault();
             addToWatchLater(item);
           }}

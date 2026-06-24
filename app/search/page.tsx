@@ -160,7 +160,7 @@ export default function SearchPage() {
   );
 
   return (
-  <div className="min-h-screen text-white">
+  <div className="min-h-screen bg-black text-white">
       <Navbar
         currentView="search"
         showSearch={true}
@@ -183,21 +183,21 @@ export default function SearchPage() {
         <div className="flex flex-col items-center text-center mb-12">
           {query.length === 0 ? (
             <>
-              <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-fuchsia-400 to-purple-300 bg-clip-text text-transparent">Find something to watch</h1>
+              <h1 className="text-4xl font-bold mb-4 text-white">Find something to watch</h1>
               <p className="text-sm text-gray-400 mb-6">Search movies, TV shows, anime and more.</p>
             </>
           ) : (
             <h1 className="sr-only">Search</h1>
           )}
           <div className="w-full max-w-2xl relative">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-300/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
               value={query}
               onChange={(e)=>setQuery(e.target.value)}
               placeholder="Have something in mind? (try: any genre / name)"
-              className="w-full pl-12 pr-4 py-4 rounded-full movime-search-input outline-none text-sm placeholder-purple-200/40 transition-all"
+              className="w-full pl-12 pr-4 py-4 rounded-full movime-search-input outline-none text-sm text-white placeholder-white/40 transition-all"
               autoFocus
             />
           </div>
@@ -206,9 +206,9 @@ export default function SearchPage() {
         {query.length > 0 && (
           <div className="mb-10">
             <div className="flex items-center justify-center gap-6 mb-8">
-              <span className="h-px w-32 bg-gradient-to-r from-fuchsia-400/60 to-transparent" />
-              <h2 className="text-3xl font-semibold tracking-wide text-fuchsia-200">Search results</h2>
-              <span className="h-px w-32 bg-gradient-to-l from-fuchsia-400/60 to-transparent" />
+              <span className="h-px w-32 bg-gradient-to-r from-white/20 to-transparent" />
+              <h2 className="text-3xl font-semibold tracking-wide text-white">Search results</h2>
+              <span className="h-px w-32 bg-gradient-to-l from-white/20 to-transparent" />
             </div>
             <div className="flex justify-center">
               <div className="relative" onMouseLeave={()=>setShowSortMenu(false)}>
@@ -230,7 +230,7 @@ export default function SearchPage() {
                       <button
                         key={opt}
                         onClick={()=>{ setSortBy(opt); setShowSortMenu(false); }}
-                        className={`w-full text-left px-3 py-2 hover:bg-white/10 capitalize ${sortBy===opt ? 'text-fuchsia-300' : 'text-gray-300'}`}
+                        className={`w-full text-left px-3 py-2 hover:bg-white/10 capitalize ${sortBy===opt ? 'text-white' : 'text-gray-300'}`}
                       >
                         {opt === 'relevance' ? 'Search by relevance' : `Sort: ${opt}`}
                       </button>

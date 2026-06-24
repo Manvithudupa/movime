@@ -118,12 +118,20 @@ function WatchPageContent() {
 
   const getCurrentVideoUrl = () => {
     if (!content || !currentSource) return '';
+
+    const tvSeason = contentType === 'tv'
+      ? selectedSeason || seasonFromQuery || (content as TVShow)?.seasons?.find((s) => s.season_number > 0)?.season_number || 1
+      : undefined;
+    const tvEpisode = contentType === 'tv'
+      ? selectedEpisode || episodeFromQuery || seasonData?.episodes?.[0]?.episode_number || 1
+      : undefined;
+
     return getVideoUrl(
       currentSource.id,
       contentId!,
       contentType,
-      contentType === 'tv' ? selectedSeason : undefined,
-      contentType === 'tv' ? selectedEpisode : undefined
+      tvSeason,
+      tvEpisode
     );
   };
 
@@ -208,10 +216,10 @@ function WatchPageContent() {
                   src={getCurrentVideoUrl()}
                   className="w-full h-full"
                   allowFullScreen
-                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="no-referrer-when-downgrade"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                  referrerPolicy="no-referrer-when-cross-origin"
                   loading="lazy"
-                  sandbox={currentSource.requiresNoSandbox ? undefined : "allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"}
+                  sandbox={currentSource.requiresNoSandbox ? undefined : "allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"}
                   title="Player"
                   style={{ border: 'none', background: '#000' }}
                 />
@@ -384,7 +392,7 @@ function WatchPageContent() {
               <div>
                 <h2 className="text-2xl font-bold text-white leading-tight">{contentTitle}</h2>
                 {contentType === 'tv' && (content as TVShow).number_of_seasons && (
-                  <p className="text-sm text-purple-400 mt-1">
+                  <p className="text-sm text-gray-400 mt-1">
                     {(content as TVShow).number_of_seasons} Season{(content as TVShow).number_of_seasons > 1 ? 's' : ''} · {(content as TVShow).number_of_episodes} Episodes
                   </p>
                 )}

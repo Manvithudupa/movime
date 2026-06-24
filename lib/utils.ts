@@ -546,9 +546,11 @@ export const getVideoUrl = (sourceId: string, contentId: string, type: 'movie' |
   
   url = url.replace('{id}', contentId);
   
-  if (type === 'tv' && season && episode) {
-    url = url.replace('{season}', season.toString());
-    url = url.replace('{episode}', episode.toString());
+  if (type === 'tv') {
+    const seasonValue = typeof season === 'number' && !Number.isNaN(season) ? season.toString() : '1';
+    const episodeValue = typeof episode === 'number' && !Number.isNaN(episode) ? episode.toString() : '1';
+    url = url.replace('{season}', seasonValue);
+    url = url.replace('{episode}', episodeValue);
   }
   
   return url;

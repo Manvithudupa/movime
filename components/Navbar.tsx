@@ -88,32 +88,26 @@ export default function Navbar({
               }}
             >
               <Image src="/logo.png" alt="Movime" width={40} height={40} />
-              <span className="text-2xl font-bold bg-gradient-to-r from-[#8A2BE2] to-[#FF6EC4] bg-clip-text text-transparent tracking-wide">
+              <span className="text-2xl font-bold text-white tracking-wide">
                 Movime
               </span>
             </Link>
 
-            <nav className="hidden lg:flex space-x-7 ml-8">{/* Adjusted spacing */}
+            <nav className="hidden lg:flex space-x-7 ml-8">
               {['home', 'movies', 'tv', 'anime', 'watchlater'].map((view, index) => {
                 const active = currentView === view || (currentView === 'watch-sports' && view === 'livesports');
                 const label = view === 'watchlater'
                   ? `My List (${watchLaterCount})`
                   : view === 'tv'
                   ? 'TV Shows'
-                  : view === 'hollywood'
-                  ? 'Hollywood'
-                  : view === 'bollywood'
-                  ? 'Bollywood'
-                  : view === 'anime'
-                  ? 'Anime'
                   : view.charAt(0).toUpperCase() + view.slice(1);
                 return (
                   <motion.button
                     key={view}
                     onClick={() => handleViewChange(view)}
                     aria-current={active ? 'page' : undefined}
-                    className={`relative px-0 py-0 text-sm font-medium tracking-wide transition-all duration-150 group focus:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/60 rounded-sm ${
-                      active ? '' : 'text-white/80 hover:text-white'
+                    className={`relative px-0 py-0 text-sm font-medium tracking-wide transition-all duration-150 group focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 rounded-sm ${
+                      active ? 'text-white' : 'text-white/70 hover:text-white'
                     }`}
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -121,10 +115,10 @@ export default function Navbar({
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <span className={`relative inline-block ${active ? 'text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-300 via-purple-300 to-fuchsia-400' : ''}`}>
+                    <span className="relative inline-block">
                       {label}
                       <motion.span
-                        className={`absolute left-0 right-0 -bottom-1 h-[2px] rounded-full origin-center bg-gradient-to-r from-fuchsia-400 via-purple-400 to-fuchsia-400`}
+                        className="absolute left-0 right-0 -bottom-1 h-[2px] rounded-full origin-center bg-white/70"
                         initial={{ scaleX: 0 }}
                         animate={{ scaleX: active ? 1 : 0 }}
                         whileHover={{ scaleX: 1 }}

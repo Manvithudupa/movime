@@ -1,7 +1,10 @@
+'use client';
+
 import React, { memo } from 'react';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { TMDB_IMAGE_BASE_URL } from '@/lib/utils';
 import type { ContentItem } from '@/lib/types';
 import { SkeletonSection } from '@/components/SkeletonCard';
@@ -30,6 +33,11 @@ const ContentCard = memo(({
   const posterPath = item.poster_path || item.poster;
   const rating = item.vote_average || 0;
   const type = item.type || item.media_type || (item.title ? 'movie' : 'tv');
+  const router = useRouter();
+
+  const handleCardClick = () => {
+    router.push(`/details?id=${item.id}&type=${type}`);
+  };
 
   return (
     <motion.div 
@@ -43,6 +51,16 @@ const ContentCard = memo(({
       initial={false}
       animate={{ opacity: 1 }}
       style={{ willChange: "transform" }}
+      onClick={handleCardClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`View details for ${itemTitle}`}
     >
       <div className="relative aspect-[2/3]">
         {posterPath ? (
@@ -66,6 +84,7 @@ const ContentCard = memo(({
         {/* Bookmark icon */}
         <motion.button
           onClick={(e) => {
+            e.stopPropagation();
             e.preventDefault();
             onAddToWatchLater(item);
           }}
