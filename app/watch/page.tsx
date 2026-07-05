@@ -35,6 +35,7 @@ function WatchPageContent() {
   const [watchLaterCount, setWatchLaterCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [iframeKey, setIframeKey] = useState(0);
   const contentId = searchParams.get('id');
   const contentType = searchParams.get('type') as 'movie' | 'tv';
   const seasonParamStr = searchParams.get('season');
@@ -127,6 +128,28 @@ function WatchPageContent() {
     );
   };
 
+  const handleSourceFailure = () => {
+    const currentIndex = availableSources.findIndex((source) => source.id === currentSource.id);
+    const fallbackSource = availableSources
+      .slice(currentIndex + 1)
+      .find((source) => securityLevel !== 'secure' || !source.requiresNoSandbox);
+
+    if (fallbackSource) {
+      setCurrentSource(fallbackSource);
+      setIframeKey((value) => value + 1);
+      return;
+    }
+
+    const fallbackFromStart = availableSources.find(
+      (source) => source.id !== currentSource.id && (securityLevel !== 'secure' || !source.requiresNoSandbox)
+    );
+
+    if (fallbackFromStart) {
+      setCurrentSource(fallbackFromStart);
+      setIframeKey((value) => value + 1);
+    }
+  };
+
   const getBackdropUrl = () =>
     content?.backdrop_path
       ? `${TMDB_IMAGE_BASE_URL.replace('w500', 'w1280')}${content.backdrop_path}`
@@ -205,9 +228,11 @@ function WatchPageContent() {
               <div className="aspect-video w-full bg-black">
               {getCurrentVideoUrl() ? (
                 <iframe
+                  key={iframeKey}
                   src={getCurrentVideoUrl()}
                   className="w-full h-full"
                   allowFullScreen
+                  onError={handleSourceFailure}
                   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="no-referrer-when-downgrade"
                   loading="lazy"
