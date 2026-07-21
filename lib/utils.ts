@@ -3,6 +3,73 @@ export const TMDB_API_KEY = '1070730380f5fee0d87cf0382670b255';
 export const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 export const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
+const API_CACHE_TTL_MS = 10 * 60 * 1000;
+const API_CACHE_STORAGE_KEY = 'movime_api_cache_v1';
+const apiMemoryCache = new Map<string, { expiresAt: number; value: any }>();
+
+const serializeCacheKey = (parts: unknown[]) =>
+  parts.map(part => (typeof part === 'string' ? part : JSON.stringify(part))).join('::');
+
+const getCachedApiValue = <T>(key: string): T | undefined => {
+  const memoryEntry = apiMemoryCache.get(key);
+  if (memoryEntry && memoryEntry.expiresAt > Date.now()) {
+    return memoryEntry.value as T;
+  }
+
+  if (memoryEntry) {
+    apiMemoryCache.delete(key);
+  }
+
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+
+  try {
+    const storedValue = window.localStorage.getItem(`${API_CACHE_STORAGE_KEY}:${key}`);
+    if (!storedValue) {
+      return undefined;
+    }
+
+    const parsed = JSON.parse(storedValue) as { expiresAt: number; value: T };
+    if (!parsed || parsed.expiresAt <= Date.now()) {
+      window.localStorage.removeItem(`${API_CACHE_STORAGE_KEY}:${key}`);
+      return undefined;
+    }
+
+    apiMemoryCache.set(key, { expiresAt: parsed.expiresAt, value: parsed.value });
+    return parsed.value as T;
+  } catch {
+    return undefined;
+  }
+};
+
+const setCachedApiValue = (key: string, value: any, ttlMs = API_CACHE_TTL_MS) => {
+  const expiresAt = Date.now() + ttlMs;
+  apiMemoryCache.set(key, { expiresAt, value });
+
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(
+        `${API_CACHE_STORAGE_KEY}:${key}`,
+        JSON.stringify({ expiresAt, value })
+      );
+    } catch {
+      // Ignore storage quota or browser issues.
+    }
+  }
+};
+
+const cachedApiRequest = async <T>(key: string, request: () => Promise<T>, ttlMs = API_CACHE_TTL_MS): Promise<T> => {
+  const cachedValue = getCachedApiValue<T>(key);
+  if (cachedValue !== undefined) {
+    return cachedValue;
+  }
+
+  const data = await request();
+  setCachedApiValue(key, data, ttlMs);
+  return data;
+};
+
 // AniList API configuration
 const ANILIST_API_URL = 'https://graphql.anilist.co';
 
@@ -71,461 +138,517 @@ export const isAnimeContent = (item: any): boolean => {
 };
 
 const searchAniListAnime = async (title: string) => {
-  try {
-    const response = await fetch(ANILIST_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: ANILIST_SEARCH_QUERY,
-        variables: { search: title }
-      })
-    });
-    
-    const data = await response.json();
-    return data.data?.Media || null;
-  } catch (error) {
-    console.warn('AniList search failed:', error);
-    return null;
-  }
+  const cacheKey = serializeCacheKey(['aniListSearch', title]);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const response = await fetch(ANILIST_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: ANILIST_SEARCH_QUERY,
+          variables: { search: title }
+        })
+      });
+      
+      const data = await response.json();
+      return data.data?.Media || null;
+    } catch (error) {
+      console.warn('AniList search failed:', error);
+      return null;
+    }
+  }, 15 * 60 * 1000);
 };
 
 const getAniListEpisodes = async (aniListId: number) => {
-  try {
-    const response = await fetch(ANILIST_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: ANILIST_EPISODES_QUERY,
-        variables: { id: aniListId }
-      })
-    });
-    
-    const data = await response.json();
-    return data.data?.Media || null;
-  } catch (error) {
-    console.warn('AniList episodes fetch failed:', error);
-    return null;
-  }
+  const cacheKey = serializeCacheKey(['aniListEpisodes', aniListId]);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const response = await fetch(ANILIST_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: ANILIST_EPISODES_QUERY,
+          variables: { id: aniListId }
+        })
+      });
+      
+      const data = await response.json();
+      return data.data?.Media || null;
+    } catch (error) {
+      console.warn('AniList episodes fetch failed:', error);
+      return null;
+    }
+  }, 15 * 60 * 1000);
 };
 
 export const fetchMovies = async (page = 1) => {
-  try {
-    const response = await fetch(
-      `${TMDB_BASE_URL}/trending/movie/day?api_key=${TMDB_API_KEY}&page=${page}&language=en-US`
-    );
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching movies:', error);
-    return { results: [] };
-  }
+  const cacheKey = serializeCacheKey(['fetchMovies', page]);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const response = await fetch(
+        `${TMDB_BASE_URL}/trending/movie/day?api_key=${TMDB_API_KEY}&page=${page}&language=en-US`
+      );
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching movies:', error);
+      return { results: [] };
+    }
+  });
 };
 
 export const fetchTVShows = async (page = 1) => {
-  try {
-    const response = await fetch(
-      `${TMDB_BASE_URL}/tv/popular?api_key=${TMDB_API_KEY}&page=${page}&language=en-US`
-    );
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching TV shows:', error);
-    return { results: [] };
-  }
+  const cacheKey = serializeCacheKey(['fetchTVShows', page]);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const response = await fetch(
+        `${TMDB_BASE_URL}/tv/popular?api_key=${TMDB_API_KEY}&page=${page}&language=en-US`
+      );
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching TV shows:', error);
+      return { results: [] };
+    }
+  });
 };
 
 export const fetchHollywoodMovies = async (page = 1) => {
-  try {
-    const response = await fetch(
-      `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&region=US&sort_by=popularity.desc&with_original_language=en`
-    );
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching Hollywood movies:', error);
-    return { results: [] };
-  }
+  const cacheKey = serializeCacheKey(['fetchHollywoodMovies', page]);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const response = await fetch(
+        `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&region=US&sort_by=popularity.desc&with_original_language=en`
+      );
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching Hollywood movies:', error);
+      return { results: [] };
+    }
+  });
 };
 
 export const fetchBollywoodMovies = async (page = 1) => {
-  try {
-    const response = await fetch(
-      `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=hi-IN&region=IN&sort_by=popularity.desc&with_original_language=hi`
-    );
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching Bollywood movies:', error);
-    return { results: [] };
-  }
+  const cacheKey = serializeCacheKey(['fetchBollywoodMovies', page]);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const response = await fetch(
+        `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=hi-IN&region=IN&sort_by=popularity.desc&with_original_language=hi`
+      );
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching Bollywood movies:', error);
+      return { results: [] };
+    }
+  });
 };
 
 export const fetchAnimeContent = async (page = 1) => {
-  try {
-    const response = await fetch(
-      `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_genres=16&with_origin_country=JP&sort_by=popularity.desc`
-    );
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching anime content:', error);
-    return { results: [] };
-  }
+  const cacheKey = serializeCacheKey(['fetchAnimeContent', page]);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const response = await fetch(
+        `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_genres=16&with_origin_country=JP&sort_by=popularity.desc`
+      );
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching anime content:', error);
+      return { results: [] };
+    }
+  });
 };
 
 export const searchContent = async (query: string, type = 'multi') => {
-  try {
-    const response = await fetch(
-      `${TMDB_BASE_URL}/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US`
-    );
-    return await response.json();
-  } catch (error) {
-    console.error('Error searching content:', error);
-    return { results: [] };
-  }
+  const cacheKey = serializeCacheKey(['searchContent', query, type]);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const response = await fetch(
+        `${TMDB_BASE_URL}/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US`
+      );
+      return await response.json();
+    } catch (error) {
+      console.error('Error searching content:', error);
+      return { results: [] };
+    }
+  }, 2 * 60 * 1000);
 };
 
 export const fetchNetflixContent = async (page = 1) => {
-  try {
-    const [moviesResponse, tvResponse] = await Promise.all([
-      fetch(`${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_watch_providers=8&watch_region=US&sort_by=popularity.desc`),
-      fetch(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_watch_providers=8&watch_region=US&sort_by=popularity.desc`)
-    ]);
-    
-    const [moviesData, tvData] = await Promise.all([
-      moviesResponse.json(),
-      tvResponse.json()
-    ]);
-    
-    let combinedResults = [
-      ...(moviesData.results || []),
-      ...(tvData.results || [])
-    ];
-    
-    if (combinedResults.length === 0) {
-      console.log('No Netflix watch provider results, trying fallback...');
-      const fallbackResponse = await fetch(
-        `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&sort_by=popularity.desc&with_companies=2452`
-      );
-      const fallbackData = await fallbackResponse.json();
-      combinedResults = fallbackData.results || [];
+  const cacheKey = serializeCacheKey(['fetchNetflixContent', page]);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const [moviesResponse, tvResponse] = await Promise.all([
+        fetch(`${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_watch_providers=8&watch_region=US&sort_by=popularity.desc`),
+        fetch(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_watch_providers=8&watch_region=US&sort_by=popularity.desc`)
+      ]);
+      
+      const [moviesData, tvData] = await Promise.all([
+        moviesResponse.json(),
+        tvResponse.json()
+      ]);
+      
+      let combinedResults = [
+        ...(moviesData.results || []),
+        ...(tvData.results || [])
+      ];
+      
+      if (combinedResults.length === 0) {
+        console.log('No Netflix watch provider results, trying fallback...');
+        const fallbackResponse = await fetch(
+          `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&sort_by=popularity.desc&with_companies=2452`
+        );
+        const fallbackData = await fallbackResponse.json();
+        combinedResults = fallbackData.results || [];
+      }
+      
+      return { results: combinedResults.slice(0, 20) };
+    } catch (error) {
+      console.error('Error fetching Netflix content:', error);
+      return { results: [] };
     }
-    
-    return { results: combinedResults.slice(0, 20) };
-  } catch (error) {
-    console.error('Error fetching Netflix content:', error);
-    return { results: [] };
-  }
+  });
 };
 
 export const fetchAmazonPrimeContent = async (page = 1) => {
-  try {
-    let results: any[] = [];
-    
+  const cacheKey = serializeCacheKey(['fetchAmazonPrimeContent', page]);
+
+  return cachedApiRequest(cacheKey, async () => {
     try {
-      const response = await fetch(
-        `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_watch_providers=119&watch_region=US&sort_by=popularity.desc`
-      );
-      const data = await response.json();
-      if (data.results && data.results.length > 0) {
-        results = data.results;
-      }
-    } catch {
-      console.log('Amazon Prime watch provider failed, trying fallback');
-    }
-    
-    if (results.length === 0) {
+      let results: any[] = [];
+      
       try {
         const response = await fetch(
-          `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&sort_by=popularity.desc&with_companies=1024`
+          `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_watch_providers=119&watch_region=US&sort_by=popularity.desc`
         );
         const data = await response.json();
-        results = data.results || [];
-      } catch (error) {
-        console.error('Amazon Studios fallback failed:', error);
+        if (data.results && data.results.length > 0) {
+          results = data.results;
+        }
+      } catch {
+        console.log('Amazon Prime watch provider failed, trying fallback');
       }
-    }
-    
-    if (results.length === 0) {
-      try {
-        const response = await fetch(
-          `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&sort_by=popularity.desc&with_genres=28,18&vote_average.gte=7.0`
-        );
-        const data = await response.json();
-        results = data.results?.slice(0, 10) || [];
-      } catch (error) {
-        console.error('Final fallback failed:', error);
-        results = [];
+      
+      if (results.length === 0) {
+        try {
+          const response = await fetch(
+            `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&sort_by=popularity.desc&with_companies=1024`
+          );
+          const data = await response.json();
+          results = data.results || [];
+        } catch (error) {
+          console.error('Amazon Studios fallback failed:', error);
+        }
       }
+      
+      if (results.length === 0) {
+        try {
+          const response = await fetch(
+            `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&sort_by=popularity.desc&with_genres=28,18&vote_average.gte=7.0`
+          );
+          const data = await response.json();
+          results = data.results?.slice(0, 10) || [];
+        } catch (error) {
+          console.error('Final fallback failed:', error);
+          results = [];
+        }
+      }
+      
+      return { results: results.slice(0, 20) };
+    } catch (error) {
+      console.error('Error fetching Amazon Prime content:', error);
+      return { results: [] };
     }
-    
-    return { results: results.slice(0, 20) };
-  } catch (error) {
-    console.error('Error fetching Amazon Prime content:', error);
-    return { results: [] };
-  }
+  });
 };
 
 export const fetchContentDetails = async (id: string, type: 'movie' | 'tv') => {
-  try {
-    const extra = type === 'movie' ? 'release_dates' : 'content_ratings';
-    const response = await fetch(
-      `${TMDB_BASE_URL}/${type}/${id}?api_key=${TMDB_API_KEY}&append_to_response=images,videos,credits,similar,keywords,${extra}&language=en-US&include_image_language=en,null`
-    );
-    const data = await response.json();
+  const cacheKey = serializeCacheKey(['fetchContentDetails', id, type]);
 
-    if (type === 'tv' && isAnimeContent(data)) {
-      console.log(`[Anime Mapper] Detected anime: ${data.name}, applying AniList+TMDB mapping`);
-      
-      try {
-        const { getAnimeSeasonBreakdown, mapAniListToTmdb } = await import('./animeMapper');
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const extra = type === 'movie' ? 'release_dates' : 'content_ratings';
+      const response = await fetch(
+        `${TMDB_BASE_URL}/${type}/${id}?api_key=${TMDB_API_KEY}&append_to_response=images,videos,credits,similar,keywords,${extra}&language=en-US&include_image_language=en,null`
+      );
+      const data = await response.json();
 
-        const aniListSeasons = await getAnimeSeasonBreakdown(data.name || data.original_name);
+      if (type === 'tv' && isAnimeContent(data)) {
+        console.log(`[Anime Mapper] Detected anime: ${data.name}, applying AniList+TMDB mapping`);
         
-        if (aniListSeasons.length > 0) {
-          let allTmdbEpisodes: any[] = [];
+        try {
+          const { getAnimeSeasonBreakdown, mapAniListToTmdb } = await import('./animeMapper');
+
+          const aniListSeasons = await getAnimeSeasonBreakdown(data.name || data.original_name);
           
-          for (let seasonNum = 1; seasonNum <= 3; seasonNum++) {
+          if (aniListSeasons.length > 0) {
+            let allTmdbEpisodes: any[] = [];
+            
+            for (let seasonNum = 1; seasonNum <= 3; seasonNum++) {
+              try {
+                const seasonResponse = await fetch(
+                  `${TMDB_BASE_URL}/tv/${id}/season/${seasonNum}?api_key=${TMDB_API_KEY}&language=en-US`
+                );
+                const seasonData = await seasonResponse.json();
+                
+                if (seasonData.episodes && seasonData.episodes.length > 0) {
+                  allTmdbEpisodes = [...allTmdbEpisodes, ...seasonData.episodes];
+                  console.log(`[Anime Mapper] Found ${seasonData.episodes.length} episodes in TMDB Season ${seasonNum}`);
+                } else {
+                  break;
+                }
+              } catch (error) {
+                break; 
+              }
+            }
+            
+            console.log(`[Anime Mapper] Total TMDB episodes: ${allTmdbEpisodes.length}`);
+            
+            if (allTmdbEpisodes.length > 0) {
+              const mappedData = mapAniListToTmdb(aniListSeasons, allTmdbEpisodes, data);
+              
+              if (mappedData) {
+                console.log(`[Anime Mapper] Successfully mapped anime with ${mappedData.seasons.length} seasons`);
+                return mappedData;
+              }
+            }
+          }
+          
+          console.log(`[Anime Mapper] AniList mapping failed, falling back to original anime patch`);
+        } catch (error) {
+          console.error('[Anime Mapper] Error during anime mapping:', error);
+          console.log('[Anime Mapper] Falling back to original anime patch');
+        }
+        
+        data.seasons = (data.seasons || [])
+          .filter((s: any) => s.season_number > 0)
+          .map((s: any) => ({
+            id: s.id,
+            season_number: s.season_number,
+            episode_count: s.episode_count,
+            air_date: s.air_date,
+            name: s.name,
+            overview: s.overview,
+            poster_path: s.poster_path,
+          }));
+
+        data.total_episodes = data.seasons.reduce(
+          (sum: number, s: any) => sum + (s.episode_count || 0),
+          0
+        );
+        
+        data._source = "TMDB (fallback)";
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching content details:', error);
+      return null;
+    }
+  });
+};
+
+export const fetchGenres = async (type: 'movie' | 'tv') => {
+  const cacheKey = serializeCacheKey(['fetchGenres', type]);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const response = await fetch(
+        `${TMDB_BASE_URL}/genre/${type}/list?api_key=${TMDB_API_KEY}&language=en-US`
+      );
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching genres:', error);
+      return { genres: [] };
+    }
+  });
+};
+
+export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
+  const cacheKey = serializeCacheKey(['fetchSeasonDetails', id, seasonNumber]);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      if (seasonNumber === 0) return null;
+      
+      console.log(`[Season Details] Fetching season ${seasonNumber} for content ID: ${id}`);
+      
+      const showResponse = await fetch(
+        `${TMDB_BASE_URL}/tv/${id}?api_key=${TMDB_API_KEY}&append_to_response=keywords`
+      );
+      const showData = await showResponse.json();
+      
+      console.log(`[Season Details] Show data:`, {
+        name: showData.name,
+        origin_country: showData.origin_country,
+        genres: showData.genres?.map((g: any) => g.name),
+        isAnime: isAnimeContent(showData)
+      });
+      
+      if (isAnimeContent(showData)) {
+        console.log(`[Season Details] Anime detected: ${showData.name}`);
+
+        try {
+          const enhancedData = await fetchContentDetails(id, 'tv');
+          
+          if (enhancedData && enhancedData._source === "AniList+TMDB" && enhancedData.seasons) {
+            console.log(`[Season Details] Using AniList+TMDB mapped data`);
+
+            const season = enhancedData.seasons.find((s: any) => s.season_number === seasonNumber);
+            
+            if (season) {
+              console.log(`[Season Details] Found mapped season ${seasonNumber} with ${season.episodes.length} episodes`);
+              return season;
+            } else {
+              console.log(`[Season Details] Season ${seasonNumber} not found in mapped data`);
+              return { episodes: [] };
+            }
+          }
+          
+          console.log(`[Season Details] Enhanced data not available, falling back to legacy anime logic`);
+        } catch (error) {
+          console.error('[Season Details] Error getting enhanced data:', error);
+        }
+
+        const aniListData = await searchAniListAnime(showData.name || showData.original_name);
+
+        try {
+          let allEpisodes: any[] = [];
+          let totalTmdbEpisodes = 0;
+
+          for (let tmdbSeason = 1; tmdbSeason <= 3; tmdbSeason++) {
             try {
               const seasonResponse = await fetch(
-                `${TMDB_BASE_URL}/tv/${id}/season/${seasonNum}?api_key=${TMDB_API_KEY}&language=en-US`
+                `${TMDB_BASE_URL}/tv/${id}/season/${tmdbSeason}?api_key=${TMDB_API_KEY}&language=en-US`
               );
               const seasonData = await seasonResponse.json();
               
               if (seasonData.episodes && seasonData.episodes.length > 0) {
-                allTmdbEpisodes = [...allTmdbEpisodes, ...seasonData.episodes];
-                console.log(`[Anime Mapper] Found ${seasonData.episodes.length} episodes in TMDB Season ${seasonNum}`);
+                allEpisodes = [...allEpisodes, ...seasonData.episodes];
+                totalTmdbEpisodes += seasonData.episodes.length;
+                console.log(`[Season Details] TMDB Season ${tmdbSeason}: ${seasonData.episodes.length} episodes`);
               } else {
                 break;
               }
             } catch (error) {
-              break; 
-            }
-          }
-          
-          console.log(`[Anime Mapper] Total TMDB episodes: ${allTmdbEpisodes.length}`);
-          
-          if (allTmdbEpisodes.length > 0) {
-            const mappedData = mapAniListToTmdb(aniListSeasons, allTmdbEpisodes, data);
-            
-            if (mappedData) {
-              console.log(`[Anime Mapper] Successfully mapped anime with ${mappedData.seasons.length} seasons`);
-              return mappedData;
-            }
-          }
-        }
-        
-        console.log(`[Anime Mapper] AniList mapping failed, falling back to original anime patch`);
-      } catch (error) {
-        console.error('[Anime Mapper] Error during anime mapping:', error);
-        console.log('[Anime Mapper] Falling back to original anime patch');
-      }
-      
-      data.seasons = (data.seasons || [])
-        .filter((s: any) => s.season_number > 0)
-        .map((s: any) => ({
-          id: s.id,
-          season_number: s.season_number,
-          episode_count: s.episode_count,
-          air_date: s.air_date,
-          name: s.name,
-          overview: s.overview,
-          poster_path: s.poster_path,
-        }));
-
-      data.total_episodes = data.seasons.reduce(
-        (sum: number, s: any) => sum + (s.episode_count || 0),
-        0
-      );
-      
-      data._source = "TMDB (fallback)";
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error fetching content details:', error);
-    return null;
-  }
-};
-
-export const fetchGenres = async (type: 'movie' | 'tv') => {
-  try {
-    const response = await fetch(
-      `${TMDB_BASE_URL}/genre/${type}/list?api_key=${TMDB_API_KEY}&language=en-US`
-    );
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching genres:', error);
-    return { genres: [] };
-  }
-};
-
-export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
-  try {
-    if (seasonNumber === 0) return null;
-    
-    console.log(`[Season Details] Fetching season ${seasonNumber} for content ID: ${id}`);
-    
-    const showResponse = await fetch(
-      `${TMDB_BASE_URL}/tv/${id}?api_key=${TMDB_API_KEY}&append_to_response=keywords`
-    );
-    const showData = await showResponse.json();
-    
-    console.log(`[Season Details] Show data:`, {
-      name: showData.name,
-      origin_country: showData.origin_country,
-      genres: showData.genres?.map((g: any) => g.name),
-      isAnime: isAnimeContent(showData)
-    });
-    
-    if (isAnimeContent(showData)) {
-      console.log(`[Season Details] Anime detected: ${showData.name}`);
-
-      try {
-        const enhancedData = await fetchContentDetails(id, 'tv');
-        
-        if (enhancedData && enhancedData._source === "AniList+TMDB" && enhancedData.seasons) {
-          console.log(`[Season Details] Using AniList+TMDB mapped data`);
-
-          const season = enhancedData.seasons.find((s: any) => s.season_number === seasonNumber);
-          
-          if (season) {
-            console.log(`[Season Details] Found mapped season ${seasonNumber} with ${season.episodes.length} episodes`);
-            return season;
-          } else {
-            console.log(`[Season Details] Season ${seasonNumber} not found in mapped data`);
-            return { episodes: [] };
-          }
-        }
-        
-        console.log(`[Season Details] Enhanced data not available, falling back to legacy anime logic`);
-      } catch (error) {
-        console.error('[Season Details] Error getting enhanced data:', error);
-      }
-
-      const aniListData = await searchAniListAnime(showData.name || showData.original_name);
-
-      try {
-        let allEpisodes: any[] = [];
-        let totalTmdbEpisodes = 0;
-
-        for (let tmdbSeason = 1; tmdbSeason <= 3; tmdbSeason++) {
-          try {
-            const seasonResponse = await fetch(
-              `${TMDB_BASE_URL}/tv/${id}/season/${tmdbSeason}?api_key=${TMDB_API_KEY}&language=en-US`
-            );
-            const seasonData = await seasonResponse.json();
-            
-            if (seasonData.episodes && seasonData.episodes.length > 0) {
-              allEpisodes = [...allEpisodes, ...seasonData.episodes];
-              totalTmdbEpisodes += seasonData.episodes.length;
-              console.log(`[Season Details] TMDB Season ${tmdbSeason}: ${seasonData.episodes.length} episodes`);
-            } else {
               break;
             }
-          } catch (error) {
-            break;
-          }
-        }
-        
-        console.log(`[Season Details] Total TMDB episodes across all seasons: ${totalTmdbEpisodes}`);
-        
-        if (allEpisodes.length > 0) {
-          let totalEpisodes = totalTmdbEpisodes;
-          let episodeSource = 'TMDB';
-          
-          if (aniListData && aniListData.episodes && aniListData.episodes > totalTmdbEpisodes) {
-            totalEpisodes = aniListData.episodes;
-            episodeSource = 'AniList';
           }
           
-          console.log(`[Season Details] Using ${episodeSource} episode count: ${totalEpisodes}`);
+          console.log(`[Season Details] Total TMDB episodes across all seasons: ${totalTmdbEpisodes}`);
           
-          let episodesPerSeason;
-          let totalSeasons;
-          
-          if (totalEpisodes <= 12) {
-            episodesPerSeason = totalEpisodes;
-            totalSeasons = 1;
-          } else if (totalEpisodes <= 26) {
-            episodesPerSeason = Math.ceil(totalEpisodes / 2);
-            totalSeasons = 2;
-          } else if (totalEpisodes <= 50) {
-            episodesPerSeason = 24;
-            totalSeasons = Math.ceil(totalEpisodes / 24);
-          } else {
-            episodesPerSeason = 12;
-            totalSeasons = Math.ceil(totalEpisodes / 12);
-          }
-          
-          console.log(`[Season Details] Smart episode distribution:`, {
-            totalEpisodes,
-            totalSeasons,
-            episodesPerSeason,
-            source: episodeSource
-          });
-          
-          const seasonStartIndex = (seasonNumber - 1) * episodesPerSeason;
-          const seasonEndIndex = Math.min(seasonStartIndex + episodesPerSeason, totalEpisodes);
-          
-
-          if (seasonStartIndex < totalEpisodes) {
-            const seasonEpisodes = allEpisodes.slice(seasonStartIndex, seasonEndIndex);
+          if (allEpisodes.length > 0) {
+            let totalEpisodes = totalTmdbEpisodes;
+            let episodeSource = 'TMDB';
             
-            console.log(`[Season Details] Season ${seasonNumber} episodes:`, {
-              startIndex: seasonStartIndex,
-              endIndex: seasonEndIndex,
-              episodeCount: seasonEpisodes.length
+            if (aniListData && aniListData.episodes && aniListData.episodes > totalTmdbEpisodes) {
+              totalEpisodes = aniListData.episodes;
+              episodeSource = 'AniList';
+            }
+            
+            console.log(`[Season Details] Using ${episodeSource} episode count: ${totalEpisodes}`);
+            
+            let episodesPerSeason;
+            let totalSeasons;
+            
+            if (totalEpisodes <= 12) {
+              episodesPerSeason = totalEpisodes;
+              totalSeasons = 1;
+            } else if (totalEpisodes <= 26) {
+              episodesPerSeason = Math.ceil(totalEpisodes / 2);
+              totalSeasons = 2;
+            } else if (totalEpisodes <= 50) {
+              episodesPerSeason = 24;
+              totalSeasons = Math.ceil(totalEpisodes / 24);
+            } else {
+              episodesPerSeason = 12;
+              totalSeasons = Math.ceil(totalEpisodes / 12);
+            }
+            
+            console.log(`[Season Details] Smart episode distribution:`, {
+              totalEpisodes,
+              totalSeasons,
+              episodesPerSeason,
+              source: episodeSource
             });
             
-            if (seasonEpisodes.length > 0) {
-              const episodes = seasonEpisodes.map((episode: any, index: number) => ({
-                ...episode,
-                episode_number: index + 1,
-                season_number: seasonNumber,
-                original_episode_number: episode.episode_number
-              }));
+            const seasonStartIndex = (seasonNumber - 1) * episodesPerSeason;
+            const seasonEndIndex = Math.min(seasonStartIndex + episodesPerSeason, totalEpisodes);
+            
+
+            if (seasonStartIndex < totalEpisodes) {
+              const seasonEpisodes = allEpisodes.slice(seasonStartIndex, seasonEndIndex);
               
-              console.log(`[Season Details] Generated ${episodes.length} episodes for season ${seasonNumber}`);
+              console.log(`[Season Details] Season ${seasonNumber} episodes:`, {
+                startIndex: seasonStartIndex,
+                endIndex: seasonEndIndex,
+                episodeCount: seasonEpisodes.length
+              });
               
-              return {
-                id: `season-${seasonNumber}`,
-                season_number: seasonNumber,
-                name: `Season ${seasonNumber}`,
-                episodes,
-                _anime_enhanced: true
-              };
+              if (seasonEpisodes.length > 0) {
+                const episodes = seasonEpisodes.map((episode: any, index: number) => ({
+                  ...episode,
+                  episode_number: index + 1,
+                  season_number: seasonNumber,
+                  original_episode_number: episode.episode_number
+                }));
+                
+                console.log(`[Season Details] Generated ${episodes.length} episodes for season ${seasonNumber}`);
+                
+                return {
+                  id: `season-${seasonNumber}`,
+                  season_number: seasonNumber,
+                  name: `Season ${seasonNumber}`,
+                  episodes,
+                  _anime_enhanced: true
+                };
+              }
+            } else {
+              console.log(`[Season Details] Season ${seasonNumber} does not exist (only ${totalSeasons} seasons)`);
+              return { episodes: [] };
             }
-          } else {
-            console.log(`[Season Details] Season ${seasonNumber} does not exist (only ${totalSeasons} seasons)`);
-            return { episodes: [] };
           }
+        } catch (error) {
+          console.error(`[Season Details] Error fetching TMDB seasons:`, error);
         }
-      } catch (error) {
-        console.error(`[Season Details] Error fetching TMDB seasons:`, error);
+      } else {
+        console.log(`[Season Details] Not anime content, using regular TMDB fetch`);
       }
-    } else {
-      console.log(`[Season Details] Not anime content, using regular TMDB fetch`);
+      
+      console.log(`[Season Details] Falling back to regular TMDB season ${seasonNumber}`);
+      const response = await fetch(
+        `${TMDB_BASE_URL}/tv/${id}/season/${seasonNumber}?api_key=${TMDB_API_KEY}&language=en-US`
+      );
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching season details:', error);
+      return { episodes: [] };
     }
-    
-    console.log(`[Season Details] Falling back to regular TMDB season ${seasonNumber}`);
-    const response = await fetch(
-      `${TMDB_BASE_URL}/tv/${id}/season/${seasonNumber}?api_key=${TMDB_API_KEY}&language=en-US`
-    );
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching season details:', error);
-    return { episodes: [] };
-  }
+  });
 };
 
 export const fetchSportsMatches = async () => {
-  try {
-    const response = await fetch('https://streamed.su/api/matches');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching sports matches:', error);
-    return [];
-  }
+  const cacheKey = serializeCacheKey(['fetchSportsMatches']);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const response = await fetch('https://streamed.su/api/matches');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching sports matches:', error);
+      return [];
+    }
+  }, 2 * 60 * 1000);
 };
 
 // Utility functions
