@@ -44,8 +44,8 @@ function VidstackPlayer({ data, sources, skiptimes, epid, thumbnails, subtitles,
     const [edbutton, setedbutton] = useState(false);
     const [autoSkip, setAutoSkip] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
-    let interval;
-    let autoNext = true
+    const intervalRef = useRef(null);
+    const autoNextRef = useRef(true);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -57,19 +57,6 @@ function VidstackPlayer({ data, sources, skiptimes, epid, thumbnails, subtitles,
     }, []);
 
     useEffect(() => {
-        // if (subtitles && subtitles.length > 0) {
-        //     const track = new TextTrack({
-        //         kind: 'subtitles',
-        //         default: true,
-        //         label: 'English',
-        //         language: 'en-US',
-        //         type: 'vtt',
-        //         src: subtitles[0]?.url || ''
-        //     });
-
-        //     playerRef.current.textTracks.add(track);
-        // }
-
         playerRef.current?.subscribe(({ currentTime, duration }) => {
 
             if (skiptimes && skiptimes.length > 0) {
@@ -88,12 +75,12 @@ function VidstackPlayer({ data, sources, skiptimes, epid, thumbnails, subtitles,
                 if (autoSkip) {
                     if (currentTime > opStart && currentTime < opEnd) {
                         console.log("Skipping OP...");
-                        Object.assign(playerRef.current ?? {}, { currentTime: opEnd });
+                        remote.seek(opEnd);
                         return null;
                     }
                     if (currentTime > epStart && currentTime < epEnd) {
                         console.log("Skipping EP...");
-                        Object.assign(playerRef.current ?? {}, { currentTime: epEnd });
+                        remote.seek(epEnd);
                         return null;
                     }
                 }
@@ -120,15 +107,14 @@ function VidstackPlayer({ data, sources, skiptimes, epid, thumbnails, subtitles,
     }
 
     function onEnd() {
-        if (autoNext) {
+        if (autoNextRef.current) {
             getNextEpisode();
         }
-        // console.log("End")
         setIsPlaying(false);
     }
 
     function onEnded() {
-        if (autoNext) {
+        if (autoNextRef.current) {
             getNextEpisode();
         }
     }
@@ -145,7 +131,7 @@ function VidstackPlayer({ data, sources, skiptimes, epid, thumbnails, subtitles,
 
     useEffect(() => {
         if (isPlaying) {
-            interval = setInterval(async () => {
+            intervalRef.current = setInterval(async () => {
                 const currentTime = playerRef.current?.currentTime
                     ? Math.round(playerRef.current?.currentTime)
                     : 0;
@@ -176,11 +162,11 @@ function VidstackPlayer({ data, sources, skiptimes, epid, thumbnails, subtitles,
                 });
             }, 5000);
         } else {
-            clearInterval(interval);
+            clearInterval(intervalRef.current);
         }
 
         return () => {
-            clearInterval(interval);
+            clearInterval(intervalRef.current);
         };
     }, [isPlaying, duration]);
 
@@ -211,12 +197,12 @@ function VidstackPlayer({ data, sources, skiptimes, epid, thumbnails, subtitles,
 
     function handleop() {
         console.log("Skipping OP...");
-        Object.assign(playerRef.current ?? {}, { currentTime: skiptimes[0]?.endTime ?? 0 });
+        remote.seek(skiptimes[0]?.endTime ?? 0);
     }
 
     function handleed() {
         console.log("Skipping ED...");
-        Object.assign(playerRef.current ?? {}, { currentTime: skiptimes[1]?.endTime ?? 0 });
+        remote.seek(skiptimes[1]?.endTime ?? 0);
     }
 
     return (

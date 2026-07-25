@@ -86,7 +86,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
   const truncateOverview = (text: string, maxLength: number = 200) => {
     if (!text || typeof text !== 'string') return '';
     if (text.length <= maxLength) return text;
-    return text.substr(0, maxLength) + '...';
+    return text.slice(0, maxLength) + '...';
   };
 
   const handleWatchNow = () => {

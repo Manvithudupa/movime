@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 
 // Simplified PlayerEpisodeList for FlixHQ movie/TV integration
 // This component is used by PlayerComponent but for FlixHQ we don't need complex episode management
-function PlayerEpisodeList({ data, setwatchepdata, epnum }) {
+function PlayerEpisodeList({ data, setwatchepdata, epnum, onprovider, initialProvider }) {
     useEffect(() => {
         // Set basic episode data structure for FlixHQ
         if (data && data.type === 'TV' && data.providerEpisodes) {

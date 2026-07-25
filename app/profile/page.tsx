@@ -57,7 +57,7 @@ export default function ProfilePage() {
   };
 
   const handleViewChange = (view: string) => {
-    window.location.href = `/?view=${view}`;
+    router.push(`/?view=${view}`);
   };
 
   // Fetch user profile

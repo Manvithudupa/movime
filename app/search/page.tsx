@@ -170,7 +170,7 @@ export default function SearchPage() {
           if (view === 'home') {
             router.push('/');
           } else if (view === 'livesports') {
-            window.location.href = '/livesports';
+            router.push('/livesports');
           } else {
             router.push(`/?view=${view}`);
           }

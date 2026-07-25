@@ -49,16 +49,6 @@ export const availableSources = [
         }
     },
     {
-        id: 'GoDrive',
-        name: 'GoDrive',
-        isFrench: false,
-        requiresNoSandbox: true,
-        urls: {
-            movie: 'https://godriveplayer.com/player.php?tmdb={id}',
-            tv: 'https://godriveplayer.com/player.php?type=series&tmdb={id}&season={season}&episode={episode}'
-        }
-    },
-    {
         id: 'AutoEmbed',
         name: 'AutoEmbed',
         isFrench: false,
@@ -66,36 +56,6 @@ export const availableSources = [
         urls: {
             movie: 'https://autoembed.co/movie/tmdb/{id}',
             tv: 'https://autoembed.co/tv/tmdb/{id}-{season}-{episode}'
-        }
-    },
-    {
-        id: 'pstream',
-        name: 'P-Stream',
-        isFrench: false,
-        requiresNoSandbox: false,
-        urls: {
-            movie: 'https://iframe.pstream.org/embed/tmdb-movie-{id}',
-            tv: 'https://iframe.pstream.org/embed/tmdb-tv-{id}/{season}/{episode}'
-        }
-    },
-    
-    {
-        id: 'embedsu',
-        name: 'EmbedSU',
-        isFrench: false,
-        requiresNoSandbox: true,
-        urls: {
-            movie: 'https://embed.su/embed/movie/{id}',
-            tv: 'https://embed.su/embed/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'hexa',
-        name: 'Hexa',
-        isFrench: false,
-        urls: {
-            movie: 'https://api.hexa.su/movie/{id}',
-            tv: 'https://api.hexa.su/tv/{id}/{season}/{episode}'
         }
     },
     {
@@ -139,23 +99,13 @@ export const availableSources = [
         }
     },
     {
-        id: 'smashystream',
-        name: 'SmashyStream',
-        isFrench: false,
-        requiresNoSandbox: true,
-        urls: {
-            movie: 'https://embed.smashystream.com/playere.php?tmdb={id}',
-            tv: 'https://embed.smashystream.com/playere.php?tmdb={id}&season={season}&episode={episode}'
-        }
-    },
-    {
         id: 'videasy',
         name: 'VidEasy (4K)',
         isFrench: false,
         requiresNoSandbox: true,
         urls: {
-            movie: 'https://player.videasy.net/movie/{id}?color=8834ec',
-            tv: 'https://player.videasy.net/tv/{id}/{season}/{episode}?color=8834ec'
+            movie: 'https://player.videasy.to/movie/{id}?color=8834ec',
+            tv: 'https://player.videasy.to/tv/{id}/{season}/{episode}?color=8834ec'
         }
     },
     {
@@ -164,38 +114,48 @@ export const availableSources = [
         isFrench: false,
         requiresNoSandbox: true,
         urls: {
-            movie: 'https://vidfast.pro/movie/{id}',
-            tv: 'https://vidfast.pro/tv/{id}/{season}/{episode}'
+            movie: 'https://vidfast.vc/movie/{id}',
+            tv: 'https://vidfast.vc/tv/{id}/{season}/{episode}'
         }
     },
     {
-        id: 'vidify',
-        name: 'Vidify',
+        id: 'vidsrcsbs',
+        name: 'VidSrcSBS',
         isFrench: false,
         requiresNoSandbox: true,
         urls: {
-            movie: 'https://vidify.top/embed/movie/{id}',
-            tv: 'https://vidify.top/embed/tv/{id}/{season}/{episode}'
+            movie: 'https://vidsrc.sbs/embed/movie/{id}',
+            tv: 'https://vidsrc.sbs/embed/tv/{id}/{season}/{episode}'
         }
     },
     {
-        id: 'vidora',
-        name: 'Vidora',
+        id: 'vidsrcrip',
+        name: 'VidSrcRIP',
         isFrench: false,
         requiresNoSandbox: true,
         urls: {
-            movie: 'https://vidora.su/movie/{id}',
-            tv: 'https://vidora.su/tv/{id}/{season}/{episode}'
+            movie: 'https://vidsrc.rip/embed/movie/{id}',
+            tv: 'https://vidsrc.rip/embed/tv/{id}/{season}/{episode}'
         }
     },
     {
-        id: 'vidsrccc',
-        name: 'VidSrcCC',
+        id: 'vidsrcpm',
+        name: 'VidSrcPM',
         isFrench: false,
         requiresNoSandbox: true,
         urls: {
-            movie: 'https://vidsrc.cc/v2/embed/movie/{id}?autoPlay=false',
-            tv: 'https://vidsrc.cc/v2/embed/tv/{id}/{season}/{episode}?autoPlay=false'
+            movie: 'https://vidsrc.pm/embed/movie/{id}',
+            tv: 'https://vidsrc.pm/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'viduki',
+        name: 'Viduki',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://viduki.net/embed/movie/{id}',
+            tv: 'https://viduki.net/embed/tv/{id}/{season}/{episode}'
         }
     },
     {
@@ -207,7 +167,6 @@ export const availableSources = [
             tv: 'https://watch.streamflix.one/tv/{id}/watch?server=1&season={season}&episode={episode}'
         }
     },
-
     {
         id: 'vidjoy',
         name: 'VidJoy',
@@ -227,32 +186,5 @@ export const availableSources = [
             movie: 'https://player.vidzee.wtf/embed/movie/{id}',
             tv: 'https://player.vidzee.wtf/embed/tv/{id}/{season}/{episode}'
         }
-    },
-    {
-        id: 'spenflix',
-        name: 'Spenflix',
-        isFrench: false,
-        urls: {
-            movie: 'https://spencerdevs.xyz/movie/{id}',
-            tv: 'https://spencerdevs.xyz/tv/{id}/{season}/{episode}'
-       }
-    },
-    {
-        id: 'frembed',
-        name: 'Frembed',
-        isFrench: true,
-        urls: {
-            movie: 'https://frembed.cc/api/film.php?id={id}',
-            tv: 'https://frembed.cc/api/serie.php?id={id}&sa={season}&epi={episode}'
-        }
     }
-    // {
-    //     id: 'uembed',
-    //     name: 'UEmbed (premium)',
-    //     isFrench: false,
-    //     urls: {
-    //         movie: 'https://uembed.site/?id={id}&apikey=thisisforsurenotapremiumkey_right?',
-    //         tv: 'https://uembed.site/?id={id}&season={season}&episode={episode}&apikey=thisisforsurenotapremiumkey_right?'
-    //     }
-    // }
 ];

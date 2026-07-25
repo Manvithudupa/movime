@@ -233,7 +233,7 @@ function DetailsPageContent() {
           searchQuery={searchQuery}
           watchLaterCount={watchLaterCount}
           onViewChange={() => {}}
-          onSearchToggle={() => { window.location.href = '/search'; }}
+          onSearchToggle={() => { router.push('/search'); }}
           onSearchChange={() => {}}
         />
         <div className="pt-24 flex items-center justify-center min-h-screen">
@@ -252,7 +252,7 @@ function DetailsPageContent() {
           searchQuery={searchQuery}
           watchLaterCount={watchLaterCount}
           onViewChange={() => {}}
-          onSearchToggle={() => { window.location.href = '/search'; }}
+          onSearchToggle={() => { router.push('/search'); }}
           onSearchChange={() => {}}
         />
         <div className="pt-24 flex items-center justify-center min-h-screen">
@@ -279,7 +279,7 @@ function DetailsPageContent() {
         searchQuery={searchQuery}
         watchLaterCount={watchLaterCount}
         onViewChange={() => {}}
-        onSearchToggle={() => { window.location.href = '/search'; }}
+        onSearchToggle={() => { router.push('/search'); }}
         onSearchChange={() => {}}
       />
 
