@@ -158,29 +158,31 @@ This document catalogs every technology, tool, library, and skill used in the Mo
 
 ## 🔌 Streaming Sources (lib/sources.ts)
 
-**19 embed providers** across multiple categories:
+**21 embed providers** — all confirmed HTTP 200 for movie and TV embed paths:
 
-| Source | Type | Sandbox | Verified |
-|--------|------|---------|----------|
-| CinemaOS | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
-| VidNest | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
-| MappleTV | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
-| SuperEmbed | Movie/TV | Requires NoSandbox | ⚠️ 403 (browser may work) |
-| RiveStream | Movie/TV | None | ✅ HTTP 200 |
-| AutoEmbed | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
-| VidLink | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
-| VidSrcSU | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
-| 2Embed | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
-| 123Embed | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
-| VidEasy (4K) | Movie/TV | Requires NoSandbox | ✅ HTTP 200 (redirected to .to) |
-| VidFast (4K) | Movie/TV | Requires NoSandbox | ✅ HTTP 200 (redirected to .vc) |
-| VidSrcSBS | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
-| VidSrcRIP | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
-| VidSrcPM | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
-| Viduki | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
-| StreamFlix | Movie/TV | None | ⚠️ 429 (rate limited) |
-| VidJoy | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
-| VidZee | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| Source | Domain | Type | Sandbox | Verified |
+|--------|--------|------|---------|----------|
+| CinemaOS | cinemaos.tech | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidNest | vidnest.fun | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| MappleTV | mapple.rip | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| RiveStream | rivestream.ru | Movie/TV | None | ✅ HTTP 200 |
+| AutoEmbed | autoembed.co | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidLink | vidlink.pro | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidSrcSU | vidsrc.su | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| 2Embed | www.2embed.cc | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| 123Embed | play2.123embed.net | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidEasy (4K) | player.videasy.to | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidFast (4K) | vidfast.vc | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidSrcSBS | vidsrc.sbs | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidSrcRIP | vidsrc.rip | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidSrcPM | vidsrc.pm | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidSrcME | vidsrcme.ru | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidSrcNL | vidsrc.nl | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidSrcDEV | vidsrc.dev | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| Flicky | flicky.host | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidStreaming | vidstreaming.io | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidStreamPro | vidstream.pro | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
+| VidZee | player.vidzee.wtf | Movie/TV | Requires NoSandbox | ✅ HTTP 200 |
 
 ### Anime Streaming Providers (server-side)
 

@@ -8,7 +8,7 @@
 
 ## ✨ Features
 
-- **🎥 Multi-Source Streaming** — Watch content from 19 embed providers with automatic fallback
+- **🎥 Multi-Source Streaming** — Watch content from 21 embed providers with automatic fallback
 - **📺 TV Shows & Seasons** — Browse episodes with season selectors and episode detail cards
 - **🐱 Anime Integration** — Dedicated anime section with AniList+TMDB cross-referencing for accurate season/episode mapping
 - **🔍 Smart Search** — Full-text search with relevance scoring, year filtering, and adult content filtering
@@ -71,7 +71,7 @@
 
 ### Streaming Providers (iframe embed)
 
-The platform aggregates from **19 tested embed providers** including VidLink, AutoEmbed, VidSrcSU, VidSrcSBS, VidSrcRIP, VidSrcPM, Viduki, 2Embed, 123Embed, VidEasy, VidFast, CinemaOS, VidNest, MappleTV, SuperEmbed, RiveStream, StreamFlix, VidJoy, and VidZee.
+The platform aggregates from **21 tested embed providers** including VidLink, AutoEmbed, VidSrcSU, VidSrcSBS, VidSrcRIP, VidSrcPM, VidSrcME, VidSrcNL, VidSrcDEV, Flicky, VidStreaming, VidStreamPro, 2Embed, 123Embed, VidEasy, VidFast, CinemaOS, VidNest, MappleTV, RiveStream, and VidZee.
 
 ### Anime Streaming (server actions)
 

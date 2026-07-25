@@ -6,7 +6,7 @@ export const availableSources = [
         requiresNoSandbox: true,
         urls: {
             movie: 'https://cinemaos.tech/movie/watch/{id}',
-            tv: 'https://cinemaos.tech/tv/watch/{id}/{season}/{episode}'
+            tv: 'https://cinemaos.tech/tv/watch/{id}?season={season}&episode={episode}'
         }
     },
     {
@@ -27,16 +27,6 @@ export const availableSources = [
         urls: {
             movie: 'https://mapple.rip/watch/movie/{id}?autoPlay=true&theme=#9900ff',
             tv: 'https://mapple.rip/watch/tv/{id}-{season}-{episode}?nextButton=true&autoPlay=true&theme=#9900ff'
-        }
-    },
-    {
-        id: 'SuperEmbed',
-        name: 'SuperEmbed',
-        isFrench: false,
-        requiresNoSandbox: true,
-        urls: {
-            movie: 'https://multiembed.mov/directstream.php?video_id={id}&tmdb=1',
-            tv: 'https://multiembed.mov/directstream.php?video_id={id}&tmdb=1&s={season}&e={episode}'
         }
     },
     {
@@ -149,32 +139,63 @@ export const availableSources = [
         }
     },
     {
-        id: 'viduki',
-        name: 'Viduki',
+        id: 'vidsrcme',
+        name: 'VidSrcME',
         isFrench: false,
         requiresNoSandbox: true,
         urls: {
-            movie: 'https://viduki.net/embed/movie/{id}',
-            tv: 'https://viduki.net/embed/tv/{id}/{season}/{episode}'
+            movie: 'https://vidsrcme.ru/embed/movie/{id}',
+            tv: 'https://vidsrcme.ru/embed/tv/{id}/{season}/{episode}'
         }
     },
     {
-        id: 'streamflix',
-        name: 'StreamFlix',
-        isFrench: false,
-        urls: {
-            movie: 'https://watch.streamflix.one/movie/{id}/watch?server=1',
-            tv: 'https://watch.streamflix.one/tv/{id}/watch?server=1&season={season}&episode={episode}'
-        }
-    },
-    {
-        id: 'vidjoy',
-        name: 'VidJoy',
+        id: 'vidsrcnl',
+        name: 'VidSrcNL',
         isFrench: false,
         requiresNoSandbox: true,
         urls: {
-            movie: 'https://vidjoy.pro/embed/movie/{id}',
-            tv: 'https://vidjoy.pro/embed/tv/{id}/{season}/{episode}'
+            movie: 'https://vidsrc.nl/embed/movie/{id}',
+            tv: 'https://vidsrc.nl/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidsrcdev',
+        name: 'VidSrcDEV',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidsrc.dev/embed/movie/{id}',
+            tv: 'https://vidsrc.dev/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'flicky',
+        name: 'Flicky',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://flicky.host/embed/movie/{id}',
+            tv: 'https://flicky.host/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidstreaming',
+        name: 'VidStreaming',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidstreaming.io/embed/movie/{id}',
+            tv: 'https://vidstreaming.io/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidstreampro',
+        name: 'VidStreamPro',
+        isFrench: false,
+        requiresNoSandbox: true,
+        urls: {
+            movie: 'https://vidstream.pro/embed/movie/{id}',
+            tv: 'https://vidstream.pro/embed/tv/{id}/{season}/{episode}'
         }
     },
     {
