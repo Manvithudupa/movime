@@ -5,9 +5,27 @@ export const TMDB_API_KEY = '1070730380f5fee0d87cf0382670b255';
 export const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 export const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
-const API_CACHE_TTL_MS = 10 * 60 * 1000;
-const API_CACHE_STORAGE_KEY = 'movime_api_cache_v1';
+const API_CACHE_TTL_MS = 10 * 60 * 1000;        // 10 min default
+const API_CACHE_STORAGE_KEY = 'movime_api_cache_v2';
 const apiMemoryCache = new Map<string, { expiresAt: number; value: any }>();
+
+// In-flight request deduplication: prevents duplicate requests for the same key
+const inflightRequests = new Map<string, Promise<any>>();
+
+let storageCleanupDone = false;
+function cleanupOldCacheFormat() {
+  if (typeof window === 'undefined' || storageCleanupDone) return;
+  storageCleanupDone = true;
+  try {
+    // Remove old cache format keys
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key && key.startsWith('movime_api_cache_v1')) {
+        window.localStorage.removeItem(key);
+      }
+    }
+  } catch {}
+}
 
 const serializeCacheKey = (parts: unknown[]) =>
   parts.map(part => (typeof part === 'string' ? part : JSON.stringify(part))).join('::');
@@ -51,6 +69,7 @@ const setCachedApiValue = (key: string, value: any, ttlMs = API_CACHE_TTL_MS) =>
 
   if (typeof window !== 'undefined') {
     try {
+      cleanupOldCacheFormat();
       window.localStorage.setItem(
         `${API_CACHE_STORAGE_KEY}:${key}`,
         JSON.stringify({ expiresAt, value })
@@ -61,15 +80,39 @@ const setCachedApiValue = (key: string, value: any, ttlMs = API_CACHE_TTL_MS) =>
   }
 };
 
+/**
+ * Cached API request with:
+ * - In-memory cache (fastest)
+ * - localStorage persistence (survives page refreshes)
+ * - Request deduplication (prevents duplicate in-flight requests)
+ * - Configurable TTL
+ */
 const cachedApiRequest = async <T>(key: string, request: () => Promise<T>, ttlMs = API_CACHE_TTL_MS): Promise<T> => {
+  cleanupOldCacheFormat();
+
+  // 1. Check cache
   const cachedValue = getCachedApiValue<T>(key);
   if (cachedValue !== undefined) {
     return cachedValue;
   }
 
-  const data = await request();
-  setCachedApiValue(key, data, ttlMs);
-  return data;
+  // 2. Deduplicate in-flight requests
+  if (inflightRequests.has(key)) {
+    return inflightRequests.get(key) as Promise<T>;
+  }
+
+  // 3. Fetch with dedup tracking
+  const promise = request().then(data => {
+    setCachedApiValue(key, data, ttlMs);
+    inflightRequests.delete(key);
+    return data;
+  }).catch(err => {
+    inflightRequests.delete(key);
+    throw err;
+  });
+
+  inflightRequests.set(key, promise);
+  return promise;
 };
 
 // AniList API configuration

@@ -31,6 +31,7 @@ export default function Navbar({
 }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, profile, isLoading, isSignedIn, signOut } = useAuth();
   const router = useRouter();
 
@@ -41,6 +42,23 @@ export default function Navbar({
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [currentView]);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
 
   const pathname = usePathname();
   const isAuthPage = pathname.startsWith('/auth');
@@ -157,6 +175,29 @@ export default function Navbar({
               </Link>
             </nav>
           </div>
+
+          {/* Mobile Hamburger */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="lg:hidden p-2 hover:bg-white/10 rounded-full transition-all duration-100 group relative z-50"
+            title={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          >
+            <div className="w-5 h-5 flex flex-col items-center justify-center gap-1">
+              <motion.span 
+                className="block w-5 h-[2px] bg-white rounded-full origin-center transition-all duration-200"
+                animate={isMobileMenuOpen ? { rotate: 45, y: 4.5 } : { rotate: 0, y: 0 }}
+              />
+              <motion.span 
+                className="block w-5 h-[2px] bg-white rounded-full transition-all duration-200"
+                animate={isMobileMenuOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
+              />
+              <motion.span 
+                className="block w-5 h-[2px] bg-white rounded-full origin-center transition-all duration-200"
+                animate={isMobileMenuOpen ? { rotate: -45, y: -4.5 } : { rotate: 0, y: 0 }}
+              />
+            </div>
+          </button>
 
           {/* Right side icons & user */}
           <div className="flex items-center space-x-5">
@@ -278,6 +319,102 @@ export default function Navbar({
           </div>
         </div>
       </div>
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            {/* Menu Panel */}
+            <motion.div
+              initial={{ opacity: 0, y: -20, scaleY: 0.95 }}
+              animate={{ opacity: 1, y: 0, scaleY: 1 }}
+              exit={{ opacity: 0, y: -20, scaleY: 0.95 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="fixed top-0 left-0 right-0 z-40 pt-20 pb-6 lg:hidden"
+              style={{ originY: 'top' }}
+            >
+              <div className="mx-4 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+                <nav className="py-3 px-2">
+                  {[
+                    { view: 'home', label: 'Home', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+                    { view: 'movies', label: 'Movies', icon: 'M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z' },
+                    { view: 'tv', label: 'TV Shows', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+                    { view: 'anime', label: 'Anime', icon: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z' },
+                  ].map((item, index) => {
+                    const active = currentView === item.view;
+                    return (
+                      <motion.button
+                        key={item.view}
+                        onClick={() => {
+                          onViewChange(item.view);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.15, delay: index * 0.04 }}
+                        className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                          active
+                            ? 'bg-white/10 text-white shadow-sm'
+                            : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                        }`}
+                      >
+                        <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                        </svg>
+                        <span>{item.label}</span>
+                        {active && (
+                          <motion.span
+                            layoutId="mobileNavIndicator"
+                            className="ml-auto w-1.5 h-1.5 rounded-full bg-white"
+                          />
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                  
+                  {/* Divider */}
+                  <div className="my-2 mx-4 border-t border-white/5" />
+                  
+                  {/* My List Link */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.15, delay: 0.2 }}
+                  >
+                    <Link
+                      href="/watchlist"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-4 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                        currentView === 'watchlist'
+                          ? 'bg-white/10 text-white shadow-sm'
+                          : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                      }`}
+                    >
+                      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      </svg>
+                      <span>My List</span>
+                      {watchLaterCount > 0 && (
+                        <span className="ml-auto bg-white/15 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                          {watchLaterCount}
+                        </span>
+                      )}
+                    </Link>
+                  </motion.div>
+                </nav>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 }

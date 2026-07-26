@@ -209,8 +209,8 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
 
   return (
     <motion.div 
-      className="relative h-screen md:h-screen bg-black"
-      style={{ height: 'calc(100vh - 4rem)', isolation: 'isolate' }}
+      className="relative h-auto min-h-screen md:min-h-screen bg-black"
+      style={{ minHeight: 'calc(100vh - 4rem)', isolation: 'isolate' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       initial={{ opacity: 0 }}
@@ -260,7 +260,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
 
       {/* Desktop Main Content */}
       <motion.div 
-        className="hidden md:flex relative z-20 px-4 sm:px-6 lg:px-8 pl-16 sm:pl-24 lg:pl-32 h-full items-start pt-48 sm:pt-44 md:pt-56 lg:pt-72 pb-12 sm:pb-20"
+        className="hidden md:flex relative z-20 px-4 sm:px-6 lg:px-8 pl-16 sm:pl-24 lg:pl-32 h-full items-start pt-48 sm:pt-44 md:pt-56 lg:pt-64 pb-24 sm:pb-28 lg:pb-36"
         initial={{ opacity: 0, x: -100 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, delay: 0.3 }}
@@ -345,7 +345,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
               {getTrailer(currentMovie) && (
                 <motion.button
                   onClick={() => {
-                    const t = getTrailer(currentMovie); if (t) window.open(`https://www.youtube.com/watch?v=${t.key}`, '_blank');
+                    const t = getTrailer(currentMovie); if (t) window.open(`https://www.youtube.com/watch?v=${t.key}`, '_blank', 'noopener,noreferrer');
                   }}
                   className="flex items-center gap-3 sm:gap-4 group text-white/90 hover:text-white tracking-wider"
                   initial={{ opacity: 0, y: 20 }}
@@ -461,6 +461,25 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
                 </svg>
               </motion.button>
             </motion.div>
+
+            {getTrailer(currentMovie) && (
+              <motion.button
+                onClick={() => {
+                  const t = getTrailer(currentMovie); if (t) window.open(`https://www.youtube.com/watch?v=${t.key}`, '_blank', 'noopener,noreferrer');
+                }}
+                className="flex items-center justify-center gap-2 mt-3 group text-white/80 hover:text-white"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <span className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-white/60 group-hover:border-white transition-colors">
+                  <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M8 5v10l7-5z"/></svg>
+                </span>
+                <span className="text-xs font-medium tracking-wide">Watch Trailer</span>
+              </motion.button>
+            )}
           </motion.div>
         </AnimatePresence>
       </motion.div>

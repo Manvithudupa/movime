@@ -609,7 +609,7 @@ function HomePageContent() {
   }, [currentView, movies, tvShows, hollywoodMovies, bollywoodMovies, animeContent, netflixContent, amazonPrimeContent, searchResults, watchLater, selectedGenre, selectedYear]);
 
   const mainClassName = (currentView === 'home' || (currentView === 'anime' && animeContent.length > 0 && !loading))
-    ? 'pb-8'
+    ? 'pb-8 pt-2'
     : 'pt-24 pb-8';
 
   return (
