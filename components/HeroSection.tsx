@@ -235,7 +235,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
           </div>
         ))}
   <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent" />
-  <div className="absolute bottom-0 left-0 right-0 h-60 bg-gradient-to-t from-black via-black/70 to-transparent" />
+  <div className="absolute bottom-0 left-0 right-0 h-40 md:h-60 bg-gradient-to-t from-black via-black/70 to-transparent" />
       </div>
 
       {/* Carousel Indicators */}
@@ -367,7 +367,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
 
       {/* Mobile Main Content */}
       <motion.div 
-        className="md:hidden relative z-20 h-full flex flex-col justify-end px-4 pb-4"
+        className="md:hidden relative z-20 h-full flex flex-col justify-end px-4 pb-6 pt-20"
         style={{ touchAction: 'pan-y' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -376,6 +376,9 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
+        {/* Semi-transparent overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-0" />
+        
         <AnimatePresence mode="wait">
           <motion.div 
             key={currentMovieIndex}
@@ -383,10 +386,10 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-col transform -translate-y-10"
+            className="relative z-10 flex flex-col"
           >
             <motion.h1 
-              className="text-3xl font-bold text-white mb-3 leading-tight tracking-wide"
+              className="text-2xl font-bold text-white mb-2 leading-tight tracking-wide"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
@@ -395,7 +398,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
             </motion.h1>
 
             <motion.div 
-              className="flex items-center gap-3 mb-4"
+              className="flex items-center gap-3 mb-3"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
@@ -412,13 +415,22 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
                   <span className="text-white font-bold text-[10px]">{getCertification(currentMovie)}</span>
                 </div>
               )}
+              
+              {currentMovie.vote_average > 0 && (
+                <div className="flex items-center gap-1">
+                  <svg className="w-3 h-3 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <span className="text-white text-xs font-medium">{currentMovie.vote_average.toFixed(1)}</span>
+                </div>
+              )}
             </motion.div>
 
             <motion.div 
-              className="flex flex-wrap gap-1.5 mb-5"
+              className="flex flex-wrap gap-1.5 mb-3"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
+              transition={{ duration: 0.5, delay: 0.45 }}
             >
               {currentMovie.genres?.slice(0, 3).map((genre: { id: number; name: string }) => (
                 <span 
@@ -430,15 +442,27 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
               ))}
             </motion.div>
 
+            {/* Synopsis - now visible on mobile! */}
+            {currentMovie.overview && (
+              <motion.p 
+                className="text-gray-200 text-xs leading-relaxed mb-4 line-clamp-3 max-w-md"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+              >
+                {truncateOverview(currentMovie.overview, 120)}
+              </motion.p>
+            )}
+
             <motion.div 
               className="flex items-center gap-2.5"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
+              transition={{ duration: 0.5, delay: 0.55 }}
             >
               <motion.button
                 onClick={handleWatchNow}
-                className="flex-1 flex items-center justify-center gap-2 bg-white text-black px-5 py-3 rounded-lg font-bold text-sm tracking-wide shadow-xl hover:bg-gray-100 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 bg-white text-black py-3 rounded-lg font-bold text-sm tracking-wide shadow-xl hover:bg-gray-100 transition-colors"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ duration: 0.2 }}
@@ -451,12 +475,12 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
 
               <motion.button
                 onClick={handleMoreDetails}
-                className="flex items-center justify-center w-10 h-10 bg-black/50 backdrop-blur-sm text-white rounded-full border-2 border-white/30 hover:bg-black/70 hover:border-white/50 transition-colors shadow-lg"
+                className="flex items-center justify-center w-11 h-11 bg-white/10 backdrop-blur-sm text-white rounded-full border border-white/30 hover:bg-white/20 transition-colors shadow-lg"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ duration: 0.2 }}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </motion.button>
@@ -467,17 +491,17 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
                 onClick={() => {
                   const t = getTrailer(currentMovie); if (t) window.open(`https://www.youtube.com/watch?v=${t.key}`, '_blank', 'noopener,noreferrer');
                 }}
-                className="flex items-center justify-center gap-2 mt-3 group text-white/80 hover:text-white"
+                className="flex items-center justify-center gap-2 mt-3 group text-white/80 hover:text-white self-start"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.7 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
-                <span className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-white/60 group-hover:border-white transition-colors">
-                  <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M8 5v10l7-5z"/></svg>
+                <span className="w-8 h-8 rounded-full flex items-center justify-center border border-white/50 group-hover:border-white transition-colors">
+                  <svg className="w-3.5 h-3.5 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M8 5v10l7-5z"/></svg>
                 </span>
-                <span className="text-xs font-medium tracking-wide">Watch Trailer</span>
+                <span className="text-[11px] font-medium tracking-wide">Watch Trailer</span>
               </motion.button>
             )}
           </motion.div>

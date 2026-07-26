@@ -41,7 +41,7 @@ export default function AnimeHero({ animeContent }: AnimeHeroProps) {
           </div>
         ))}
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
       </div>
       {/* Slide indicators */}
       {animeContent.length > 1 && (
@@ -82,31 +82,31 @@ export default function AnimeHero({ animeContent }: AnimeHeroProps) {
         </>
       )}
       {/* Content */}
-      <div className="relative z-10 h-full flex items-center px-4 sm:px-6 lg:px-8 pl-4 sm:pl-24 lg:pl-32 pt-48 pb-12">
+      <div className="relative z-10 h-full flex items-center px-4 sm:px-6 lg:px-8 pt-48 pb-12">
         <div className="max-w-2xl">
           {animeContent[animeSliderIndex] && (
             <>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight">
                 {animeContent[animeSliderIndex].name || animeContent[animeSliderIndex].title}
               </h2>
-              <p className="text-gray-300 text-sm sm:text-base mb-6 line-clamp-3 max-w-xl leading-relaxed">
+              <p className="text-gray-200 text-xs sm:text-base mb-5 line-clamp-3 max-w-xl leading-relaxed">
                 {animeContent[animeSliderIndex].overview || ''}
               </p>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 <Link
                   href={`/watch?id=${animeContent[animeSliderIndex].id}&type=${animeContent[animeSliderIndex].media_type || 'tv'}`}
-                  className="inline-flex items-center px-6 py-3 bg-white text-black font-semibold rounded-xl transition-all text-sm hover:bg-gray-100"
+                  className="inline-flex items-center px-4 sm:px-6 py-2.5 sm:py-3 bg-white text-black font-semibold rounded-xl transition-all text-xs sm:text-sm hover:bg-gray-100"
                 >
-                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M8 5v10l7-5z"/>
                   </svg>
                   Watch Now
                 </Link>
                 <Link
                   href={`/details?id=${animeContent[animeSliderIndex].id}&type=${animeContent[animeSliderIndex].media_type || 'tv'}`}
-                  className="inline-flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border border-white/30 rounded-xl font-semibold transition-all text-sm"
+                  className="inline-flex items-center px-4 sm:px-6 py-2.5 sm:py-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border border-white/30 rounded-xl font-semibold transition-all text-xs sm:text-sm"
                 >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                   </svg>
                   More Details
