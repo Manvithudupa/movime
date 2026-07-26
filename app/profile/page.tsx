@@ -261,42 +261,34 @@ export default function ProfilePage() {
                   alt={profile.name || 'Profile'}
                   size={140}
                   fallbackText={profile.name || 'U'}
-                  className="border-4 border-white/20 rounded-full transition-all duration-300 group-hover:border-white/40"
+                  className="border-4 border-white/20 transition-all duration-300 group-hover:border-white/40"
                 />
-                {/* Ring glow on hover */}
-                <div className="absolute -inset-1 bg-white/5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm" />
-                
+                {/* Pencil icon overlay for changing avatar */}
+                <button
+                  onClick={() => setShowCharacterPicker(true)}
+                  className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-full cursor-pointer"
+                  title="Choose anime avatar"
+                >
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+                {/* Remove button appears on a separate hover zone */}
                 {animeChar && (
-                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-lg border-2 border-black">
-                    <svg className="w-3.5 h-3.5 text-black" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v.01M8 18a2 2 0 100-4 2 2 0 000 4z" />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeCharacter();
+                    }}
+                    className="absolute -top-1 -right-1 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full p-1.5 border border-white/20 transition-all opacity-0 group-hover:opacity-100"
+                    title="Remove anime avatar"
+                  >
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                  </div>
+                  </button>
                 )}
               </div>
-
-              {/* Avatar Action Buttons */}
-              {!editing && (
-                <div className="flex flex-col gap-2 w-full">
-                  <button
-                    onClick={() => setShowCharacterPicker(true)}
-                    className="px-4 py-2.5 bg-white hover:bg-gray-100 text-black font-medium rounded-lg text-sm transition-all flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    {animeChar ? 'Change Avatar' : 'Choose Anime Avatar'}
-                  </button>
-                  {animeChar && (
-                    <button
-                      onClick={removeCharacter}
-                      className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-gray-300 hover:text-white transition-all"
-                    >
-                      Remove Anime Avatar
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
 
             {/* Profile Info Column */}
@@ -472,18 +464,7 @@ export default function ProfilePage() {
                           : 'Recently'}
                       </span>
                     </div>
-                    {animeChar && (
-                      <div className="flex items-center gap-2.5 text-sm text-gray-400 pt-3 border-t border-white/10 mt-4">
-                        <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
-                          <img
-                            src={animeChar.image.medium}
-                            alt={animeChar.name.full}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <span>Avatar set to <strong className="text-white">{animeChar.name.full}</strong></span>
-                      </div>
-                    )}
+
                   </motion.div>
                 )}
               </AnimatePresence>

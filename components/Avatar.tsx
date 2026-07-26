@@ -20,11 +20,22 @@ export default function Avatar({ src, alt, size, fallbackText, className = '' }:
 
   const isBase64 = src && src.startsWith('data:image')
   
+  // Ensure the avatar is always a perfect circle with exact square dimensions
+  const circleStyle: React.CSSProperties = {
+    width: size,
+    height: size,
+    minWidth: size,
+    minHeight: size,
+    borderRadius: '50%',
+    overflow: 'hidden',
+    flexShrink: 0,
+  }
+  
   if (!src || imageError) {
     return (
       <div 
-        className={`bg-white/10 rounded-full flex items-center justify-center text-white font-bold ${className}`}
-        style={{ width: size, height: size, fontSize: size * 0.4 }}
+        className={`bg-white/10 flex items-center justify-center text-white font-bold ${className}`}
+        style={{ ...circleStyle, fontSize: size * 0.4 }}
       >
         {fallbackText.charAt(0)?.toUpperCase() || 'U'}
       </div>
@@ -33,27 +44,29 @@ export default function Avatar({ src, alt, size, fallbackText, className = '' }:
 
   if (isBase64) {
     return (
-      <img
-        src={src}
-        alt={alt}
-        width={size}
-        height={size}
-        className={`rounded-full object-cover ${className}`}
-        onError={handleImageError}
-        style={{ width: size, height: size }}
-      />
+      <div style={circleStyle} className={`${className}`}>
+        <img
+          src={src}
+          alt={alt}
+          className="w-full h-full object-cover"
+          onError={handleImageError}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      </div>
     )
   }
 
   return (
-    <Image
-      src={src}
-      alt={alt}
-      width={size}
-      height={size}
-      className={`rounded-full object-cover ${className}`}
-      onError={handleImageError}
-      unoptimized={!!isBase64}
-    />
+    <div style={circleStyle} className={`relative ${className}`}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-cover"
+        onError={handleImageError}
+        sizes={`${size}px`}
+        style={{ objectFit: 'cover' }}
+      />
+    </div>
   )
 }
