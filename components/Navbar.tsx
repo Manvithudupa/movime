@@ -117,13 +117,13 @@ export default function Navbar({
                 }
               }}
             >
-              <Image src="/logo.png" alt="Movime" width={40} height={40} />
-              <span className="text-2xl font-bold text-white tracking-wide">
+              <Image src="/logo.png" alt="Movime" width={32} height={32} className="sm:w-10 sm:h-10" />
+              <span className="text-xl sm:text-2xl font-bold text-white tracking-wide">
                 Movime
               </span>
             </Link>
 
-            <nav className="hidden lg:flex space-x-7 ml-8">
+            <nav              className="hidden lg:flex space-x-4 xl:space-x-7 ml-8">
               {['home', 'movies', 'tv', 'anime'].map((view, index) => {
                 const active = currentView === view;
                 const label = view === 'tv'
@@ -200,7 +200,7 @@ export default function Navbar({
           </button>
 
           {/* Right side icons & user */}
-          <div className="flex items-center space-x-5">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {currentView === 'watch-sports' && (
               <div className="flex items-center space-x-2 px-3 py-1 bg-white/10 backdrop-blur-sm rounded-sm">
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
@@ -208,40 +208,42 @@ export default function Navbar({
               </div>
             )}
             
-            <Link
-              href="/search"
-              className="p-2 hover:bg-white/10 rounded-full transition-all duration-100 group"
-              title="Search"
-            >
-              <svg className="w-5 h-5 text-white group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </Link>
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <Link
+                href="/search"
+                className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-all duration-100 group"
+                title="Search"
+              >
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </Link>
 
-            <Link
-              href="/settings"
-              className="p-2 hover:bg-white/10 rounded-full transition-all duration-100 group"
-              title="Settings"
-            >
-              <svg className="w-5 h-5 text-white hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            </Link>
+              <Link
+                href="/settings"
+                className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-all duration-100 group"
+                title="Settings"
+              >
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+              </Link>
+            </div>
             
             {/* User Authentication */}
             {isLoading ? (
-              <div className="w-8 h-8 bg-white/10 rounded-full animate-pulse"></div>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/10 rounded-full animate-pulse"></div>
             ) : isSignedIn ? (
               <div className="relative">
                 <button
@@ -251,9 +253,9 @@ export default function Navbar({
                   <Avatar
                     src={avatarUrl}
                     alt={userName}
-                    size={32}
+                    size={28}
                     fallbackText={userName}
-                    className="rounded-full hover:ring-2 hover:ring-white/30 transition-all duration-100"
+                    className="rounded-full hover:ring-2 hover:ring-white/30 transition-all duration-100 sm:w-8 sm:h-8"
                   />
                 </button>
 
@@ -311,7 +313,7 @@ export default function Navbar({
             ) : (
               <Link
                 href="/auth/login"
-                className="px-4 py-1.5 rounded-sm text-black text-sm font-semibold tracking-wide transition-all duration-150 bg-white hover:bg-gray-100 shadow-md focus:outline-none focus:ring-2 focus:ring-white/60"
+                className="px-3 py-1.5 sm:px-4 rounded-sm text-black text-xs sm:text-sm font-semibold tracking-wide transition-all duration-150 bg-white hover:bg-gray-100 shadow-md focus:outline-none focus:ring-2 focus:ring-white/60"
               >
                 Sign In
               </Link>

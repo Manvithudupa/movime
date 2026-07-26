@@ -182,7 +182,7 @@ export default function SearchPage() {
         <div className="flex flex-col items-center text-center mb-12">
           {query.length === 0 ? (
             <>
-              <h1 className="text-4xl font-bold mb-4 text-white">Find something to watch</h1>
+              <h1 className="text-2xl sm:text-4xl font-bold mb-4 text-white">Find something to watch</h1>
               <p className="text-sm text-gray-400 mb-6">Search movies, TV shows, anime and more.</p>
             </>
           ) : (
@@ -204,10 +204,10 @@ export default function SearchPage() {
 
         {query.length > 0 && (
           <div className="mb-10">
-            <div className="flex items-center justify-center gap-6 mb-8">
-              <span className="h-px w-32 bg-gradient-to-r from-white/20 to-transparent" />
-              <h2 className="text-3xl font-semibold tracking-wide text-white">Search results</h2>
-              <span className="h-px w-32 bg-gradient-to-l from-white/20 to-transparent" />
+            <div className="flex items-center justify-center gap-4 sm:gap-6 mb-6 sm:mb-8">
+              <span className="h-px w-16 sm:w-32 bg-gradient-to-r from-white/20 to-transparent" />
+              <h2 className="text-xl sm:text-3xl font-semibold tracking-wide text-white">Search results</h2>
+              <span className="h-px w-16 sm:w-32 bg-gradient-to-l from-white/20 to-transparent" />
             </div>
             <div className="flex justify-center">
               <div className="relative" onMouseLeave={()=>setShowSortMenu(false)}>
@@ -242,7 +242,7 @@ export default function SearchPage() {
         )}
 
         {loading && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5 md:gap-6">
             {Array.from({length:10}).map((_,i)=>(<SkeletonCard key={i}/>))}
           </div>
         )}
@@ -252,7 +252,7 @@ export default function SearchPage() {
         )}
 
         {!loading && results.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5 md:gap-6">
             {sortedResults.map(item => <ContentCard key={`${item.id}-${item.media_type || 'x'}`} item={item} />)}
           </div>
         )}

@@ -82,7 +82,7 @@ export default function AnimeHero({ animeContent }: AnimeHeroProps) {
         </>
       )}
       {/* Content */}
-      <div className="relative z-10 h-full flex items-center px-4 sm:px-6 lg:px-8 pl-16 sm:pl-24 lg:pl-32 pt-48 pb-12">
+      <div className="relative z-10 h-full flex items-center px-4 sm:px-6 lg:px-8 pl-4 sm:pl-24 lg:pl-32 pt-48 pb-12">
         <div className="max-w-2xl">
           {animeContent[animeSliderIndex] && (
             <>

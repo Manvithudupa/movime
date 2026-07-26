@@ -39,10 +39,10 @@ export default function AboutPage() {
       {/* Hero Section */}
       <div className="py-32 pt-40">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 text-white">
             About Movime
           </h1>
-          <p className="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
             A modern, educational streaming platform that breaks down barriers to quality entertainment, 
             making movies, TV shows, and live sports accessible to everyone for free.
           </p>
@@ -53,7 +53,7 @@ export default function AboutPage() {
       <div className="max-w-6xl mx-auto px-4 py-16">
         <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
           <div>
-            <h2 className="text-3xl font-bold mb-6 text-white">Our Mission</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-white">Our Mission</h2>
             <p className="text-gray-300 leading-relaxed mb-6 text-lg">
               At Movime, we believe that quality entertainment should not be locked behind multiple paywalls. 
               Our mission is to democratize access to movies, TV shows, and live sports by aggregating 
@@ -82,7 +82,7 @@ export default function AboutPage() {
 
         {/* Features Section */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center mb-12 text-white">What Makes Movime Special</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-white">What Makes Movime Special</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white/[0.03] rounded-xl p-6 border border-white/10 hover:border-white/30 transition-colors">
               <div className="w-16 h-16 bg-white/10 rounded-lg flex items-center justify-center mb-4">
@@ -125,7 +125,7 @@ export default function AboutPage() {
 
         {/* Technology Stack */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center mb-12 text-white">Built with Modern Technology</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-white">Built with Modern Technology</h2>
           <div className="bg-white/[0.03] rounded-2xl p-8 border border-white/10">
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div className="text-center">
@@ -165,7 +165,7 @@ export default function AboutPage() {
 
         {/* Developer Section */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center mb-12 text-white">Meet the Developer</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-white">Meet the Developer</h2>
           <div className="max-w-3xl mx-auto text-center">
             <div className="bg-white/[0.03] rounded-2xl p-8 border border-white/10">
               <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -205,7 +205,7 @@ export default function AboutPage() {
 
         {/* Call to Action */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold mb-6 text-white">Ready to Start Streaming?</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-white">Ready to Start Streaming?</h2>
           <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
             Join thousands of users who trust Movime for their entertainment needs. 
             Create your account today and discover a world of movies, TV shows, and live sports.

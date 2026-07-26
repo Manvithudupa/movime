@@ -77,10 +77,10 @@ export default function ContactPage() {
       {/* Hero Section */}
       <div className="py-32 pt-40">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-white">
             Get in Touch
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-base sm:text-xl text-gray-300 max-w-3xl mx-auto">
             Have questions, feedback, or need support? We would love to hear from you. 
             Reach out through any of the channels below or send us a message.
           </p>

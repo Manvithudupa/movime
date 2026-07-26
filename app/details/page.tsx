@@ -352,8 +352,11 @@ function DetailsPageContent() {
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
         </div>
 
+        {/* Gradient overlay for mobile readability */}
+        <div className="absolute top-14 left-0 right-0 h-20 bg-gradient-to-b from-black/60 to-transparent z-10 pointer-events-none md:hidden" />
+        
         {/* Back to Home Button */}
-        <div className="fixed top-20 sm:top-24 left-2 sm:left-4 z-50">
+        <div className="fixed top-16 sm:top-24 left-2 sm:left-4 z-50">
           <Link
             href="/"
             className="flex items-center space-x-1.5 sm:space-x-2 bg-black/90 hover:bg-black backdrop-blur-sm text-white px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 border border-white/30 hover:border-white/50 shadow-2xl hover:shadow-3xl group"

@@ -285,7 +285,7 @@ export default function ProfilePage() {
             <div className="flex-1 min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
                 <div>
-                  <h1 className="text-3xl sm:text-4xl font-bold">{profile.name || 'User'}</h1>
+                  <h1 className="text-2xl sm:text-4xl font-bold">{profile.name || 'User'}</h1>
                   <p className="text-gray-400 mt-1 flex items-center gap-2 flex-wrap">
                     {profile.email}
                     {profile.gender && (

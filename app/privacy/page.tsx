@@ -38,7 +38,7 @@ export default function PrivacyPolicy() {
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-32 pt-40">{/* Added pt-40 to account for navbar */}
         <div className="prose prose-invert max-w-none">
-          <h1 className="text-4xl font-bold mb-8 text-white">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 text-white">
             Privacy Policy
           </h1>
           

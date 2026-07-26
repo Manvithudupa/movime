@@ -105,7 +105,7 @@ export default function SettingsPage() {
       <main className="pt-24 pb-8">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-4">Settings</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Settings</h1>
             <p className="text-gray-400">Customize your Movime streaming experience</p>
           </div>
 

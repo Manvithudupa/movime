@@ -245,7 +245,7 @@ function WatchPageContent() {
             </div>
 
             {/* Sources sidebar */}
-            <div className="xl:w-80 shrink-0 bg-black border-t xl:border-t-0 xl:border-l border-white/10">
+            <div className="w-full xl:w-80 shrink-0 bg-black border-t xl:border-t-0 xl:border-l border-white/10">
               <div className="p-4 border-b border-white/10">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-semibold text-white flex items-center gap-2">
