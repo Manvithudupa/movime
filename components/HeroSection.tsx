@@ -235,7 +235,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
           </div>
         ))}
   <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent" />
-  <div className="absolute bottom-0 left-0 right-0 h-40 md:h-60 bg-gradient-to-t from-black via-black/70 to-transparent" />
+  <div className="absolute bottom-0 left-0 right-0 h-1/2 md:h-60 bg-gradient-to-t from-black via-black/60 to-transparent" />
       </div>
 
       {/* Carousel Indicators */}
@@ -365,9 +365,9 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
         </div>
       </motion.div>
 
-      {/* Mobile Main Content */}
+      {/* Mobile Main Content - completely revamped positioning */}
       <motion.div 
-        className="md:hidden relative z-20 h-full flex flex-col justify-end px-4 pb-6 pt-20"
+        className="md:hidden absolute inset-0 z-20 flex flex-col px-4 pb-8"
         style={{ touchAction: 'pan-y' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -376,8 +376,11 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Semi-transparent overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-0" />
+        {/* Single dark gradient overlay at the bottom for readability */}
+        <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-gradient-to-t from-black via-black/80 via-60% to-transparent pointer-events-none" />
+        
+        {/* Spacer to push content down */}
+        <div className="flex-1" />
         
         <AnimatePresence mode="wait">
           <motion.div 
@@ -442,7 +445,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
               ))}
             </motion.div>
 
-            {/* Synopsis - now visible on mobile! */}
+            {/* Synopsis */}
             {currentMovie.overview && (
               <motion.p 
                 className="text-gray-200 text-xs leading-relaxed mb-4 line-clamp-3 max-w-md"
