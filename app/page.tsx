@@ -368,18 +368,30 @@ function HomePageContent() {
             poster_path: item.poster_path,
           }),
         });
+        const result = await response.json();
         if (response.ok) {
-          const result = await response.json();
           if (result.added) {
-            // Transform the API response to match our format
             setWatchLater(prev => [...prev, transformApiItem(result.item)]);
           } else {
             setWatchLater(prev => prev.filter((w: any) => w.id !== itemId));
           }
+        } else {
+          console.error('Watchlist API error:', result.error);
+          // Fallback to localStorage
+          setWatchLater(prev => {
+            const existingIndex = prev.findIndex((w: any) => w.id === itemId);
+            let newWatchLater;
+            if (existingIndex >= 0) {
+              newWatchLater = prev.filter((_, index) => index !== existingIndex);
+            } else {
+              newWatchLater = [...prev, { id: itemId, type: contentType, title: item.title || item.name || '', poster: item.poster_path }];
+            }
+            setLocalStorage('watchLater', newWatchLater);
+            return newWatchLater;
+          });
         }
       } catch (error) {
         console.error('Error updating watchlist:', error);
-        // Fallback to localStorage
         setWatchLater(prev => {
           const existingIndex = prev.findIndex((w: any) => w.id === itemId);
           let newWatchLater;

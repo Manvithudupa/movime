@@ -48,7 +48,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const { name, bio, gender, location, website, anime_character } = await request.json()
+    const { name, bio, gender, location, website, anime_character, avatar_url } = await request.json()
 
     const updateData: any = {
       updated_at: new Date().toISOString(),
@@ -60,6 +60,7 @@ export async function PUT(request: NextRequest) {
     if (location !== undefined) updateData.location = location
     if (website !== undefined) updateData.website = website
     if (anime_character !== undefined) updateData.anime_character = anime_character
+    if (avatar_url !== undefined) updateData.avatar_url = avatar_url
 
     const { data: updatedProfile, error } = await supabase
       .from('profiles')

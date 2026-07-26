@@ -22,7 +22,7 @@ export async function GET() {
 
     if (error) {
       console.error('Watchlist fetch error:', error)
-      return NextResponse.json({ error: 'Failed to fetch watchlist' }, { status: 500 })
+      return NextResponse.json({ error: `Failed to fetch watchlist: ${error.message}` }, { status: 500 })
     }
 
     return NextResponse.json(data || [])
@@ -39,30 +39,46 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized - Please sign in' }, { status: 401 })
     }
 
-    const { content_id, content_type, title, poster_path, status } = await request.json()
+    const body = await request.json()
+    const { content_id, content_type, title, poster_path, status } = body
 
     if (!content_id || !content_type || !title) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+      return NextResponse.json({ 
+        error: 'Missing required fields',
+        details: { has_id: !!content_id, has_type: !!content_type, has_title: !!title }
+      }, { status: 400 })
     }
 
     // Validate status if provided
     if (status && !VALID_STATUSES.includes(status)) {
-      return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+      return NextResponse.json({ error: `Invalid status: ${status}` }, { status: 400 })
     }
 
     const finalStatus: WatchStatus = status || 'plan_to_watch'
+    
+    // Ensure content_id is a number for the integer column
+    const numericContentId = typeof content_id === 'string' ? parseInt(content_id, 10) : content_id
+    
+    if (isNaN(numericContentId)) {
+      return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
+    }
 
     // Check if already in watchlist
-    const { data: existing } = await supabase
+    const { data: existing, error: checkError } = await supabase
       .from('watch_later')
       .select('*')
       .eq('user_id', user.id)
-      .eq('content_id', content_id)
+      .eq('content_id', numericContentId)
       .eq('content_type', content_type)
-      .single()
+      .maybeSingle()
+
+    if (checkError) {
+      console.error('Watchlist check error:', checkError)
+      return NextResponse.json({ error: `Database error: ${checkError.message}` }, { status: 500 })
+    }
 
     if (existing) {
       // If same status or no status change, toggle removal
@@ -74,26 +90,40 @@ export async function POST(request: NextRequest) {
 
         if (error) {
           console.error('Watchlist remove error:', error)
-          return NextResponse.json({ error: 'Failed to remove from watchlist' }, { status: 500 })
+          return NextResponse.json({ error: `Failed to remove: ${error.message}` }, { status: 500 })
         }
 
-        return NextResponse.json({ added: false, message: 'Removed from watchlist' })
+        return NextResponse.json({ 
+          added: false, 
+          message: 'Removed from watchlist',
+          itemId: numericContentId
+        })
       }
 
       // Update status
       const { data: updated, error } = await supabase
         .from('watch_later')
-        .update({ status: finalStatus, updated_at: new Date().toISOString() })
+        .update({ 
+          status: finalStatus, 
+          title, // keep title updated
+          poster_path, // keep poster updated
+          updated_at: new Date().toISOString() 
+        })
         .eq('id', existing.id)
         .select()
         .single()
 
       if (error) {
         console.error('Watchlist update error:', error)
-        return NextResponse.json({ error: 'Failed to update status' }, { status: 500 })
+        return NextResponse.json({ error: `Failed to update status: ${error.message}` }, { status: 500 })
       }
 
-      return NextResponse.json({ added: true, item: updated, statusChanged: true, message: `Status updated to ${finalStatus}` })
+      return NextResponse.json({ 
+        added: true, 
+        item: updated, 
+        statusChanged: true, 
+        message: `Status updated to ${finalStatus}` 
+      })
     }
 
     // Add to watchlist
@@ -101,7 +131,7 @@ export async function POST(request: NextRequest) {
       .from('watch_later')
       .insert({
         user_id: user.id,
-        content_id,
+        content_id: numericContentId,
         content_type,
         title,
         poster_path,
@@ -112,13 +142,23 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Watchlist add error:', error)
-      return NextResponse.json({ error: 'Failed to add to watchlist' }, { status: 500 })
+      // Check for unique constraint violation
+      if (error.code === '23505') {
+        return NextResponse.json({ error: 'Item already in watchlist' }, { status: 409 })
+      }
+      return NextResponse.json({ error: `Failed to add: ${error.message}` }, { status: 500 })
     }
 
-    return NextResponse.json({ added: true, item: data, message: `Added as ${finalStatus}` })
+    return NextResponse.json({ 
+      added: true, 
+      item: data, 
+      message: `Added as ${finalStatus}` 
+    })
   } catch (error) {
     console.error('Watchlist error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Internal server error' 
+    }, { status: 500 })
   }
 }
 
@@ -139,21 +179,23 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (!VALID_STATUSES.includes(status)) {
-      return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+      return NextResponse.json({ error: `Invalid status: ${status}` }, { status: 400 })
     }
+
+    const numericContentId = typeof content_id === 'string' ? parseInt(content_id, 10) : content_id
 
     const { data: updated, error } = await supabase
       .from('watch_later')
       .update({ status, updated_at: new Date().toISOString() })
       .eq('user_id', user.id)
-      .eq('content_id', content_id)
+      .eq('content_id', numericContentId)
       .eq('content_type', content_type)
       .select()
       .single()
 
     if (error) {
       console.error('Watchlist status update error:', error)
-      return NextResponse.json({ error: 'Failed to update status' }, { status: 500 })
+      return NextResponse.json({ error: `Failed to update status: ${error.message}` }, { status: 500 })
     }
 
     return NextResponse.json({ item: updated, message: `Status updated to ${status}` })
@@ -181,16 +223,18 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required params' }, { status: 400 })
     }
 
+    const numericContentId = parseInt(contentId, 10)
+
     const { error } = await supabase
       .from('watch_later')
       .delete()
       .eq('user_id', user.id)
-      .eq('content_id', parseInt(contentId))
+      .eq('content_id', numericContentId)
       .eq('content_type', contentType)
 
     if (error) {
       console.error('Watchlist remove error:', error)
-      return NextResponse.json({ error: 'Failed to remove from watchlist' }, { status: 500 })
+      return NextResponse.json({ error: `Failed to remove: ${error.message}` }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })

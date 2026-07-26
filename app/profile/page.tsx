@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth, type Profile, type AnimeCharacterData } from '@/components/AuthProvider'
 import AniListCharacterPicker from '@/components/AniListCharacterPicker'
 import Avatar from '@/components/Avatar'
@@ -26,6 +27,7 @@ export default function ProfilePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [watchLaterCount, setWatchLaterCount] = useState(0)
   const [saving, setSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState<string | null>(null)
 
   useEffect(() => {
     if (!authLoading && !isSignedIn) {
@@ -104,6 +106,7 @@ export default function ProfilePage() {
     }
   }
 
+  // Fix: When setting an anime character, also update avatar_url with the character's image
   const handleCharacterSelect = async (character: AnimeCharacterData) => {
     if (!profile) return
     try {
@@ -116,20 +119,29 @@ export default function ProfilePage() {
             name: character.name,
             image: character.image,
           },
+          avatar_url: character.image.large, // <-- Fix: Also store the character image as avatar_url
         }),
       })
       if (response.ok) {
         const updatedProfile = await response.json()
         setProfile(updatedProfile)
         refreshProfile()
+      } else {
+        const err = await response.json()
+        console.error('API Error:', err)
+        setSaveMessage('Failed to set character avatar. Please try again.')
+        setTimeout(() => setSaveMessage(null), 3000)
       }
     } catch (error) {
       console.error('Failed to set character:', error)
+      setSaveMessage('Network error. Please try again.')
+      setTimeout(() => setSaveMessage(null), 3000)
     }
   }
 
   const handleSave = async () => {
     setSaving(true)
+    setSaveMessage(null)
     try {
       const response = await fetch('/api/user/profile', {
         method: 'PUT',
@@ -141,11 +153,17 @@ export default function ProfilePage() {
         setProfile(updatedProfile)
         refreshProfile()
         setEditing(false)
+        setSaveMessage('Profile updated successfully!')
+      } else {
+        const err = await response.json()
+        setSaveMessage(err.error || 'Failed to save profile.')
       }
     } catch (error) {
       console.error('Failed to update profile:', error)
+      setSaveMessage('Network error. Please try again.')
     } finally {
       setSaving(false)
+      setTimeout(() => setSaveMessage(null), 3000)
     }
   }
 
@@ -154,12 +172,19 @@ export default function ProfilePage() {
       const response = await fetch('/api/user/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ anime_character: null }),
+        body: JSON.stringify({ 
+          anime_character: null,
+          avatar_url: null, // <-- Fix: Also clear avatar_url when removing anime character
+        }),
       })
       if (response.ok) {
         const updatedProfile = await response.json()
         setProfile(updatedProfile)
         refreshProfile()
+      } else {
+        const err = await response.json()
+        setSaveMessage('Failed to remove character.')
+        setTimeout(() => setSaveMessage(null), 3000)
       }
     } catch (error) {
       console.error('Failed to remove character:', error)
@@ -169,7 +194,10 @@ export default function ProfilePage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-lg">Loading profile...</div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+          <div className="text-gray-400 text-sm">Loading profile...</div>
+        </div>
       </div>
     )
   }
@@ -191,22 +219,55 @@ export default function ProfilePage() {
         onSearchChange={handleSearchChange}
       />
 
-      <div className="max-w-4xl mx-auto px-4 py-32 pt-40">
-        {/* Profile Header */}
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:space-x-8 space-y-6 lg:space-y-0">
-            {/* Avatar Section */}
-            <div className="flex-shrink-0 flex flex-col items-center lg:items-start space-y-4">
+      <div className="max-w-5xl mx-auto px-4 py-32 pt-40">
+        {/* Toast notification */}
+        <AnimatePresence>
+          {saveMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-24 right-4 z-50 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-sm shadow-2xl"
+            >
+              <div className="flex items-center gap-2">
+                {saveMessage.includes('success') || saveMessage.includes('Successfully') ? (
+                  <svg className="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+                <span className="text-gray-200">{saveMessage}</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Profile Header Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 mb-8"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-start lg:gap-10 gap-8">
+            {/* Avatar Column */}
+            <div className="flex-shrink-0 flex flex-col items-center gap-5">
               <div className="relative group">
                 <Avatar
                   src={avatarToShow}
                   alt={profile.name || 'Profile'}
-                  size={130}
+                  size={140}
                   fallbackText={profile.name || 'U'}
-                  className="border-4 border-white/20 rounded-full"
+                  className="border-4 border-white/20 rounded-full transition-all duration-300 group-hover:border-white/40"
                 />
+                {/* Ring glow on hover */}
+                <div className="absolute -inset-1 bg-white/5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm" />
+                
                 {animeChar && (
-                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-lg">
+                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-lg border-2 border-black">
                     <svg className="w-3.5 h-3.5 text-black" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v.01M8 18a2 2 0 100-4 2 2 0 000 4z" />
                     </svg>
@@ -214,21 +275,22 @@ export default function ProfilePage() {
                 )}
               </div>
 
+              {/* Avatar Action Buttons */}
               {!editing && (
-                <div className="space-y-2 w-full">
+                <div className="flex flex-col gap-2 w-full">
                   <button
                     onClick={() => setShowCharacterPicker(true)}
-                    className="w-full px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-sm text-white transition-all flex items-center justify-center gap-2"
+                    className="px-4 py-2.5 bg-white hover:bg-gray-100 text-black font-medium rounded-lg text-sm transition-all flex items-center justify-center gap-2"
                   >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v.01M8 18a2 2 0 100-4 2 2 0 000 4z" />
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    {animeChar ? 'Change Anime Avatar' : 'Choose Anime Avatar'}
+                    {animeChar ? 'Change Avatar' : 'Choose Anime Avatar'}
                   </button>
                   {animeChar && (
                     <button
                       onClick={removeCharacter}
-                      className="w-full px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-gray-300 hover:text-white transition-all"
+                      className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-gray-300 hover:text-white transition-all"
                     >
                       Remove Anime Avatar
                     </button>
@@ -237,15 +299,15 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Profile Info */}
+            {/* Profile Info Column */}
             <div className="flex-1 min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
                 <div>
-                  <h1 className="text-3xl font-bold text-center lg:text-left">{profile.name || 'User'}</h1>
-                  <p className="text-gray-400 text-center lg:text-left flex items-center justify-center lg:justify-start gap-2">
+                  <h1 className="text-3xl sm:text-4xl font-bold">{profile.name || 'User'}</h1>
+                  <p className="text-gray-400 mt-1 flex items-center gap-2 flex-wrap">
                     {profile.email}
                     {profile.gender && (
-                      <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full text-gray-400">
+                      <span className="text-xs bg-white/10 px-2.5 py-0.5 rounded-full text-gray-300">
                         {profile.gender === 'male' ? '♂ Male' :
                          profile.gender === 'female' ? '♀ Female' :
                          profile.gender === 'other' ? '⚧ Other' : ''}
@@ -255,202 +317,273 @@ export default function ProfilePage() {
                 </div>
                 <button
                   onClick={() => setEditing(!editing)}
-                  className="px-6 py-2 bg-white text-black font-semibold rounded-lg transition-colors self-center sm:self-auto hover:bg-gray-100"
+                  className="px-6 py-2.5 bg-white text-black font-semibold rounded-lg transition-all hover:bg-gray-100 self-start whitespace-nowrap"
                 >
-                  {editing ? 'Cancel' : 'Edit Profile'}
+                  {editing ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      Cancel
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit Profile
+                    </span>
+                  )}
                 </button>
               </div>
 
-              {editing ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
-                      <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-3 py-2 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white"
-                        placeholder="Your name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Gender</label>
-                      <select
-                        value={formData.gender}
-                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                        className="w-full px-3 py-2 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white"
-                      >
-                        <option value="">Prefer not to say</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Bio</label>
-                    <textarea
-                      value={formData.bio}
-                      onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                      rows={3}
-                      className="w-full px-3 py-2 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white resize-none"
-                      placeholder="Tell us about yourself..."
-                    />
-                    <p className="text-xs text-gray-500 mt-1 text-right">{formData.bio.length} characters</p>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Location</label>
-                      <input
-                        type="text"
-                        value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        className="w-full px-3 py-2 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white"
-                        placeholder="Where are you based?"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Website</label>
-                      <input
-                        type="url"
-                        value={formData.website}
-                        onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                        className="w-full px-3 py-2 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white"
-                        placeholder="https://your-website.com"
-                      />
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="px-6 py-2.5 bg-white text-black font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-50"
+              {/* Edit Mode */}
+              <AnimatePresence mode="wait">
+                {editing ? (
+                  <motion.div
+                    key="edit"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-4 overflow-hidden"
                   >
-                    {saving ? 'Saving...' : 'Save Changes'}
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {profile.bio && (
-                    <p className="text-gray-300 leading-relaxed">{profile.bio}</p>
-                  )}
-                  <div className="flex flex-wrap gap-3">
-                    {profile.location && (
-                      <span className="text-gray-400 flex items-center text-sm">
-                        <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        {profile.location}
-                      </span>
-                    )}
-                    {profile.website && (
-                      <a
-                        href={profile.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-300 hover:text-white flex items-center text-sm"
-                      >
-                        <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                        </svg>
-                        {profile.website.replace(/^https?:\/\//, '')}
-                      </a>
-                    )}
-                  </div>
-                  {animeChar && (
-                    <div className="flex items-center gap-2 text-sm text-gray-400 pt-2 border-t border-white/10 mt-3">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v.01M8 18a2 2 0 100-4 2 2 0 000 4z" />
-                      </svg>
-                      <span>Profile avatar set to <strong className="text-white">{animeChar.name.full}</strong></span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1.5">Name</label>
+                        <input
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className="w-full px-3.5 py-2.5 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white placeholder-gray-500 transition-colors"
+                          placeholder="Your name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1.5">Gender</label>
+                        <select
+                          value={formData.gender}
+                          onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                          className="w-full px-3.5 py-2.5 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white transition-colors"
+                        >
+                          <option value="">Prefer not to say</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
                     </div>
-                  )}
-                </div>
-              )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1.5">Bio</label>
+                      <textarea
+                        value={formData.bio}
+                        onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                        rows={3}
+                        className="w-full px-3.5 py-2.5 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white placeholder-gray-500 resize-none transition-colors"
+                        placeholder="Tell us about yourself..."
+                      />
+                      <p className="text-xs text-gray-500 mt-1 text-right">{formData.bio.length}/500 characters</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1.5">Location</label>
+                        <input
+                          type="text"
+                          value={formData.location}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          className="w-full px-3.5 py-2.5 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white placeholder-gray-500 transition-colors"
+                          placeholder="Where are you based?"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1.5">Website</label>
+                        <input
+                          type="url"
+                          value={formData.website}
+                          onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                          className="w-full px-3.5 py-2.5 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white placeholder-gray-500 transition-colors"
+                          placeholder="https://your-website.com"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="px-6 py-2.5 bg-white text-black font-semibold rounded-lg hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        {saving ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Save Changes
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="view"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-4"
+                  >
+                    {profile.bio && (
+                      <p className="text-gray-300 leading-relaxed">{profile.bio}</p>
+                    )}
+                    <div className="flex flex-wrap gap-4">
+                      {profile.location && (
+                        <span className="text-gray-400 flex items-center gap-1.5 text-sm">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          {profile.location}
+                        </span>
+                      )}
+                      {profile.website && (
+                        <a
+                          href={profile.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-300 hover:text-white flex items-center gap-1.5 text-sm transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                          </svg>
+                          {profile.website.replace(/^https?:\/\//, '')}
+                        </a>
+                      )}
+                      <span className="text-gray-500 flex items-center gap-1.5 text-sm">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Joined {profile.created_at
+                          ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                          : 'Recently'}
+                      </span>
+                    </div>
+                    {animeChar && (
+                      <div className="flex items-center gap-2.5 text-sm text-gray-400 pt-3 border-t border-white/10 mt-4">
+                        <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                          <img
+                            src={animeChar.image.medium}
+                            alt={animeChar.name.full}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <span>Avatar set to <strong className="text-white">{animeChar.name.full}</strong></span>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white/[0.03] border border-white/10 rounded-xl p-6">
-            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-              </svg>
-              Watchlist
-            </h3>
-            <p className="text-3xl font-bold text-white">{watchLaterCount || 0}</p>
-            <p className="text-gray-400 text-sm mt-1">Saved items</p>
-          </div>
-
-          <div className="bg-white/[0.03] border border-white/10 rounded-xl p-6">
-            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              Account
-            </h3>
-            <p className="text-2xl font-bold text-white">Free</p>
-            <p className="text-gray-400 text-sm mt-1">Plan</p>
-          </div>
-
-          <div className="bg-white/[0.03] border border-white/10 rounded-xl p-6">
-            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Member Since
-            </h3>
-            <p className="text-xl font-bold text-white">
-              {profile.created_at
-                ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-                : 'N/A'}
-            </p>
-            <p className="text-gray-400 text-sm mt-1">Join date</p>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white/[0.03] border border-white/10 rounded-xl p-6">
-          <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link href="/" className="p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-colors text-center group">
-              <div className="text-white mb-2 group-hover:scale-110 transition-transform">
-                <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-1a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <p className="font-medium text-sm">Browse</p>
-            </Link>
-            <Link href="/search" className="p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-colors text-center group">
-              <div className="text-white mb-2 group-hover:scale-110 transition-transform">
-                <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <p className="font-medium text-sm">Search</p>
-            </Link>
-            <Link href="/?view=watchlater" className="p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-colors text-center group">
-              <div className="text-white mb-2 group-hover:scale-110 transition-transform">
-                <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"
+        >
+          {[
+            {
+              title: 'Watchlist',
+              value: watchLaterCount || 0,
+              subtitle: 'Saved items',
+              icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
-              </div>
-              <p className="font-medium text-sm">Watchlist</p>
-            </Link>
-            <Link href="/settings" className="p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-colors text-center group">
-              <div className="text-white mb-2 group-hover:rotate-90 transition-transform">
-                <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              ),
+            },
+            {
+              title: 'Account',
+              value: 'Free',
+              subtitle: 'Plan',
+              icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
+              ),
+            },
+            {
+              title: 'Member Since',
+              value: profile.created_at
+                ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+                : 'N/A',
+              subtitle: 'Join date',
+              icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              ),
+            },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 * i }}
+              className="bg-white/[0.03] border border-white/10 rounded-xl p-5 hover:bg-white/[0.06] transition-colors"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="text-white">{stat.icon}</div>
+                <h3 className="font-medium text-sm text-gray-300">{stat.title}</h3>
               </div>
-              <p className="font-medium text-sm">Settings</p>
-            </Link>
+              <p className="text-2xl sm:text-3xl font-bold text-white">{stat.value}</p>
+              <p className="text-gray-500 text-xs mt-1">{stat.subtitle}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="bg-white/[0.03] border border-white/10 rounded-xl p-6"
+        >
+          <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Quick Actions
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { href: '/', label: 'Browse', icon: 'M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-1a9 9 0 11-18 0 9 9 0 0118 0z' },
+              { href: '/search', label: 'Search', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' },
+              { href: '/?view=watchlater', label: 'Watchlist', icon: 'M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z' },
+              { href: '/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
+            ].map((action) => (
+              <Link
+                key={action.label}
+                href={action.href}
+                className="p-4 bg-white/5 hover:bg-white/10 rounded-xl transition-all text-center group hover:scale-[1.02]"
+              >
+                <div className="text-white/70 group-hover:text-white mb-2 transition-colors">
+                  <svg className="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={action.icon} />
+                  </svg>
+                </div>
+                <p className="font-medium text-xs text-gray-300 group-hover:text-white transition-colors">{action.label}</p>
+              </Link>
+            ))}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* AniList Character Picker Modal */}
