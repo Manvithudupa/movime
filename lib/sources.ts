@@ -131,17 +131,6 @@ export const availableSources = [
         }
     },
     {
-        id: 'vidsrcrip',
-        name: 'VidSrcRIP',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidsrc.rip/embed/movie/{id}',
-            tv: 'https://vidsrc.rip/embed/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
         id: 'vidsrcpm',
         name: 'VidSrcPM',
         isFrench: false,
@@ -194,17 +183,6 @@ export const availableSources = [
         urls: {
             movie: 'https://flicky.host/embed/movie/{id}',
             tv: 'https://flicky.host/embed/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'vidstreaming',
-        name: 'VidStreaming',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidstreaming.io/embed/movie/{id}',
-            tv: 'https://vidstreaming.io/embed/tv/{id}/{season}/{episode}'
         }
     },
     {

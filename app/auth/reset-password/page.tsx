@@ -1,14 +1,30 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/AuthProvider'
 import Image from '@/components/ProxyImage'
 
 export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+          <p className="text-gray-400 text-sm">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
+  )
+}
+
+function ResetPasswordContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, isLoading: authLoading } = useAuth()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -16,8 +32,25 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [pageReady, setPageReady] = useState(false)
+  // This flag must be set by the recovery callback - prevents direct access by logged-in users
+  const [recoveryVerified, setRecoveryVerified] = useState(false)
 
   const supabase = createClient()
+
+  // Verify this is a legitimate recovery flow, not direct navigation by a logged-in user
+  useEffect(() => {
+    // Check if we arrived from the recovery callback with the verification flag
+    const fromRecovery = searchParams.get('recovery') === 'true'
+    
+    if (fromRecovery) {
+      setRecoveryVerified(true)
+      // Clean the URL immediately - remove the recovery param so:
+      // 1. Refreshing the page doesn't keep the verification alive
+      // 2. Sharing the URL doesn't expose a recovery path
+      const cleanUrl = window.location.pathname
+      window.history.replaceState({}, '', cleanUrl)
+    }
+  }, [searchParams])
 
   // Give time for AuthProvider to detect the fresh session from the recovery flow
   useEffect(() => {
@@ -75,7 +108,41 @@ export default function ResetPasswordPage() {
     )
   }
 
-  // If user is not authenticated (no active session), show a message
+  // CASE 1: User navigated directly but is logged in - likely a session hijack attempt or accidental access
+  if (!recoveryVerified && user) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <Link href="/" className="inline-flex items-center gap-3">
+              <Image src="/logo.png" alt="Movime" width={48} height={48} />
+              <span className="text-3xl font-bold">Movime</span>
+            </Link>
+          </div>
+          <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 text-center">
+            <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold mb-2">Access Restricted</h2>
+            <p className="text-gray-400 text-sm leading-relaxed mb-6">
+              This page can only be accessed through a password reset email link. 
+              If you want to change your password, please use the &ldquo;Forgot password&rdquo; option on the sign-in page.
+            </p>
+            <Link
+              href="/auth/forgot-password"
+              className="inline-block w-full py-3 bg-white text-black font-semibold rounded-xl hover:bg-gray-100 transition-all duration-200 text-center"
+            >
+              Request Password Reset
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // CASE 2: User has no session and no recovery flag - invalid/expired link
   if (!user) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
@@ -108,6 +175,7 @@ export default function ResetPasswordPage() {
     )
   }
 
+  // CASE 3: Legitimate recovery flow - show the reset form
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
       <div className="w-full max-w-md">

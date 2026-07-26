@@ -15,6 +15,7 @@ import {
 } from '@/lib/utils';
 import type { Movie, TVShow, Season, Episode, WatchLaterItem, Video } from '@/lib/types';
 import { useAuth } from '@/components/AuthProvider';
+import { useWatchlistStore } from '@/lib/store';
 import Navbar from '@/components/Navbar';
 
 function DetailsPageContent() {
@@ -25,11 +26,15 @@ function DetailsPageContent() {
   const [loading, setLoading] = useState(true);
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
   const [seasonData, setSeasonData] = useState<Season | null>(null);
-  const [watchLaterCount, setWatchLaterCount] = useState(0);
   const searchQuery = '';
-  const [watchLater, setWatchLater] = useState<any[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>('plan_to_watch');
   const [showStatusPicker, setShowStatusPicker] = useState(false);
+
+  const watchLater = useWatchlistStore((s) => s.items);
+  const watchLaterCount = useWatchlistStore((s) => s.count);
+  const fetchWatchlist = useWatchlistStore((s) => s.fetch);
+  const addItemToStore = useWatchlistStore((s) => s.add);
+  const removeItemFromStore = useWatchlistStore((s) => s.remove);
 
   const statusLabels: Record<string, { label: string, color: string, icon: string }> = {
     watching: { label: 'Watching', color: 'bg-white', icon: '▶' },
@@ -57,38 +62,6 @@ function DetailsPageContent() {
       }>;
     };
   };
-
-  const loadWatchLater = useCallback(async () => {
-    if (isSignedIn) {
-      try {
-        const response = await fetch('/api/watchlist');
-        if (response.ok) {
-          const data = await response.json();
-          const transformed = data.map((item: any) => ({
-            id: item.content_id,
-            type: item.content_type,
-            content_id: item.content_id,
-            content_type: item.content_type,
-            title: item.title,
-            poster: item.poster_path,
-            status: item.status,
-            _apiRowId: item.id,
-          }));
-          setWatchLater(transformed);
-          setWatchLaterCount(data.length);
-        }
-      } catch (error) {
-        console.error('Error loading watchlist:', error);
-        const saved = getLocalStorage('watchLater', [] as WatchLaterItem[]);
-        setWatchLater(saved as WatchLaterItem[]);
-        setWatchLaterCount(saved.length);
-      }
-    } else {
-      const saved = getLocalStorage('watchLater', [] as WatchLaterItem[]);
-      setWatchLater(saved as WatchLaterItem[]);
-      setWatchLaterCount(saved.length);
-    }
-  }, [isSignedIn]);
 
   const loadContent = useCallback(async () => {
     if (!contentId || !contentType) return;
@@ -120,9 +93,9 @@ function DetailsPageContent() {
   useEffect(() => {
     if (contentId && contentType) {
       loadContent();
-      loadWatchLater();
+      fetchWatchlist(!!isSignedIn);
     }
-  }, [contentId, contentType, loadContent, loadWatchLater]);
+  }, [contentId, contentType, loadContent, fetchWatchlist, isSignedIn]);
 
   useEffect(() => {
     if (content && contentType === 'tv' && selectedSeason) {
@@ -138,6 +111,7 @@ function DetailsPageContent() {
   const addToWatchLater = async (status?: string) => {
     if (!content) return;
     const chosenStatus = status || selectedStatus;
+    const itemId = content.id;
 
     if (isSignedIn) {
       try {
@@ -145,7 +119,7 @@ function DetailsPageContent() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            content_id: content.id,
+            content_id: itemId,
             content_type: contentType,
             title: 'title' in content ? content.title : content.name,
             poster_path: content.poster_path,
@@ -154,21 +128,20 @@ function DetailsPageContent() {
         });
         if (response.ok) {
           const result = await response.json();
-          if (result.added) {
-            const transformed = {
-              id: result.item.content_id,
+          if (result.added && result.item) {
+            addItemToStore({
+              id: result.item.id,
               content_id: result.item.content_id,
               content_type: result.item.content_type,
               title: result.item.title,
-              poster: result.item.poster_path,
-              status: result.item.status,
-              _apiRowId: result.item.id,
-            };
-            setWatchLater(prev => [...prev, transformed]);
+              poster_path: result.item.poster_path,
+              status: result.item.status || 'plan_to_watch',
+              added_at: result.item.added_at || new Date().toISOString(),
+              updated_at: result.item.updated_at || new Date().toISOString(),
+            });
           } else {
-            setWatchLater(prev => prev.filter((w: any) => !(w.content_id === content.id || w.id === content.id)));
+            removeItemFromStore(itemId);
           }
-          setWatchLaterCount(prev => result.added ? prev + 1 : Math.max(0, prev - 1));
         }
       } catch (error) {
         console.error('Error updating watchlist:', error);
@@ -180,33 +153,33 @@ function DetailsPageContent() {
   };
 
   const toggleWatchLaterLocal = () => {
-    const watchLaterItem = {
-      id: content!.id,
-      type: contentType,
-      title: 'title' in content! ? content!.title : content!.name,
-      poster: content!.poster_path,
-      addedAt: new Date().toISOString()
-    };
+    if (!content) return;
+    const itemId = content.id;
+    const exists = watchLater.some((w: any) => 
+      w.content_id === itemId || w.id === itemId
+    );
 
-    setWatchLater((prev: any[]) => {
-      let newWatchLater;
-      const existingIndex = prev.findIndex((w: any) => 
-        (w.content_id === content!.id && w.content_type === contentType) || 
-        (w.id === content!.id && w.type === contentType)
-      );
-      
-      if (existingIndex >= 0) {
-        newWatchLater = prev.filter((_: any, i: number) => i !== existingIndex);
-      } else {
-        newWatchLater = [...prev, watchLaterItem];
-      }
-      localStorage.setItem('watchLater', JSON.stringify(newWatchLater));
-      return newWatchLater;
-    });
-    setWatchLaterCount(prev => {
-      const exists = isInWatchLater();
-      return exists ? prev - 1 : prev + 1;
-    });
+    if (exists) {
+      removeItemFromStore(itemId);
+      const saved = JSON.parse(localStorage.getItem('watchLater') || '[]');
+      localStorage.setItem('watchLater', JSON.stringify(
+        saved.filter((w: any) => w.id !== itemId && w.content_id !== itemId)
+      ));
+    } else {
+      addItemToStore({
+        id: itemId,
+        content_id: itemId,
+        content_type: contentType as 'movie' | 'tv',
+        title: 'title' in content ? content.title : content.name,
+        poster_path: content.poster_path,
+        status: 'plan_to_watch',
+        added_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+      const saved = JSON.parse(localStorage.getItem('watchLater') || '[]');
+      saved.push({ id: itemId, type: contentType, title: 'title' in content ? content.title : content.name, poster: content.poster_path, addedAt: new Date().toISOString() });
+      localStorage.setItem('watchLater', JSON.stringify(saved));
+    }
   };
 
   const isInWatchLater = () => {
@@ -468,7 +441,7 @@ function DetailsPageContent() {
                           key={key}
                           onClick={async () => {
                             try {
-                              await fetch('/api/watchlist', {
+                              const res = await fetch('/api/watchlist', {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -477,7 +450,9 @@ function DetailsPageContent() {
                                   status: key,
                                 }),
                               });
-                              loadWatchLater();
+                              if (res.ok) {
+                                fetchWatchlist(!!isSignedIn);
+                              }
                             } catch (error) {
                               console.error('Failed to update status:', error);
                             }

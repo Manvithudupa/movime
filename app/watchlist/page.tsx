@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from '@/components/ProxyImage'
@@ -9,6 +9,7 @@ import { useAuth } from '@/components/AuthProvider'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { TMDB_IMAGE_BASE_URL, getLocalStorage, setLocalStorage } from '@/lib/utils'
+import { useWatchlistStore } from '@/lib/store'
 
 const STATUS_OPTIONS = [
   { value: 'watching', label: 'Watching', icon: '▶' },
@@ -19,106 +20,40 @@ const STATUS_OPTIONS = [
 
 type WatchStatus = typeof STATUS_OPTIONS[number]['value']
 
-interface WatchlistItem {
-  id: string
-  content_id: number
-  content_type: string
-  title: string
-  poster_path: string | null
-  status: WatchStatus
-  added_at: string
-  updated_at: string
-  _source: 'api' | 'local'
-}
-
 export default function WatchlistPage() {
   const router = useRouter()
   const { isSignedIn } = useAuth()
-  const [items, setItems] = useState<WatchlistItem[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<WatchStatus | 'all'>('all')
   const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [watchLaterCount, setWatchLaterCount] = useState(0)
+  const storeItems = useWatchlistStore((s) => s.items)
+  const watchLaterCount = useWatchlistStore((s) => s.count)
+  const fetchWatchlist = useWatchlistStore((s) => s.fetch)
+  const removeItemFromStore = useWatchlistStore((s) => s.remove)
+  const updateStatusInStore = useWatchlistStore((s) => s.updateStatus)
   const [message, setMessage] = useState<string | null>(null)
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
+
+  // Derive display items directly from store - stays in sync across all pages automatically
+  const items: (typeof storeItems[number] & { _source: 'api' | 'local'; status: WatchStatus })[] = useMemo(() => 
+    storeItems.map(item => ({
+      ...item,
+      _source: String(item.id).startsWith('local-') ? 'local' as const : 'api' as const,
+      status: (item.status as WatchStatus) || 'plan_to_watch',
+    })),
+  [storeItems])
 
   const handleSearchToggle = () => setShowSearch(!showSearch)
   const handleSearchChange = (query: string) => setSearchQuery(query)
   const handleViewChange = (view: string) => router.push(`/?view=${view}`)
 
   useEffect(() => {
-    loadWatchlist()
-  }, [isSignedIn])
-
-  const loadWatchlist = async () => {
     setLoading(true)
-    try {
-      if (isSignedIn) {
-        const response = await fetch('/api/watchlist')
-        if (response.ok) {
-          const data = await response.json()
-          const transformed = data.map((item: any) => ({
-            ...item,
-            _source: 'api' as const,
-          }))
-          setItems(transformed)
-          setWatchLaterCount(data.length)
-        } else {
-          // Fall back to localStorage
-          const saved = getLocalStorage('watchLater', [])
-          const localItems = saved.map((item: any, i: number) => ({
-            id: `local-${i}`,
-            content_id: item.id,
-            content_type: item.type || 'movie',
-            title: item.title || '',
-            poster_path: item.poster || null,
-            status: item.status || 'plan_to_watch',
-            added_at: item.addedAt || new Date().toISOString(),
-            updated_at: item.addedAt || new Date().toISOString(),
-            _source: 'local' as const,
-          }))
-          setItems(localItems)
-          setWatchLaterCount(localItems.length)
-        }
-      } else {
-        const saved = getLocalStorage('watchLater', [])
-        const localItems = saved.map((item: any, i: number) => ({
-          id: `local-${i}`,
-          content_id: item.id,
-          content_type: item.type || 'movie',
-          title: item.title || '',
-          poster_path: item.poster || null,
-          status: item.status || 'plan_to_watch',
-          added_at: item.addedAt || new Date().toISOString(),
-          updated_at: item.addedAt || new Date().toISOString(),
-          _source: 'local' as const,
-        }))
-        setItems(localItems)
-        setWatchLaterCount(localItems.length)
-      }
-    } catch (error) {
-      console.error('Error loading watchlist:', error)
-      const saved = getLocalStorage('watchLater', [])
-      const localItems = saved.map((item: any, i: number) => ({
-        id: `local-${i}`,
-        content_id: item.id,
-        content_type: item.type || 'movie',
-        title: item.title || '',
-        poster_path: item.poster || null,
-        status: item.status || 'plan_to_watch',
-        added_at: item.addedAt || new Date().toISOString(),
-        updated_at: item.addedAt || new Date().toISOString(),
-        _source: 'local' as const,
-      }))
-      setItems(localItems)
-      setWatchLaterCount(localItems.length)
-    } finally {
-      setLoading(false)
-    }
-  }
+    fetchWatchlist(!!isSignedIn).then(() => setLoading(false))
+  }, [isSignedIn, fetchWatchlist])
 
-  const removeItem = async (item: WatchlistItem) => {
+  const removeItem = async (item: typeof items[number]) => {
     try {
       if (item._source === 'api' && isSignedIn) {
         const response = await fetch(
@@ -126,20 +61,17 @@ export default function WatchlistPage() {
           { method: 'DELETE' }
         )
         if (response.ok) {
-          setItems(prev => prev.filter(i => i.id !== item.id))
-          setWatchLaterCount(prev => prev - 1)
+          removeItemFromStore(item.content_id)
           setMessage('Removed from watchlist')
         } else {
           const err = await response.json()
           setMessage(err.error || 'Failed to remove')
         }
       } else {
-        // Remove from localStorage
         const saved = getLocalStorage('watchLater', [])
-        const updated = saved.filter((i: any) => i.id !== item.content_id)
+        const updated = saved.filter((i: any) => i.id !== item.content_id && i.content_id !== item.content_id)
         setLocalStorage('watchLater', updated)
-        setItems(prev => prev.filter(i => i.id !== item.id))
-        setWatchLaterCount(prev => prev - 1)
+        removeItemFromStore(item.content_id)
         setMessage('Removed from watchlist')
       }
     } catch (error) {
@@ -149,7 +81,9 @@ export default function WatchlistPage() {
     setTimeout(() => setMessage(null), 2500)
   }
 
-  const updateStatus = async (item: WatchlistItem, newStatus: WatchStatus) => {
+  const updateStatus = async (item: typeof items[number], newStatus: WatchStatus) => {
+    updateStatusInStore(item.content_id, newStatus)
+    
     try {
       if (item._source === 'api' && isSignedIn) {
         const response = await fetch('/api/watchlist', {
@@ -162,7 +96,6 @@ export default function WatchlistPage() {
           }),
         })
         if (response.ok) {
-          setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: newStatus } : i))
           setMessage(`Status changed to ${STATUS_OPTIONS.find(s => s.value === newStatus)?.label}`)
         } else {
           const err = await response.json()
@@ -174,7 +107,6 @@ export default function WatchlistPage() {
           i.id === item.content_id ? { ...i, status: newStatus } : i
         )
         setLocalStorage('watchLater', updated)
-        setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: newStatus } : i))
         setMessage(`Status changed to ${STATUS_OPTIONS.find(s => s.value === newStatus)?.label}`)
       }
     } catch (error) {
@@ -381,7 +313,7 @@ export default function WatchlistPage() {
                       <button
                         onClick={(e) => {
                           e.preventDefault()
-                          setOpenDropdownId(openDropdownId === item.id ? null : item.id)
+                          setOpenDropdownId(openDropdownId === String(item.id) ? null : String(item.id))
                         }}
                         onBlur={() => setTimeout(() => setOpenDropdownId(null), 200)}
                         className="w-full px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-xs rounded-md hover:bg-white/30 transition-colors border border-white/20 flex items-center justify-center gap-1"

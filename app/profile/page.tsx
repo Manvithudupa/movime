@@ -8,6 +8,7 @@ import { useAuth, type Profile, type AnimeCharacterData } from '@/components/Aut
 import AniListCharacterPicker from '@/components/AniListCharacterPicker'
 import Avatar from '@/components/Avatar'
 import Navbar from '@/components/Navbar'
+import { useWatchlistStore } from '@/lib/store'
 
 export default function ProfilePage() {
   const { user, profile: authProfile, isLoading: authLoading, isSignedIn, refreshProfile } = useAuth()
@@ -25,7 +26,8 @@ export default function ProfilePage() {
   })
   const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [watchLaterCount, setWatchLaterCount] = useState(0)
+  const watchLaterCount = useWatchlistStore((s) => s.count)
+  const fetchWatchlist = useWatchlistStore((s) => s.fetch)
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
 
@@ -84,20 +86,8 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
-    if (isSignedIn) fetchWatchLaterCount()
-  }, [isSignedIn])
-
-  const fetchWatchLaterCount = async () => {
-    try {
-      const response = await fetch('/api/watchlist')
-      if (response.ok) {
-        const data = await response.json()
-        setWatchLaterCount(data.length || 0)
-      }
-    } catch (error) {
-      console.error('Failed to fetch watchlist:', error)
-    }
-  }
+    if (isSignedIn) fetchWatchlist(true)
+  }, [isSignedIn, fetchWatchlist])
 
   const handleImageUpdate = (imageUrl: string) => {
     if (profile) {

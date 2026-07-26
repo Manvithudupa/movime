@@ -8,6 +8,7 @@ import { availableSources } from '@/lib/sources';
 import { getLocalStorage, setLocalStorage } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
+import { useWatchlistStore } from '@/lib/store';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -15,15 +16,15 @@ export default function SettingsPage() {
   const [preferredSource, setPreferredSource] = useState('');
   const [defaultQuality, setDefaultQuality] = useState('720p');
   const [autoPlay, setAutoPlay] = useState(true);
-  const [watchLater, setWatchLater] = useState<any[]>([]);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [watchLaterCount, setWatchLaterCount] = useState(0);
+  const watchLaterCount = useWatchlistStore((s) => s.count);
+  const fetchWatchlist = useWatchlistStore((s) => s.fetch);
 
   useEffect(() => {
     loadSettings();
-    loadWatchLater();
-  }, [isSignedIn]);
+    fetchWatchlist(!!isSignedIn);
+  }, [isSignedIn, fetchWatchlist]);
 
   const loadSettings = () => {
     setPreferredSource(getLocalStorage('preferredSource', availableSources[0]?.id || ''));
@@ -31,27 +32,7 @@ export default function SettingsPage() {
     setAutoPlay(getLocalStorage('autoPlay', true));
   };
 
-  const loadWatchLater = async () => {
-    if (isSignedIn) {
-      try {
-        const response = await fetch('/api/watchlist');
-        if (response.ok) {
-          const data = await response.json();
-          setWatchLater(data);
-          setWatchLaterCount(data.length);
-        }
-      } catch (error) {
-        console.error('Error loading watchlist:', error);
-        const saved = getLocalStorage('watchLater', []);
-        setWatchLater(saved);
-        setWatchLaterCount(saved.length);
-      }
-    } else {
-      const saved = getLocalStorage('watchLater', []);
-      setWatchLater(saved);
-      setWatchLaterCount(saved.length);
-    }
-  };
+
 
   const saveSettings = () => {
     setLocalStorage('preferredSource', preferredSource);
@@ -62,8 +43,9 @@ export default function SettingsPage() {
 
   const clearWatchLater = async () => {
     if (confirm('Are you sure you want to clear your watch later list?')) {
+      const items = useWatchlistStore.getState().items
       if (isSignedIn) {
-        for (const item of watchLater) {
+        for (const item of items) {
           try {
             await fetch(`/api/watchlist?content_id=${item.content_id}&content_type=${item.content_type}`, {
               method: 'DELETE',
@@ -75,8 +57,7 @@ export default function SettingsPage() {
       } else {
         setLocalStorage('watchLater', []);
       }
-      setWatchLater([]);
-      setWatchLaterCount(0);
+      useWatchlistStore.getState().clear()
     }
   };
 
@@ -84,7 +65,6 @@ export default function SettingsPage() {
     if (confirm('Are you sure you want to clear all stored data? This will reset all settings and clear your watch later list.')) {
       localStorage.clear();
       loadSettings();
-      loadWatchLater();
       alert('All data cleared successfully!');
     }
   };
@@ -212,7 +192,7 @@ export default function SettingsPage() {
                 <div>
                   <h3 className="font-medium mb-2">Watch Later</h3>
                   <p className="text-gray-400 text-sm mb-3">
-                    You have {watchLater.length} items in your watch later list
+                    You have {watchLaterCount} items in your watch later list
                   </p>
                   <button
                     onClick={clearWatchLater}

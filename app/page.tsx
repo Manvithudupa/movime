@@ -22,6 +22,7 @@ import {
 } from '@/lib/utils';
 import type { ContentItem } from '@/lib/types';
 import { useAuth } from '@/components/AuthProvider';
+import { useWatchlistStore } from '@/lib/store';
 import HeroSection from '@/components/HeroSection';
 import Navbar from '@/components/Navbar';
 import ContentSection from '@/components/ContentSection';
@@ -192,7 +193,10 @@ function HomePageContent() {
   const [animePage, setAnimePage] = useState(1);
   const [netflixPage, setNetflixPage] = useState(1);
   const [amazonPrimePage, setAmazonPrimePage] = useState(1);
-  const [watchLater, setWatchLater] = useState<any[]>([]);
+  const watchLater = useWatchlistStore((s) => s.items);
+  const fetchWatchlist = useWatchlistStore((s) => s.fetch);
+  const addItemToStore = useWatchlistStore((s) => s.add);
+  const removeItemFromStore = useWatchlistStore((s) => s.remove);
   const showSearchInput = false; // Search is handled via /search page
   
   // Ref to track if we're loading more content
@@ -200,8 +204,8 @@ function HomePageContent() {
 
   useEffect(() => {
     loadContent();
-    loadWatchLater();
-  }, [isSignedIn]);
+    fetchWatchlist(!!isSignedIn);
+  }, [isSignedIn, fetchWatchlist]);
 
   // Scroll to top whenever the view changes
   useEffect(() => {
@@ -299,54 +303,31 @@ function HomePageContent() {
     }
   };
 
-  const loadWatchLater = useCallback(async () => {
-    if (!isSignedIn) {
-      // Fallback to localStorage for non-authenticated users
-      const saved = getLocalStorage('watchLater', []);
-      setWatchLater(saved);
-      return;
-    }
-    try {
-      const response = await fetch('/api/watchlist');
-      if (response.ok) {
-        const data = await response.json();
-        // Transform API data to ContentCard-compatible format
-        const transformed = data.map((item: any) => ({
-          id: item.content_id,
-          type: item.content_type,
-          media_type: item.content_type,
-          title: item.title,
-          poster_path: item.poster_path,
-          vote_average: 0,
-          overview: '',
-          status: item.status || 'plan_to_watch',
-          _apiRowId: item.id,
-        }));
-        setWatchLater(transformed);
-      }
-    } catch (error) {
-      console.error('Error loading watchlist:', error);
-      // Fallback to localStorage
-      const saved = getLocalStorage('watchLater', []);
-      setWatchLater(saved);
-    }
-  }, [isSignedIn]);
-
-  const transformApiItem = (apiItem: any) => ({
-    id: apiItem.content_id,
-    type: apiItem.content_type,
-    media_type: apiItem.content_type,
-    title: apiItem.title,
-    poster_path: apiItem.poster_path,
-    vote_average: 0,
-    overview: '',
-    status: apiItem.status || 'plan_to_watch',
-    _apiRowId: apiItem.id,
-  });
+  // Helper to re-add an item to the store when an optimistic remove fails
+  const rollbackWatchlistItem = useCallback((item: ContentItem, contentType: string) => {
+    addItemToStore({
+      id: item.id,
+      content_id: item.id as number,
+      content_type: contentType as 'movie' | 'tv',
+      title: item.title || item.name || '',
+      poster_path: item.poster_path,
+      status: 'plan_to_watch',
+      added_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+  }, [addItemToStore])
 
   const addToWatchLater = useCallback(async (item: ContentItem) => {
     const contentType = item.media_type || (item.title ? 'movie' : 'tv');
     const itemId = item.id;
+
+    // Check if item already exists before optimistic update
+    const exists = watchLater.some((w: any) => w.id === itemId || w.content_id === itemId);
+    
+    // Optimistically update the store
+    if (exists) {
+      removeItemFromStore(itemId);
+    }
 
     if (isSignedIn) {
       try {
@@ -362,58 +343,68 @@ function HomePageContent() {
         });
         const result = await response.json();
         if (response.ok) {
-          if (result.added) {
-            setWatchLater(prev => [...prev, transformApiItem(result.item)]);
+          if (result.added && result.item) {
+            addItemToStore({
+              id: result.item.id,
+              content_id: result.item.content_id,
+              content_type: result.item.content_type as 'movie' | 'tv',
+              title: result.item.title,
+              poster_path: result.item.poster_path,
+              status: result.item.status || 'plan_to_watch',
+              added_at: result.item.added_at || new Date().toISOString(),
+              updated_at: result.item.updated_at || new Date().toISOString(),
+            })
           } else {
-            setWatchLater(prev => prev.filter((w: any) => w.id !== itemId));
+            removeItemFromStore(itemId)
           }
         } else {
           console.error('Watchlist API error:', result.error);
-          // Fallback to localStorage
-          setWatchLater(prev => {
-            const existingIndex = prev.findIndex((w: any) => w.id === itemId);
-            let newWatchLater;
-            if (existingIndex >= 0) {
-              newWatchLater = prev.filter((_, index) => index !== existingIndex);
-            } else {
-              newWatchLater = [...prev, { id: itemId, type: contentType, title: item.title || item.name || '', poster: item.poster_path }];
-            }
-            setLocalStorage('watchLater', newWatchLater);
-            return newWatchLater;
-          });
+          // API failed - reverse the optimistic update
+          if (exists) {
+            rollbackWatchlistItem(item, contentType);
+          }
         }
       } catch (error) {
         console.error('Error updating watchlist:', error);
-        setWatchLater(prev => {
-          const existingIndex = prev.findIndex((w: any) => w.id === itemId);
-          let newWatchLater;
-          if (existingIndex >= 0) {
-            newWatchLater = prev.filter((_, index) => index !== existingIndex);
-          } else {
-            newWatchLater = [...prev, { id: itemId, type: contentType, title: item.title || item.name || '', poster: item.poster_path }];
-          }
-          setLocalStorage('watchLater', newWatchLater);
-          return newWatchLater;
-        });
+        // API call failed - reverse the optimistic update
+        if (exists) {
+          rollbackWatchlistItem(item, contentType);
+        }
       }
     } else {
-      setWatchLater(prev => {
-        const existingIndex = prev.findIndex((w: any) => w.id === itemId);
-        let newWatchLater;
-        if (existingIndex >= 0) {
-          newWatchLater = prev.filter((_, index) => index !== existingIndex);
-        } else {
-          newWatchLater = [...prev, { id: itemId, type: contentType, title: item.title || item.name || '', poster: item.poster_path }];
-        }
-        setLocalStorage('watchLater', newWatchLater);
-        return newWatchLater;
-      });
+      toggleLocalWatchlist(item, contentType, exists)
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, watchLater, addItemToStore, removeItemFromStore, rollbackWatchlistItem]);
+
+  const toggleLocalWatchlist = (item: ContentItem, contentType: string, wasInList: boolean) => {
+    const saved = getLocalStorage('watchLater', []);
+    const itemId = item.id;
+    if (wasInList) {
+      const updated = saved.filter((w: any) => w.id !== itemId && w.content_id !== itemId);
+      setLocalStorage('watchLater', updated);
+      removeItemFromStore(itemId)
+    } else {
+      const newItem = {
+        id: itemId,
+        content_id: itemId,
+        content_type: contentType as 'movie' | 'tv',
+        type: contentType,
+        title: item.title || item.name || '',
+        poster: item.poster_path,
+        poster_path: item.poster_path,
+        status: 'plan_to_watch',
+        added_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      const updated = [...saved, newItem]
+      setLocalStorage('watchLater', updated)
+      addItemToStore(newItem)
+    }
+  }
 
   const isInWatchLater = useCallback((item: ContentItem) => {
     const itemId = item.id;
-    return watchLater.some((w: any) => w.id === itemId);
+    return watchLater.some((w: any) => w.id === itemId || w.content_id === itemId);
   }, [watchLater]);
 
   const loadMoreContent = async (contentType: string) => {

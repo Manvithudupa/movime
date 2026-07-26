@@ -10,12 +10,12 @@ import {
   fetchSeasonDetails, 
   getVideoUrl, 
   TMDB_API_KEY,
-  TMDB_IMAGE_BASE_URL,
-  getLocalStorage
+  TMDB_IMAGE_BASE_URL
 } from '@/lib/utils';
 import { availableSources } from '@/lib/sources';
 import type { Movie, TVShow, Season } from '@/lib/types';
 import Navbar from '@/components/Navbar';
+import { useWatchlistStore } from '@/lib/store';
 import Footer from '@/components/Footer';
 import dynamic from 'next/dynamic';
 
@@ -32,7 +32,8 @@ function WatchPageContent() {
   const [seasonData, setSeasonData] = useState<Season | null>(null);
   const [securityLevel] = useState<'secure' | 'balanced' | 'permissive'>('balanced');
   const [showSearch, setShowSearch] = useState(false);
-  const [watchLaterCount, setWatchLaterCount] = useState(0);
+  const watchLaterCount = useWatchlistStore((s) => s.count);
+  const fetchWatchlist = useWatchlistStore((s) => s.fetch);
   const [searchQuery, setSearchQuery] = useState('');
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [iframeKey, setIframeKey] = useState(0);
@@ -54,21 +55,8 @@ function WatchPageContent() {
   }, [content, selectedSeason]);
 
   useEffect(() => {
-    loadWatchLaterCount();
-  }, []);
-
-  const loadWatchLaterCount = async () => {
-    try {
-      const response = await fetch('/api/watchlist');
-      if (response.ok) {
-        const data = await response.json();
-        setWatchLaterCount(data.length || 0);
-        return;
-      }
-    } catch {}
-    const watchLater = getLocalStorage('watchLater', []);
-    setWatchLaterCount(watchLater.length);
-  };
+    fetchWatchlist(false);
+  }, [fetchWatchlist]);
 
   const loadContent = async () => {
     if (!contentId || !contentType) return;
