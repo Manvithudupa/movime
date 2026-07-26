@@ -39,7 +39,7 @@ export default function TermsOfService() {
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-32 pt-40">{/* Added pt-40 to account for navbar */}
         <div className="prose prose-invert max-w-none">
-          <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-[#8A2BE2] to-[#FF6EC4] bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold mb-8 text-white">
             Terms of Service
           </h1>
           
@@ -72,7 +72,7 @@ export default function TermsOfService() {
                   <li>Content search and discovery features</li>
                   <li>Watch later functionality</li>
                 </ul>
-                <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
+                <div className="bg-white/5 border border-white/10 rounded-lg p-4">
                   <p className="text-red-200 leading-relaxed">
                     <strong>Important:</strong> Movime does not host, store, or provide any video content directly. 
                     All content is sourced from third-party providers. We are not responsible for the availability, 
@@ -85,7 +85,7 @@ export default function TermsOfService() {
             <section>
               <h2 className="text-2xl font-semibold mb-4 text-white">3. User Responsibilities</h2>
               <div className="space-y-4">
-                <h3 className="text-xl font-medium text-purple-400">Legal Compliance</h3>
+                <h3 className="text-xl font-medium text-white">Legal Compliance</h3>
                 <p className="text-gray-300 leading-relaxed">
                   You are solely responsible for ensuring that your use of the Service complies with all 
                   applicable local, state, national, and international laws and regulations. This includes:
@@ -97,7 +97,7 @@ export default function TermsOfService() {
                   <li>Following age-appropriate content guidelines</li>
                 </ul>
                 
-                <h3 className="text-xl font-medium text-purple-400 mt-6">Account Security</h3>
+                <h3 className="text-xl font-medium text-white mt-6">Account Security</h3>
                 <ul className="list-disc list-inside text-gray-300 space-y-2">
                   <li>Maintain the confidentiality of your account credentials</li>
                   <li>Use strong, unique passwords</li>
@@ -128,14 +128,14 @@ export default function TermsOfService() {
             <section>
               <h2 className="text-2xl font-semibold mb-4 text-white">5. Third-Party Content and Services</h2>
               <div className="space-y-4">
-                <h3 className="text-xl font-medium text-purple-400">Content Sources</h3>
+                <h3 className="text-xl font-medium text-white">Content Sources</h3>
                 <p className="text-gray-300 leading-relaxed">
                   Our Service aggregates content from various third-party sources. We do not control, 
                   endorse, or assume responsibility for any third-party content, websites, or services 
                   accessed through our platform.
                 </p>
                 
-                <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
+                <div className="bg-white/5 border border-white/10 rounded-lg p-4">
                   <h4 className="text-yellow-200 font-medium mb-2">Security Notice</h4>
                   <p className="text-yellow-200 text-sm leading-relaxed">
                     Some streaming sources may require disabled iframe sandboxing, which could expose you to:
@@ -150,7 +150,7 @@ export default function TermsOfService() {
                   </p>
                 </div>
 
-                <h3 className="text-xl font-medium text-purple-400 mt-6">Authentication Services</h3>
+                <h3 className="text-xl font-medium text-white mt-6">Authentication Services</h3>
                 <p className="text-gray-300 leading-relaxed">
                   We use Supabase for authentication services. By creating an account, you agree to be bound 
                   by Supabase&#39;s terms of service and privacy policy in addition to ours.
@@ -177,14 +177,14 @@ export default function TermsOfService() {
             <section>
               <h2 className="text-2xl font-semibold mb-4 text-white">7. Intellectual Property Rights</h2>
               <div className="space-y-4">
-                <h3 className="text-xl font-medium text-purple-400">Our Content</h3>
+                <h3 className="text-xl font-medium text-white">Our Content</h3>
                 <p className="text-gray-300 leading-relaxed">
                   The Service and its original content, features, and functionality are and will remain 
                   the exclusive property of Movime and its licensors. The Service is protected by copyright, 
                   trademark, and other laws.
                 </p>
                 
-                <h3 className="text-xl font-medium text-purple-400">User Content</h3>
+                <h3 className="text-xl font-medium text-white">User Content</h3>
                 <p className="text-gray-300 leading-relaxed">
                   By uploading content (such as profile pictures), you grant us a non-exclusive, 
                   royalty-free license to use, modify, and display such content in connection with the Service.
@@ -198,7 +198,7 @@ export default function TermsOfService() {
                 Your privacy is important to us. Please review our Privacy Policy, which also governs 
                 your use of the Service, to understand our practices. By using our Service, you agree 
                 to the collection and use of information in accordance with our{' '}
-                <Link href="/privacy" className="text-purple-400 hover:text-purple-300 underline">
+                <Link href="/privacy" className="text-white hover:text-gray-300 underline">
                   Privacy Policy
                 </Link>.
               </p>
@@ -206,21 +206,21 @@ export default function TermsOfService() {
 
             <section>
               <h2 className="text-2xl font-semibold mb-4 text-white">9. Disclaimers</h2>
-              <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
-                <h3 className="text-xl font-medium text-purple-400 mb-4">Service Availability</h3>
+              <div className="bg-white/[0.03] border border-white/10 rounded-lg p-6">
+                <h3 className="text-xl font-medium text-white mb-4">Service Availability</h3>
                 <p className="text-gray-300 leading-relaxed mb-4">
                   We do not guarantee that the Service will be available at all times. We may experience 
                   hardware, software, or other problems or need to perform maintenance related to the Service.
                 </p>
                 
-                <h3 className="text-xl font-medium text-purple-400 mb-4">Content Disclaimer</h3>
+                <h3 className="text-xl font-medium text-white mb-4">Content Disclaimer</h3>
                 <p className="text-gray-300 leading-relaxed mb-4">
                   The information on this Service is provided on an &quot;as is&quot; basis. To the fullest extent 
                   permitted by law, we exclude all representations, warranties, and conditions relating to 
                   our Service and the use of this Service.
                 </p>
                 
-                <h3 className="text-xl font-medium text-purple-400 mb-4">Educational Purpose</h3>
+                <h3 className="text-xl font-medium text-white mb-4">Educational Purpose</h3>
                 <p className="text-gray-300 leading-relaxed">
                   This Service is provided for educational and informational purposes only. We do not 
                   encourage or endorse any illegal activities or copyright infringement.
@@ -287,17 +287,17 @@ export default function TermsOfService() {
               <p className="text-gray-300 leading-relaxed mb-4">
                 If you have any questions about these Terms of Service, please contact us:
               </p>
-              <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
+              <div className="bg-white/[0.03] border border-white/10 rounded-lg p-6">
                 <ul className="text-gray-300 space-y-2">
                   <li><strong>Email:</strong> legal@movime.vercel.app</li>
-                  <li><strong>Contact Page:</strong> <Link href="/contact" className="text-purple-400 hover:text-purple-300">movime.vercel.app/contact</Link></li>
-                  <li><strong>GitHub:</strong> <a href="https://github.com/mdtahseen7" className="text-purple-400 hover:text-purple-300">@mdtahseen7</a></li>
+                  <li><strong>Contact Page:</strong> <Link href="/contact" className="text-white hover:text-gray-300">movime.vercel.app/contact</Link></li>
+                  <li><strong>GitHub:</strong> <a href="https://github.com/mdtahseen7" className="text-white hover:text-gray-300">@mdtahseen7</a></li>
                 </ul>
               </div>
             </section>
 
             <section className="border-t border-gray-800 pt-8">
-              <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-6">
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6">
                 <h3 className="text-red-200 font-semibold mb-3">Final Disclaimer</h3>
                 <p className="text-red-200 leading-relaxed text-sm">
                   <strong>IMPORTANT:</strong> Movime is an educational project that aggregates links to 

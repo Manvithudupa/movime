@@ -41,7 +41,7 @@ const ContentCard = memo(({
 
   return (
     <motion.div 
-      className="group relative bg-gray-900 rounded-xl overflow-hidden"
+      className="group relative bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden"
       whileHover={{ 
         scale: 1.03, 
         y: -5,
@@ -73,7 +73,7 @@ const ContentCard = memo(({
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+          <div className="w-full h-full bg-white/5 flex items-center justify-center">
             <span className="text-gray-400 text-sm">No Image</span>
           </div>
         )}
@@ -94,7 +94,7 @@ const ContentCard = memo(({
         >
           <svg 
             className={`w-4 h-4 transition-colors ${
-              isInWatchLater(item) ? 'text-red-500 fill-current' : 'text-white'
+              isInWatchLater(item) ? 'text-white fill-current' : 'text-white'
             }`} 
             fill={isInWatchLater(item) ? 'currentColor' : 'none'} 
             stroke="currentColor" 
@@ -124,7 +124,7 @@ const ContentCard = memo(({
           <div className="flex items-center gap-1.5">
             <Link
               href={`/watch?id=${item.id}&type=${type}`}
-              className="inline-flex items-center px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-xs font-medium"
+              className="inline-flex items-center px-2.5 py-1 bg-white text-black rounded-lg transition-colors text-xs font-medium"
             >
               <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M8 5v10l7-5z"/>
@@ -133,7 +133,7 @@ const ContentCard = memo(({
             </Link>
             <Link
               href={`/details?id=${item.id}&type=${type}`}
-              className="inline-flex items-center px-2.5 py-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border border-white/30 rounded-lg transition-colors text-xs font-medium"
+              className="inline-flex items-center px-2.5 py-1 bg-white/10 backdrop-blur-sm text-white border border-white/30 rounded-lg transition-colors text-xs font-medium"
             >
               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -199,7 +199,6 @@ export default function ContentSection({
         )}
       </div>
       
-      {/* Horizontal scrolling container */}
       <div className="relative">
         <div className="overflow-x-auto scrollbar-hide pb-4 px-4">
           <div className="flex space-x-4 w-max">
@@ -218,7 +217,6 @@ export default function ContentSection({
           </div>
         </div>
         
-        {/* Gradient fade on right edge */}
         <div className="absolute top-0 right-0 h-full w-20 bg-gradient-to-l from-black to-transparent pointer-events-none" />
       </div>
     </motion.section>

@@ -66,7 +66,6 @@ function WatchPageContent() {
         return;
       }
     } catch {}
-    // Fallback to localStorage
     const watchLater = getLocalStorage('watchLater', []);
     setWatchLaterCount(watchLater.length);
   };
@@ -118,7 +117,6 @@ function WatchPageContent() {
         const valid = data.episodes?.some((e: any) => e.episode_number === episodeFromQuery);
         nextEpisode = valid ? episodeFromQuery : 1;
       } else if (!initFromQueryRef.current) {
-
         nextEpisode = 1;
         initFromQueryRef.current = true;
       } else {
@@ -175,7 +173,7 @@ function WatchPageContent() {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Content Not Found</h1>
-          <Link href="/" className="text-red-500 hover:text-red-400">Return to Home</Link>
+          <Link href="/" className="text-white hover:text-gray-300">Return to Home</Link>
         </div>
       </div>
     );
@@ -194,7 +192,7 @@ function WatchPageContent() {
 
   return (
     <motion.div 
-      className="min-h-screen bg-[#0a0a0f] text-white"
+      className="min-h-screen bg-black text-white"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
@@ -209,8 +207,8 @@ function WatchPageContent() {
         onSearchChange={(q) => setSearchQuery(q)}
       />
 
-      {/* Top bar with back button + title */}
-      <div className="pt-16 bg-[#0a0a0f]">
+      {/* Top bar */}
+      <div className="pt-16 bg-black">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3">
           <Link
             href={`/details?id=${contentId}&type=${contentType}`}
@@ -231,10 +229,9 @@ function WatchPageContent() {
         </div>
       </div>
 
-      {/* Player area — full width, max 16:9 */}
+      {/* Player area */}
       <div className="bg-black w-full">
         <div className="max-w-screen-2xl mx-auto">
-          {/* Player + Sources row */}
           <div className="flex flex-col xl:flex-row gap-0">
             {/* Player */}
             <div className="flex-1 min-w-0">
@@ -260,11 +257,11 @@ function WatchPageContent() {
             </div>
 
             {/* Sources sidebar */}
-            <div className="xl:w-80 shrink-0 bg-[#111118] border-t xl:border-t-0 xl:border-l border-white/5">
-              <div className="p-4 border-b border-white/5">
+            <div className="xl:w-80 shrink-0 bg-black border-t xl:border-t-0 xl:border-l border-white/10">
+              <div className="p-4 border-b border-white/10">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-semibold text-white flex items-center gap-2">
-                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
                     Sources
@@ -280,7 +277,7 @@ function WatchPageContent() {
                         onClick={() => setCurrentSource(source)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
                           currentSource.id === source.id
-                            ? 'border-blue-500 bg-blue-500/20 text-blue-300'
+                            ? 'border-white bg-white/20 text-white'
                             : 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
                         }`}
                       >
@@ -298,203 +295,123 @@ function WatchPageContent() {
       </div>
 
       {/* Content below player */}
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-        {/* Episodes */}
-        <AnimatePresence>
-          {contentType === 'tv' && seasonData?.episodes && (
-            <motion.div 
-              className="py-2"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -50 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              <h3 className="text-xl font-bold mb-4 text-white">Episodes</h3>
-              
-              {/* Season Selector */}
-              {(content as TVShow).seasons && (content as TVShow).seasons.filter(s => s.season_number > 0).length > 1 && (
-                <div className="flex flex-wrap gap-2 mb-5">
-                  {(content as TVShow).seasons?.filter(s => s.season_number > 0).map(season => (
-                    <button
-                      key={season.id}
-                      onClick={() => setSelectedSeason(season.season_number)}
-                      className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-colors ${
-                        selectedSeason === season.season_number
-                          ? 'bg-red-600 text-white'
-                          : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10'
-                      }`}
-                    >
-                      Season {season.season_number}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Episodes Horizontal Scroll */}
-              <div className="overflow-x-auto scrollbar-hide">
-                <div className="flex space-x-3 pb-4 pt-1" style={{ width: 'max-content' }}>
-                  {seasonData.episodes.map((episode) => (
-                    <div
-                      key={episode.id}
-                      className={`group cursor-pointer bg-[#111118] rounded-xl overflow-hidden transition-all duration-300 flex-shrink-0 w-64 border ${
-                        selectedEpisode === episode.episode_number
-                          ? 'ring-2 ring-red-500 border-red-500/50'
-                          : 'border-white/5 hover:border-white/20 hover:bg-[#16161f]'
-                      }`}
-                      onClick={() => setSelectedEpisode(episode.episode_number)}
-                    >
-                      {/* Episode Thumbnail */}
-                      <div className="relative aspect-video bg-gray-800">
-                        {episode.still_path ? (
-                          <img
-                            src={`${TMDB_IMAGE_BASE_URL}${episode.still_path}`}
-                            alt={episode.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center h-full text-gray-500">
-                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          </div>
-                        )}
-                        
-                        {/* Episode Number Badge */}
-                        <div className="absolute top-2 left-2 bg-black bg-opacity-80 backdrop-blur-sm rounded px-2 py-1 text-xs font-bold text-white">
-                          Episode {episode.episode_number}
-                        </div>
-                      </div>
-
-                      {/* Episode Info */}
-                      <div className="p-4">
-                        <h4 className="font-bold text-white text-sm mb-2 line-clamp-1">
-                          {episode.name || `Episode ${episode.episode_number}`}
-                        </h4>
-                        
-                        {/* Meta info row */}
-                        <div className="flex items-center justify-between text-xs text-gray-400 mb-3">
-                          <span>
-                            {episode.air_date ? new Date(episode.air_date).getFullYear() : '2022'}
-                          </span>
-                          <span>
-                            {episode.runtime || 49} min
-                          </span>
-                          <div className="flex items-center">
-                            <svg className="w-3 h-3 text-yellow-400 fill-current mr-1" viewBox="0 0 20 20">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                            </svg>
-                            <span>{episode.vote_average ? episode.vote_average.toFixed(1) : '8.5'}</span>
-                          </div>
-                        </div>
-                        
-                        {/* Description */}
-                        <p className="text-gray-400 text-xs line-clamp-3 leading-relaxed">
-                          {episode.overview || 'When a deliciously wicked prank gets Wednesday expelled, her parents ship her off to Nevermore Academy, the boarding school where they fell in love...'}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Info row */}
+        <div className="flex flex-col sm:flex-row gap-8">
+          {/* Poster */}
+          {content.poster_path && (
+            <div className="flex-shrink-0 w-32 sm:w-36 mx-auto sm:mx-0">
+              <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
+                <Image
+                  src={`${TMDB_IMAGE_BASE_URL}${content.poster_path}`}
+                  alt={contentTitle}
+                  fill
+                  className="object-cover"
+                  sizes="144px"
+                />
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
-        {/* Details Card */}
-        <div className="bg-[#111118] rounded-2xl border border-white/5 overflow-hidden">
-          <div className="flex flex-col sm:flex-row gap-0">
-            {/* Poster */}
-            {content.poster_path && (
-              <div className="sm:w-48 shrink-0">
-                <div className="relative aspect-[2/3] sm:h-full w-full sm:w-48">
-                  <Image
-                    src={`${TMDB_IMAGE_BASE_URL}${content.poster_path}`}
-                    alt={contentTitle}
-                    fill
-                    className="object-cover"
-                    sizes="192px"
-                  />
-                </div>
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">{contentTitle}</h1>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400 mb-4">
+              {releaseYear && <span>{releaseYear}</span>}
+              {content.vote_average > 0 && <span>★ {content.vote_average.toFixed(1)}</span>}
+              {'number_of_seasons' in content && content.number_of_seasons && (
+                <span>{content.number_of_seasons} Season{content.number_of_seasons > 1 ? 's' : ''}</span>
+              )}
+            </div>
+            <p className="text-gray-300 text-sm leading-relaxed line-clamp-4">{content.overview}</p>
+            {/* Genre tags */}
+            {content.genres && content.genres.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {content.genres.map((genre: any) => (
+                  <span key={genre.id} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-gray-300">
+                    {genre.name}
+                  </span>
+                ))}
               </div>
             )}
-            {/* Info */}
-            <div className="flex-1 p-6 space-y-4">
-              <div>
-                <h2 className="text-2xl font-bold text-white leading-tight">{contentTitle}</h2>
-                {contentType === 'tv' && (content as TVShow).number_of_seasons && (
-                  <p className="text-sm text-purple-400 mt-1">
-                    {(content as TVShow).number_of_seasons} Season{(content as TVShow).number_of_seasons > 1 ? 's' : ''} · {(content as TVShow).number_of_episodes} Episodes
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-3 text-sm">
-                {releaseYear && <span className="text-gray-300">{releaseYear}</span>}
-                {contentType === 'movie' && (content as Movie).runtime && (
-                  <span className="text-gray-300">{formatRuntime((content as Movie).runtime)}</span>
-                )}
-                {content.vote_average > 0 && (
-                  <span className="flex items-center gap-1 text-yellow-400 font-semibold">
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                    </svg>
-                    {content.vote_average.toFixed(1)} / 10
-                  </span>
-                )}
-              </div>
-              {content.genres && content.genres.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {content.genres.map((genre) => (
-                    <span key={genre.id} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-gray-300">
-                      {genre.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {content.overview && (
-                <p className="text-gray-400 text-sm leading-relaxed">{content.overview}</p>
-              )}
-              <Link
-                href={`/details?id=${contentId}&type=${contentType}`}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 rounded-lg text-sm text-gray-300 hover:text-white transition-all"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                View Full Details
-              </Link>
-            </div>
           </div>
         </div>
+
+        {/* Episode Selector for TV */}
+        {contentType === 'tv' && seasonData?.episodes && seasonData.episodes.length > 0 && (
+          <div>
+            <h2 className="text-lg font-semibold mb-3">Episodes - Season {selectedSeason}</h2>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {seasonData.episodes.map((ep: any) => (
+                <button
+                  key={ep.episode_number}
+                  onClick={() => setSelectedEpisode(ep.episode_number)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    selectedEpisode === ep.episode_number
+                      ? 'bg-white text-black'
+                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                  }`}
+                >
+                  {ep.episode_number}
+                </button>
+              ))}
+            </div>
+            {seasonData.season_number > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {Array.from({ length: (content as any).number_of_seasons || 1 }, (_, i) => i + 1).map(seasonNum => (
+                  <button
+                    key={seasonNum}
+                    onClick={() => setSelectedSeason(seasonNum)}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                      selectedSeason === seasonNum
+                        ? 'bg-white text-black'
+                        : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                    }`}
+                  >
+                    S{seasonNum}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Recommendations */}
         {recommendations.length > 0 && (
           <div>
-            <h3 className="text-xl font-bold mb-4 text-white">More Like This</h3>
-            <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4">
-              {recommendations.slice(0, 12).map((rec) => (
-                <Link
-                  key={rec.id}
-                  href={`/details?id=${rec.id}&type=${rec.media_type || contentType}`}
-                  className="flex-shrink-0 w-36 group"
-                >
-                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800">
-                    <Image
-                      src={`https://image.tmdb.org/t/p/w300${rec.poster_path}`}
-                      alt={rec.title || rec.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <p className="mt-2 text-xs text-gray-400 group-hover:text-white transition-colors line-clamp-2">{rec.title || rec.name}</p>
-                </Link>
-              ))}
+            <h2 className="text-lg font-semibold mb-4">You Might Also Like</h2>
+            <div className="flex overflow-x-auto scrollbar-hide gap-4 pb-4">
+              {recommendations.slice(0, 10).map((rec: any) => {
+                const recTitle = rec.title || rec.name || '';
+                const recPoster = rec.poster_path;
+                return (
+                  <Link
+                    key={rec.id}
+                    href={`/details?id=${rec.id}&type=${contentType}`}
+                    className="group flex-shrink-0 w-36"
+                  >
+                    <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-black">
+                      {recPoster ? (
+                        <Image
+                          src={`${TMDB_IMAGE_BASE_URL}${recPoster}`}
+                          alt={recTitle}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          sizes="144px"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs">No Image</div>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1 line-clamp-2 group-hover:text-white transition-colors">{recTitle}</p>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}
       </div>
 
-      {/* Footer */}
       <Footer />
     </motion.div>
   );

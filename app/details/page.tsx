@@ -32,16 +32,15 @@ function DetailsPageContent() {
   const [showStatusPicker, setShowStatusPicker] = useState(false);
 
   const statusLabels: Record<string, { label: string, color: string, icon: string }> = {
-    watching: { label: 'Watching', color: 'bg-green-600', icon: '▶' },
-    completed: { label: 'Completed', color: 'bg-blue-600', icon: '✓' },
-    plan_to_watch: { label: 'Plan to Watch', color: 'bg-yellow-600', icon: '⏳' },
-    dropped: { label: 'Dropped', color: 'bg-red-600', icon: '✕' },
+    watching: { label: 'Watching', color: 'bg-white', icon: '▶' },
+    completed: { label: 'Completed', color: 'bg-white/60', icon: '✓' },
+    plan_to_watch: { label: 'Plan to Watch', color: 'bg-white/30', icon: '⏳' },
+    dropped: { label: 'Dropped', color: 'bg-white/10', icon: '✕' },
   };
 
   const contentId = searchParams.get('id');
   const contentType = searchParams.get('type') as 'movie' | 'tv';
 
-  // Helpers: meta shapes
   type MovieReleaseMeta = {
     release_dates?: {
       results?: Array<{
@@ -65,7 +64,6 @@ function DetailsPageContent() {
         const response = await fetch('/api/watchlist');
         if (response.ok) {
           const data = await response.json();
-          // Transform API data to consistent format
           const transformed = data.map((item: any) => ({
             id: item.content_id,
             type: item.content_type,
@@ -345,7 +343,7 @@ function DetailsPageContent() {
             <p className="text-gray-400 mb-6">The content you are looking for could not be found.</p>
             <Link 
               href="/"
-              className="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+              className="inline-flex items-center px-6 py-3 bg-white text-black font-semibold rounded-lg transition-colors"
             >
               Back to Home
             </Link>
@@ -367,7 +365,7 @@ function DetailsPageContent() {
         onSearchChange={() => {}}
       />
 
-      {/* Hero Section — backdrop image only, no text overlay */}
+      {/* Hero Section */}
       <div className="relative h-[50vh] sm:h-[56vh] md:h-[62vh] overflow-hidden">
         <div className="absolute inset-0">
           <Image
@@ -394,11 +392,10 @@ function DetailsPageContent() {
         </div>
       </div>
 
-      {/* Details Section — poster + info below the backdrop */}
+      {/* Details Section */}
       <div className="bg-black py-8 sm:py-10">
         <div className="px-4 sm:px-6 lg:px-8 max-w-7xl">
           <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 md:gap-10">
-            {/* Poster Thumbnail */}
             {content.poster_path && (
               <div className="flex-shrink-0 w-36 sm:w-48 md:w-56 mx-auto sm:mx-0">
                 <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden shadow-2xl">
@@ -413,30 +410,25 @@ function DetailsPageContent() {
               </div>
             )}
 
-            {/* Info */}
             <div className="flex-1 min-w-0">
-              {/* Title */}
               <h1 className="font-bold leading-tight text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-3 sm:mb-4">
                 {getTitle()}
               </h1>
-              {/* Meta Row */}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-300 mb-4 sm:mb-5">
                 {getReleaseYear() && <span>{getReleaseYear()}</span>}
                 {getCertification() && (
-                  <span className="bg-red-600 text-white font-semibold px-2 py-1 rounded-sm text-[10px] sm:text-[11px] leading-none">{getCertification()}</span>
+                  <span className="bg-white/10 text-white font-semibold px-2 py-1 rounded-sm text-[10px] sm:text-[11px] leading-none">{getCertification()}</span>
                 )}
                 {getRuntime() && <span>{getRuntime()}</span>}
                 {getPrimaryGenre() && <span>{getPrimaryGenre()}</span>}
               </div>
-              {/* Overview */}
               <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-6 sm:mb-8">
                 {content.overview}
               </p>
-              {/* Buttons */}
               <div className="flex flex-wrap gap-3 sm:gap-4 mb-5 sm:mb-6">
                 <button
                   onClick={() => handleWatchNow()}
-                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 rounded-sm font-semibold text-xs sm:text-sm tracking-wide transition-all shadow-md hover:shadow-lg"
+                  className="flex items-center gap-2 bg-white text-black font-semibold px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 rounded-sm text-xs sm:text-sm tracking-wide transition-all shadow-md hover:shadow-lg hover:bg-gray-100"
                 >
                   <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M8 5v10l7-5z"/></svg>
                   PLAY
@@ -450,9 +442,8 @@ function DetailsPageContent() {
                     {isInWatchLater() ? `${statusLabels[getCurrentStatus()]?.label || 'MY LIST'} ✓` : '+ MY LIST'}
                   </button>
 
-                  {/* Status Picker Dropdown */}
                   {showStatusPicker && !isInWatchLater() && (
-                    <div className="absolute top-full left-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-black border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
                       {Object.entries(statusLabels).map(([key, val]) => (
                         <button
                           key={key}
@@ -469,9 +460,8 @@ function DetailsPageContent() {
                     </div>
                   )}
 
-                  {/* Status display when already added */}
                   {isInWatchLater() && (
-                    <div className="absolute top-full left-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-black border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
                       {Object.entries(statusLabels).map(([key, val]) => (
                         <button
                           key={key}
@@ -486,7 +476,6 @@ function DetailsPageContent() {
                                   status: key,
                                 }),
                               });
-                              // Refresh watchlist
                               loadWatchLater();
                             } catch (error) {
                               console.error('Failed to update status:', error);
@@ -495,14 +484,14 @@ function DetailsPageContent() {
                           }}
                           className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors text-left ${
                             getCurrentStatus() === key
-                              ? 'bg-purple-600/20 text-purple-300'
+                              ? 'bg-white/10 text-white'
                               : 'text-gray-200 hover:bg-white/10 hover:text-white'
                           }`}
                         >
                           <span className={`w-2 h-2 rounded-full ${val.color}`}></span>
                           {val.icon} {val.label}
                           {getCurrentStatus() === key && (
-                            <svg className="w-4 h-4 ml-auto text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 ml-auto text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
                           )}
@@ -535,7 +524,6 @@ function DetailsPageContent() {
             <div className="mb-6 sm:mb-8">
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Episodes</h2>
               
-              {/* Season Selector */}
               {'number_of_seasons' in content && content.number_of_seasons > 1 && (
                 <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
                   {Array.from({ length: content.number_of_seasons }, (_, i) => i + 1).map(seasonNum => (
@@ -544,8 +532,8 @@ function DetailsPageContent() {
                       onClick={() => setSelectedSeason(seasonNum)}
                       className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${
                         selectedSeason === seasonNum
-                          ? 'bg-red-600 text-white'
-                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                          ? 'bg-white text-black'
+                          : 'bg-white/10 text-gray-300 hover:bg-white/20'
                       }`}
                     >
                       Season {seasonNum}
@@ -555,7 +543,6 @@ function DetailsPageContent() {
               )}
             </div>
 
-            {/* Episodes Slider */}
             {seasonData?.episodes && (
               <div className="episodes-slider group relative">
                 <div className="overflow-x-auto scrollbar-hide">
@@ -563,10 +550,10 @@ function DetailsPageContent() {
                     {seasonData.episodes.map((episode: Episode) => (
                       <div
                         key={episode.id}
-                        className="group/card bg-gray-900/50 rounded-xl overflow-hidden hover:bg-gray-800/50 transition-all duration-300 cursor-pointer border border-gray-800 hover:border-gray-600 flex-shrink-0 w-64 sm:w-72 hover:scale-105 hover:shadow-2xl"
+                        className="group/card bg-white/[0.03] rounded-xl overflow-hidden hover:bg-white/[0.06] transition-all duration-300 cursor-pointer border border-white/10 hover:border-white/20 flex-shrink-0 w-64 sm:w-72 hover:scale-105 hover:shadow-2xl"
                         onClick={() => handleWatchNow(episode.episode_number)}
                       >
-                        <div className="relative aspect-video bg-gray-800">
+                        <div className="relative aspect-video bg-black">
                           {episode.still_path ? (
                             <Image
                               src={`${TMDB_IMAGE_BASE_URL}${episode.still_path}`}
@@ -583,23 +570,21 @@ function DetailsPageContent() {
                             </div>
                           )}
                           
-                          {/* Play Overlay */}
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                            <div className="bg-red-600 rounded-full p-2 sm:p-3 transform scale-75 group-hover/card:scale-100 transition-transform duration-300">
-                              <svg className="w-6 sm:w-8 h-6 sm:h-8 text-white ml-1" fill="currentColor" viewBox="0 0 20 20">
+                            <div className="bg-white rounded-full p-2 sm:p-3 transform scale-75 group-hover/card:scale-100 transition-transform duration-300">
+                              <svg className="w-6 sm:w-8 h-6 sm:h-8 text-black ml-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M8 5v10l7-5z"/>
                               </svg>
                             </div>
                           </div>
 
-                          {/* Episode Number */}
                           <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-black/80 backdrop-blur-sm rounded-lg px-2 py-1 text-xs sm:text-sm font-semibold">
                             Episode {episode.episode_number}
                           </div>
                         </div>
 
                         <div className="p-3 sm:p-4">
-                          <h3 className="font-semibold text-sm sm:text-base md:text-lg mb-2 line-clamp-1 group-hover/card:text-red-400 transition-colors">
+                          <h3 className="font-semibold text-sm sm:text-base md:text-lg mb-2 line-clamp-1 group-hover/card:text-white transition-colors">
                             {episode.name}
                           </h3>
                           
@@ -631,7 +616,6 @@ function DetailsPageContent() {
                   </div>
                 </div>
                 
-                {/* Scroll indicators */}
                 <div className="absolute top-1/2 -left-4 transform -translate-y-1/2 scroll-button">
                   <button 
                     onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
@@ -691,7 +675,7 @@ function DetailsPageContent() {
                       <Link
                         key={item.id}
                         href={`/details?id=${item.id}&type=${mediaType}`}
-                        className="group/card w-44 sm:w-48 md:w-52 flex-shrink-0 rounded-xl overflow-hidden bg-gray-900/60 border border-white/10 hover:border-white/30 transition-all hover:shadow-[0_4px_18px_-4px_rgba(255,255,255,0.18)]"
+                        className="group/card w-44 sm:w-48 md:w-52 flex-shrink-0 rounded-xl overflow-hidden bg-white/[0.03] border border-white/10 hover:border-white/30 transition-all hover:shadow-[0_4px_18px_-4px_rgba(255,255,255,0.18)]"
                       >
                         <div className="relative aspect-[2/3]">
                           <Image
@@ -723,7 +707,6 @@ function DetailsPageContent() {
                   })}
                 </div>
               </div>
-              {/* Horizontal scroll buttons (reuse style) */}
               <div className="absolute top-1/2 -left-4 transform -translate-y-1/2 scroll-button">
                 <button 
                   onClick={(e: React.MouseEvent<HTMLButtonElement>) => {

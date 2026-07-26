@@ -38,7 +38,7 @@ export default function PrivacyPolicy() {
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-32 pt-40">{/* Added pt-40 to account for navbar */}
         <div className="prose prose-invert max-w-none">
-          <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-[#8A2BE2] to-[#FF6EC4] bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold mb-8 text-white">
             Privacy Policy
           </h1>
           
@@ -60,7 +60,7 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="text-2xl font-semibold mb-4 text-white">Information We Collect</h2>
               
-              <h3 className="text-xl font-medium mb-3 text-purple-400">Personal Information</h3>
+              <h3 className="text-xl font-medium mb-3 text-white">Personal Information</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
                 We may collect personal information that you voluntarily provide to us when you:
               </p>
@@ -72,7 +72,7 @@ export default function PrivacyPolicy() {
                 <li>Use interactive features of our service</li>
               </ul>
 
-              <h3 className="text-xl font-medium mb-3 text-purple-400">Automatically Collected Information</h3>
+              <h3 className="text-xl font-medium mb-3 text-white">Automatically Collected Information</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
                 When you visit our platform, we automatically collect certain information, including:
               </p>
@@ -105,21 +105,21 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="text-2xl font-semibold mb-4 text-white">Third-Party Services</h2>
               
-              <h3 className="text-xl font-medium mb-3 text-purple-400">Authentication</h3>
+              <h3 className="text-xl font-medium mb-3 text-white">Authentication</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
                 We use Supabase for authentication services. When you create an account, your information 
                 is processed according to Supabase&#39;s privacy policy. We recommend reviewing their privacy 
                 practices at supabase.com.
               </p>
 
-              <h3 className="text-xl font-medium mb-3 text-purple-400">Streaming Sources</h3>
+              <h3 className="text-xl font-medium mb-3 text-white">Streaming Sources</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
                 <strong className="text-yellow-400">Important:</strong> Movime aggregates content from 
                 third-party streaming sources. We do not host any video content directly. When you 
                 access streaming content, you may be subject to the privacy policies and terms of 
                 service of those third-party providers.
               </p>
-              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
+              <div className="bg-white/5 border border-white/10 rounded-lg p-4 mb-4">
                 <p className="text-yellow-200 text-sm">
                   <strong>Security Notice:</strong> Some streaming sources may require disabled iframe 
                   sandboxing, which could expose you to third-party tracking. We recommend using ad-blockers 
@@ -205,10 +205,10 @@ export default function PrivacyPolicy() {
               <p className="text-gray-300 leading-relaxed mb-4">
                 If you have any questions about this Privacy Policy or our privacy practices, please contact us:
               </p>
-              <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
+              <div className="bg-white/[0.03] border border-white/10 rounded-lg p-6">
                 <ul className="text-gray-300 space-y-2">
                   <li><strong>Email:</strong> mdtahseen2901@gmail.com</li>
-                  <li><strong>GitHub:</strong> <a href="https://github.com/mdtahseen7" className="text-purple-400 hover:text-purple-300">@mdtahseen7</a></li>
+                  <li><strong>GitHub:</strong> <a href="https://github.com/mdtahseen7" className="text-white hover:text-gray-300">@mdtahseen7</a></li>
                   <li><strong>Response Time:</strong> We aim to respond within 48 hours</li>
                 </ul>
               </div>
@@ -216,7 +216,7 @@ export default function PrivacyPolicy() {
 
             <section className="border-t border-gray-800 pt-8">
               <h2 className="text-2xl font-semibold mb-4 text-white">Disclaimer</h2>
-              <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-6">
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6">
                 <p className="text-red-200 leading-relaxed">
                   <strong>Important:</strong> Movime is an educational project that aggregates links to 
                   third-party streaming sources. We do not host any video content on our servers. 

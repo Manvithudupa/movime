@@ -32,7 +32,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
 
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint
+      setIsMobile(window.innerWidth < 768);
     };
     
     checkIsMobile();
@@ -74,7 +74,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
 
     const interval = setInterval(() => {
       setCurrentMovieIndex((prev) => (prev + 1) % featuredMovies.length);
-    }, 7000); // Change every 7 seconds
+    }, 7000);
 
     return () => clearInterval(interval);
   }, [featuredMovies.length, isPaused]);
@@ -109,7 +109,6 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
     }
   };
 
-  // Minimum swipe distance (in px) to trigger slide change
   const minSwipeDistance = 50;
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -129,10 +128,8 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
     const isRightSwipe = distance < -minSwipeDistance;
 
     if (isLeftSwipe) {
-      // Swipe left - go to next
       goToSlide(currentMovieIndex === featuredMovies.length - 1 ? 0 : currentMovieIndex + 1);
     } else if (isRightSwipe) {
-      // Swipe right - go to previous
       goToSlide(currentMovieIndex === 0 ? featuredMovies.length - 1 : currentMovieIndex - 1);
     }
   };
@@ -172,21 +169,21 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
 
   if (loading) {
     return (
-      <div className="relative h-screen bg-gray-900 animate-pulse">
+      <div className="relative h-screen bg-black">
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent z-10" />
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10" />
         <div className="relative z-20 px-4 sm:px-6 lg:px-8 h-full flex items-center">
           <div className="max-w-2xl">
-            <div className="h-8 bg-gray-700 rounded mb-4 w-48"></div>
-            <div className="h-12 bg-gray-700 rounded mb-6 w-96"></div>
+            <div className="h-8 bg-white/5 rounded mb-4 w-48"></div>
+            <div className="h-12 bg-white/5 rounded mb-6 w-96"></div>
             <div className="space-y-2 mb-6">
-              <div className="h-4 bg-gray-700 rounded w-full"></div>
-              <div className="h-4 bg-gray-700 rounded w-4/5"></div>
-              <div className="h-4 bg-gray-700 rounded w-3/5"></div>
+              <div className="h-4 bg-white/5 rounded w-full"></div>
+              <div className="h-4 bg-white/5 rounded w-4/5"></div>
+              <div className="h-4 bg-white/5 rounded w-3/5"></div>
             </div>
             <div className="flex space-x-4">
-              <div className="h-12 bg-gray-700 rounded w-32"></div>
-              <div className="h-12 bg-gray-700 rounded w-32"></div>
+              <div className="h-12 bg-white/5 rounded w-32"></div>
+              <div className="h-12 bg-white/5 rounded w-32"></div>
             </div>
           </div>
         </div>
@@ -208,7 +205,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
     >
-      {/* Background Images - crossfade between slides */}
+      {/* Background Images */}
       <div className="absolute inset-0">
         {featuredMovies.map((movie, index) => (
           <div
@@ -229,19 +226,8 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
   <div className="absolute bottom-0 left-0 right-0 h-60 bg-gradient-to-t from-black via-black/70 to-transparent" />
       </div>
 
-      {/* Trending Badge */}
-      {/* <div className="absolute top-8 left-8 z-20">
-        <div className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
-          </svg>
-          <span>Trending Now</span>
-        </div>
-      </div> */}
-
-      {/* Carousel Indicators - Desktop only */}
+      {/* Carousel Indicators */}
       {featuredMovies.length > 1 && (
-        // <div className="hidden md:block absolute bottom-8 left-1/2 transform -translate-x-1/2 z-30">
         <div className="hidden md:block absolute bottom-8 right-10 z-30">
           <div className="flex space-x-3">
             {featuredMovies.map((_, index) => (
@@ -262,7 +248,6 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
 
       {/* Desktop Main Content */}
       <motion.div 
-        // className="hidden md:flex relative z-20 px-4 sm:px-6 lg:px-8 h-full items-start pt-28 sm:pt-24 md:pt-32 lg:pt-48 pb-12 sm:pb-20"
         className="hidden md:flex relative z-20 px-4 sm:px-6 lg:px-8 pl-16 sm:pl-24 lg:pl-32 h-full items-start pt-48 sm:pt-44 md:pt-56 lg:pt-72 pb-12 sm:pb-20"
         initial={{ opacity: 0, x: -100 }}
         animate={{ opacity: 1, x: 0 }}
@@ -278,7 +263,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
               transition={{ duration: 0.3 }}
             >
               <motion.h1 
-                className="text-2xl sm:text-3xl md:text-5xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]"
+                className="text-2xl sm:text-3xl md:text-5xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
@@ -293,7 +278,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
               >
               <span>{formatReleaseYear(currentMovie.release_date)}</span>
               {getCertification(currentMovie) && (
-                <span className="bg-red-600 text-white font-semibold px-2 py-1 rounded-sm text-[10px] sm:text-[11px] leading-none tracking-wide">
+                <span className="bg-white/10 text-white font-semibold px-2 py-1 rounded-sm text-[10px] sm:text-[11px] leading-none">
                   {getCertification(currentMovie)}
                 </span>
               )}
@@ -326,7 +311,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
                 </motion.button>
                 <motion.button
                   onClick={() => toggleWatchLater(currentMovie)}
-                  className="flex items-center justify-center gap-2 bg-black/50 hover:bg-black/70 text-white px-4 sm:px-5 md:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm tracking-wide transition-colors border border-white/30 hover:border-white/50 w-full sm:w-auto"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 sm:px-5 md:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm tracking-wide transition-colors border border-white/30 hover:border-white/50 w-full sm:w-auto"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   transition={{ duration: 0.2 }}
@@ -336,7 +321,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
                 </motion.button>
                 <motion.button
                   onClick={handleMoreDetails}
-                  className="flex items-center justify-center gap-2 bg-black/50 hover:bg-black/70 text-white px-4 sm:px-5 md:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm tracking-wide transition-colors border border-white/30 hover:border-white/50 w-full sm:w-auto"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 sm:px-5 md:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm tracking-wide transition-colors border border-white/30 hover:border-white/50 w-full sm:w-auto"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   transition={{ duration: 0.2 }}
@@ -388,9 +373,8 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
             transition={{ duration: 0.3 }}
             className="flex flex-col transform -translate-y-10"
           >
-            {/* Title */}
             <motion.h1 
-              className="text-3xl font-bold text-white mb-3 leading-tight tracking-wide drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
+              className="text-3xl font-bold text-white mb-3 leading-tight tracking-wide"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
@@ -398,7 +382,6 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
               {currentMovie.title}
             </motion.h1>
 
-            {/* Year and Certification Badge */}
             <motion.div 
               className="flex items-center gap-3 mb-4"
               initial={{ opacity: 0, y: 20 }}
@@ -412,15 +395,13 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
                 <span className="text-white text-xs font-medium">{formatReleaseYear(currentMovie.release_date)}</span>
               </div>
               
-              {/* Certification Badge */}
               {getCertification(currentMovie) && (
-                <div className="bg-red-600 backdrop-blur-sm px-1.5 py-0.1 rounded shadow-lg">
+                <div className="bg-white/10 backdrop-blur-sm px-1.5 py-0.1 rounded shadow-lg">
                   <span className="text-white font-bold text-[10px]">{getCertification(currentMovie)}</span>
                 </div>
               )}
             </motion.div>
 
-            {/* Genre Tags */}
             <motion.div 
               className="flex flex-wrap gap-1.5 mb-5"
               initial={{ opacity: 0, y: 20 }}
@@ -437,14 +418,12 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
               ))}
             </motion.div>
 
-            {/* Action Buttons */}
             <motion.div 
               className="flex items-center gap-2.5"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
             >
-              {/* Watch Now Button */}
               <motion.button
                 onClick={handleWatchNow}
                 className="flex-1 flex items-center justify-center gap-2 bg-white text-black px-5 py-3 rounded-lg font-bold text-sm tracking-wide shadow-xl hover:bg-gray-100 transition-colors"
@@ -458,7 +437,6 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
                 Watch Now
               </motion.button>
 
-              {/* Info Button */}
               <motion.button
                 onClick={handleMoreDetails}
                 className="flex items-center justify-center w-10 h-10 bg-black/50 backdrop-blur-sm text-white rounded-full border-2 border-white/30 hover:bg-black/70 hover:border-white/50 transition-colors shadow-lg"
@@ -475,7 +453,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
         </AnimatePresence>
       </motion.div>
 
-        {/* Navigation Arrows (Hidden on mobile) */}
+        {/* Navigation Arrows */}
         {featuredMovies.length > 1 && (
           <>
             <motion.button
@@ -524,5 +502,3 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
     </motion.div>
   );
 }
-
-

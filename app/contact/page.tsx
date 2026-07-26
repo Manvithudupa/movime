@@ -30,7 +30,6 @@ export default function ContactPage() {
   };
 
   const handleViewChange = (view: string) => {
-    // Navigate to home with the selected view
     window.location.href = `/?view=${view}`;
   };
 
@@ -46,13 +45,11 @@ export default function ContactPage() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     setSubmitted(true);
     setIsSubmitting(false);
     
-    // Reset form after 3 seconds
     setTimeout(() => {
       setSubmitted(false);
       setFormData({
@@ -78,9 +75,9 @@ export default function ContactPage() {
       />
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 py-32 pt-40">{/* Added pt-40 to account for navbar */}
+      <div className="py-32 pt-40">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-[#8A2BE2] to-[#FF6EC4] bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">
             Get in Touch
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
@@ -100,8 +97,8 @@ export default function ContactPage() {
               
               <div className="space-y-6">
                 {/* GitHub */}
-                <div className="flex items-start space-x-4 p-6 bg-gray-900/50 rounded-lg border border-gray-700 hover:border-purple-500/50 transition-colors">
-                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-r from-[#8A2BE2] to-[#FF6EC4] rounded-lg flex items-center justify-center">
+                <div className="flex items-start space-x-4 p-6 bg-white/[0.03] rounded-lg border border-white/10 hover:border-white/30 transition-colors">
+                  <div className="flex-shrink-0 w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
                     <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                     </svg>
@@ -113,7 +110,7 @@ export default function ContactPage() {
                       href="https://github.com/Manvith911" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-purple-400 hover:text-purple-300 transition-colors"
+                      className="text-white hover:text-gray-300 transition-colors"
                     >
                       github.com/Manvith911
                     </a>
@@ -121,8 +118,8 @@ export default function ContactPage() {
                 </div>
 
                 {/* Email */}
-                <div className="flex items-start space-x-4 p-6 bg-gray-900/50 rounded-lg border border-gray-700 hover:border-purple-500/50 transition-colors">
-                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-r from-[#8A2BE2] to-[#FF6EC4] rounded-lg flex items-center justify-center">
+                <div className="flex items-start space-x-4 p-6 bg-white/[0.03] rounded-lg border border-white/10 hover:border-white/30 transition-colors">
+                  <div className="flex-shrink-0 w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 7.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
@@ -132,7 +129,7 @@ export default function ContactPage() {
                     <p className="text-gray-400 mb-2">General inquiries and support requests</p>
                     <a 
                       href="mailto:manvithudupa073@gmail.com" 
-                      className="text-purple-400 hover:text-purple-300 transition-colors"
+                      className="text-white hover:text-gray-300 transition-colors"
                     >
                       Mail us
                     </a>
@@ -140,8 +137,8 @@ export default function ContactPage() {
                 </div>
 
                 {/* Response Time */}
-                <div className="flex items-start space-x-4 p-6 bg-gray-900/50 rounded-lg border border-gray-700">
-                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-r from-[#8A2BE2] to-[#FF6EC4] rounded-lg flex items-center justify-center">
+                <div className="flex items-start space-x-4 p-6 bg-white/[0.03] rounded-lg border border-white/10">
+                  <div className="flex-shrink-0 w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -158,8 +155,8 @@ export default function ContactPage() {
             <div>
               <h2 className="text-2xl font-semibold mb-6 text-white">Frequently Asked Questions</h2>
               <div className="space-y-4">
-                <details className="bg-gray-900/50 rounded-lg border border-gray-700">
-                  <summary className="p-4 cursor-pointer text-white hover:text-purple-400 transition-colors">
+                <details className="bg-white/[0.03] rounded-lg border border-white/10">
+                  <summary className="p-4 cursor-pointer text-white hover:text-gray-300 transition-colors">
                     How do I report a broken streaming source?
                   </summary>
                   <div className="px-4 pb-4 text-gray-400">
@@ -167,8 +164,8 @@ export default function ContactPage() {
                   </div>
                 </details>
                 
-                <details className="bg-gray-900/50 rounded-lg border border-gray-700">
-                  <summary className="p-4 cursor-pointer text-white hover:text-purple-400 transition-colors">
+                <details className="bg-white/[0.03] rounded-lg border border-white/10">
+                  <summary className="p-4 cursor-pointer text-white hover:text-gray-300 transition-colors">
                     Is Movime safe to use?
                   </summary>
                   <div className="px-4 pb-4 text-gray-400">
@@ -176,8 +173,8 @@ export default function ContactPage() {
                   </div>
                 </details>
                 
-                <details className="bg-gray-900/50 rounded-lg border border-gray-700">
-                  <summary className="p-4 cursor-pointer text-white hover:text-purple-400 transition-colors">
+                <details className="bg-white/[0.03] rounded-lg border border-white/10">
+                  <summary className="p-4 cursor-pointer text-white hover:text-gray-300 transition-colors">
                     Can I contribute to the project?
                   </summary>
                   <div className="px-4 pb-4 text-gray-400">
@@ -206,7 +203,7 @@ export default function ContactPage() {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-purple-500 focus:outline-none text-white placeholder-gray-400"
+                      className="w-full px-4 py-3 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white placeholder-gray-400"
                       placeholder="Your full name"
                     />
                   </div>
@@ -222,7 +219,7 @@ export default function ContactPage() {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-purple-500 focus:outline-none text-white placeholder-gray-400"
+                      className="w-full px-4 py-3 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white placeholder-gray-400"
                       placeholder="your.email@example.com"
                     />
                   </div>
@@ -237,7 +234,7 @@ export default function ContactPage() {
                     name="type"
                     value={formData.type}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-purple-500 focus:outline-none text-white"
+                    className="w-full px-4 py-3 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white"
                   >
                     <option value="general">General Question</option>
                     <option value="support">Technical Support</option>
@@ -259,7 +256,7 @@ export default function ContactPage() {
                     value={formData.subject}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-purple-500 focus:outline-none text-white placeholder-gray-400"
+                    className="w-full px-4 py-3 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white placeholder-gray-400"
                     placeholder="Brief description of your message"
                   />
                 </div>
@@ -275,7 +272,7 @@ export default function ContactPage() {
                     onChange={handleInputChange}
                     required
                     rows={6}
-                    className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-purple-500 focus:outline-none text-white placeholder-gray-400 resize-vertical"
+                    className="w-full px-4 py-3 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white placeholder-gray-400 resize-vertical"
                     placeholder="Please provide detailed information about your inquiry..."
                   />
                 </div>
@@ -283,7 +280,7 @@ export default function ContactPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-gradient-to-r from-[#8A2BE2] to-[#FF6EC4] text-white font-medium py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  className="w-full bg-white text-black font-medium py-3 px-6 rounded-lg hover:bg-gray-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
                   {isSubmitting ? (
                     <span>Sending…</span>
@@ -299,8 +296,8 @@ export default function ContactPage() {
               </form>
             ) : (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
@@ -313,30 +310,28 @@ export default function ContactPage() {
       </div>
 
       {/* Additional Resources */}
-      <div className="bg-gray-900/30 py-12">
+      <div className="bg-white/[0.02] py-12">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-2xl font-semibold mb-8 text-center text-white">Additional Resources</h2>
           <div className="grid md:grid-cols-2 gap-6">
-            
-
-            <Link href="/privacy" className="bg-gray-900/50 rounded-lg p-6 border border-gray-700 hover:border-purple-500/50 transition-colors group">
-              <div className="w-12 h-12 bg-gradient-to-r from-[#8A2BE2] to-[#FF6EC4] rounded-lg flex items-center justify-center mb-4">
+            <Link href="/privacy" className="bg-white/[0.03] rounded-lg p-6 border border-white/10 hover:border-white/30 transition-colors group">
+              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-white mb-2 group-hover:text-purple-400 transition-colors">Privacy Policy</h3>
+              <h3 className="text-lg font-medium text-white mb-2 group-hover:text-gray-300 transition-colors">Privacy Policy</h3>
               <p className="text-gray-400">Learn how we protect your data and privacy</p>
             </Link>
 
-            <a href="https://github.com/Manvith911" target="_blank" rel="noopener noreferrer" className="bg-gray-900/50 rounded-lg p-6 border border-gray-700 hover:border-purple-500/50 transition-colors group">
-              <div className="w-12 h-12 bg-gradient-to-r from-[#8A2BE2] to-[#FF6EC4] rounded-lg flex items-center justify-center mb-4">
+            <a href="https://github.com/Manvith911" target="_blank" rel="noopener noreferrer" className="bg-white/[0.03] rounded-lg p-6 border border-white/10 hover:border-white/30 transition-colors group">
+              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mb-4">
                 <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-white mb-2 group-hover:text-purple-400 transition-colors">GitHub Repository</h3>
-              <p className="text-gray-400">Contribute to the project or report issues to my email</p>
+              <h3 className="text-lg font-medium text-white mb-2 group-hover:text-gray-300 transition-colors">GitHub Repository</h3>
+              <p className="text-gray-400">View source code, report issues, and contribute</p>
             </a>
           </div>
         </div>

@@ -71,10 +71,10 @@ export default function SignupPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-gray-900/80 backdrop-blur-sm border border-gray-700 rounded-2xl p-8">
+        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8">
           {/* Error */}
           {error && (
-            <div className="mb-4 p-3 bg-red-600/20 border border-red-600/50 rounded-lg text-red-400 text-sm">
+            <div className="mb-4 p-3 bg-white/5 border border-white/10 rounded-lg text-gray-300 text-sm">
               {error}
             </div>
           )}
@@ -89,7 +89,7 @@ export default function SignupPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
                 required
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 text-white placeholder-gray-500 transition-all"
+                className="w-full px-4 py-3 bg-black border border-white/20 rounded-xl focus:border-white focus:outline-none focus:ring-1 focus:ring-white text-white placeholder-gray-500 transition-all"
               />
             </div>
             <div>
@@ -100,7 +100,7 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 text-white placeholder-gray-500 transition-all"
+                className="w-full px-4 py-3 bg-black border border-white/20 rounded-xl focus:border-white focus:outline-none focus:ring-1 focus:ring-white text-white placeholder-gray-500 transition-all"
               />
             </div>
             <div>
@@ -112,13 +112,13 @@ export default function SignupPage() {
                 placeholder="At least 6 characters"
                 required
                 minLength={6}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 text-white placeholder-gray-500 transition-all"
+                className="w-full px-4 py-3 bg-black border border-white/20 rounded-xl focus:border-white focus:outline-none focus:ring-1 focus:ring-white text-white placeholder-gray-500 transition-all"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-white text-black font-semibold rounded-xl hover:bg-gray-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating account...' : 'Create Account'}
             </button>
@@ -126,9 +126,9 @@ export default function SignupPage() {
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-gray-700" />
+            <div className="flex-1 h-px bg-white/10" />
             <span className="text-gray-500 text-sm">or continue with</span>
-            <div className="flex-1 h-px bg-gray-700" />
+            <div className="flex-1 h-px bg-white/10" />
           </div>
 
           {/* Google OAuth */}
@@ -149,7 +149,7 @@ export default function SignupPage() {
           {/* Sign in link */}
           <p className="text-center mt-6 text-gray-400 text-sm">
             Already have an account?{' '}
-            <Link href="/auth/login" className="text-purple-400 hover:text-purple-300 font-medium">
+            <Link href="/auth/login" className="text-white hover:text-gray-300 font-medium">
               Sign in
             </Link>
           </p>

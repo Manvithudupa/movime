@@ -75,8 +75,8 @@ export default function Navbar({
     <motion.header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-150 ease-out ${
         (isScrolled || showSearch)
-          ? 'movime-navbar-glass'
-          : 'movime-navbar-top'
+          ? 'bg-black/80 backdrop-blur-md border-b border-white/10'
+          : 'bg-transparent'
       }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -146,7 +146,7 @@ export default function Navbar({
           {/* Right side icons & user */}
           <div className="flex items-center space-x-5">
             {currentView === 'watch-sports' && (
-              <div className="flex items-center space-x-2 px-3 py-1 bg-red-600/90 backdrop-blur-sm rounded-sm">
+              <div className="flex items-center space-x-2 px-3 py-1 bg-white/10 backdrop-blur-sm rounded-sm">
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                 <span className="text-white font-medium text-xs uppercase tracking-wide">LIVE</span>
               </div>
@@ -156,7 +156,6 @@ export default function Navbar({
               href="/search"
               className="p-2 hover:bg-white/10 rounded-full transition-all duration-100 group"
               title="Search"
-              style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8))' }}
             >
               <svg className="w-5 h-5 text-white group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -167,7 +166,6 @@ export default function Navbar({
               href="/settings"
               className="p-2 hover:bg-white/10 rounded-full transition-all duration-100 group"
               title="Settings"
-              style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8))' }}
             >
               <svg className="w-5 h-5 text-white hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -187,7 +185,7 @@ export default function Navbar({
             
             {/* User Authentication */}
             {isLoading ? (
-              <div className="w-8 h-8 bg-gray-600/50 rounded-full animate-pulse"></div>
+              <div className="w-8 h-8 bg-white/10 rounded-full animate-pulse"></div>
             ) : isSignedIn ? (
               <div className="relative">
                 <button
@@ -210,9 +208,9 @@ export default function Navbar({
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: -10 }}
                       transition={{ duration: 0.1 }}
-                      className="absolute right-0 mt-2 w-56 bg-gray-900/95 backdrop-blur-lg border border-gray-700 rounded-xl shadow-2xl overflow-hidden z-50"
+                      className="absolute right-0 mt-2 w-56 bg-black/95 backdrop-blur-lg border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
                     >
-                      <div className="p-4 border-b border-gray-700">
+                      <div className="p-4 border-b border-white/10">
                         <p className="font-medium text-white text-sm truncate">{userName}</p>
                         <p className="text-gray-400 text-xs truncate">{userEmail}</p>
                       </div>
@@ -239,10 +237,10 @@ export default function Navbar({
                           Settings
                         </Link>
                       </div>
-                      <div className="border-t border-gray-700 py-1">
+                      <div className="border-t border-white/10 py-1">
                         <button
                           onClick={handleSignOut}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors w-full text-left"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-colors w-full text-left"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

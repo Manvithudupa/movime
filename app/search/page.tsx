@@ -59,7 +59,6 @@ export default function SearchPage() {
         });
       }
 
-
       const normalize = (s:string) => s.toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
       const queryNorm = normalize(qLower);
       const score = (title:string): number => {
@@ -139,7 +138,7 @@ export default function SearchPage() {
     const poster = item.poster_path;
     const type = item.media_type || (item.title ? 'movie' : 'tv');
     return (
-      <Link href={`/details?id=${item.id}&type=${type}`} className="group relative rounded-lg overflow-hidden bg-gray-900/60 backdrop-blur-sm border border-white/5 hover:border-white/20 transition-all">
+      <Link href={`/details?id=${item.id}&type=${type}`} className="group relative rounded-lg overflow-hidden bg-white/[0.03] border border-white/5 hover:border-white/20 transition-all">
         <div className="relative aspect-[2/3] w-full">
           {poster ? (
             <Image src={`${TMDB_IMAGE_BASE_URL}${poster}`} alt={title} fill className="object-cover group-hover:scale-105 transition-all duration-300" />

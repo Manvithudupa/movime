@@ -14,19 +14,16 @@ interface AvatarProps {
 export default function Avatar({ src, alt, size, fallbackText, className = '' }: AvatarProps) {
   const [imageError, setImageError] = React.useState(false)
   
-  // Handle image load errors
   const handleImageError = () => {
     setImageError(true)
   }
 
-  // Check if it's a base64 image
   const isBase64 = src && src.startsWith('data:image')
   
   if (!src || imageError) {
-    // Show fallback with initials
     return (
       <div 
-        className={`bg-gradient-to-r from-[#8A2BE2] to-[#FF6EC4] rounded-full flex items-center justify-center text-white font-bold ${className}`}
+        className={`bg-white/10 rounded-full flex items-center justify-center text-white font-bold ${className}`}
         style={{ width: size, height: size, fontSize: size * 0.4 }}
       >
         {fallbackText.charAt(0)?.toUpperCase() || 'U'}
@@ -35,7 +32,6 @@ export default function Avatar({ src, alt, size, fallbackText, className = '' }:
   }
 
   if (isBase64) {
-    // For base64 images, use regular img tag
     return (
       <img
         src={src}
@@ -49,7 +45,6 @@ export default function Avatar({ src, alt, size, fallbackText, className = '' }:
     )
   }
 
-  // For URL images, use Next.js Image component
   return (
     <Image
       src={src}
@@ -58,7 +53,7 @@ export default function Avatar({ src, alt, size, fallbackText, className = '' }:
       height={size}
       className={`rounded-full object-cover ${className}`}
       onError={handleImageError}
-      unoptimized={!!isBase64} // Disable optimization for base64
+      unoptimized={!!isBase64}
     />
   )
 }

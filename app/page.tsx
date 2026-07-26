@@ -51,7 +51,7 @@ const ContentCard = memo(({
 
   return (
     <motion.div 
-      className="group relative bg-gray-900 rounded-xl overflow-hidden card-hover"
+      className="group relative bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden card-hover"
       initial={false}
       whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
       whileTap={{ scale: 0.95 }}
@@ -78,7 +78,7 @@ const ContentCard = memo(({
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+          <div className="w-full h-full bg-white/5 flex items-center justify-center">
             <span className="text-gray-400">No Image</span>
           </div>
         )}
@@ -86,10 +86,10 @@ const ContentCard = memo(({
         {/* Status Badge */}
         {item.status && (
           <div className={`absolute top-3 left-3 z-10 px-2 py-0.5 rounded-full text-[10px] font-semibold shadow-lg ${
-            item.status === 'watching' ? 'bg-green-600 text-white' :
-            item.status === 'completed' ? 'bg-blue-600 text-white' :
-            item.status === 'dropped' ? 'bg-red-600 text-white' :
-            'bg-yellow-600/80 text-white'
+            item.status === 'watching' ? 'bg-white text-black' :
+            item.status === 'completed' ? 'bg-white/70 text-black' :
+            item.status === 'dropped' ? 'bg-white/40 text-black' :
+            'bg-white/20 text-black'
           }`}>
             {item.status === 'watching' ? '▶ Watching' :
              item.status === 'completed' ? '✓ Completed' :
@@ -141,7 +141,7 @@ const ContentCard = memo(({
             <div className="flex items-center gap-2 mt-3">
               <Link
                 href={`/watch?id=${item.id}&type=${type}`}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-1.5 rounded-md text-xs font-bold transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-white hover:bg-gray-100 text-black py-1.5 rounded-md text-xs font-bold transition-colors flex items-center justify-center gap-1"
               >
                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M8 5v10l7-5z"/>
@@ -781,8 +781,8 @@ function HomePageContent() {
                     onClick={() => setWatchlistFilter(filter)}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                       watchlistFilter === filter
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                        ? 'bg-white text-black'
+                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
                     }`}
                   >
                     {filter === 'all' ? 'All' : statusLabels[filter]?.label || filter}
@@ -863,7 +863,7 @@ export default function HomePage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin" />
       </div>
     }>
       <HomePageContent />

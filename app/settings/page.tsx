@@ -63,7 +63,6 @@ export default function SettingsPage() {
   const clearWatchLater = async () => {
     if (confirm('Are you sure you want to clear your watch later list?')) {
       if (isSignedIn) {
-        // For API-based: need to delete each item
         for (const item of watchLater) {
           try {
             await fetch(`/api/watchlist?content_id=${item.content_id}&content_type=${item.content_type}`, {
@@ -113,7 +112,6 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Navbar */}
       <Navbar
         currentView="settings"
         showSearch={showSearch}
@@ -124,10 +122,8 @@ export default function SettingsPage() {
         onSearchChange={handleSearchChange}
       />
 
-      {/* Main content */}
       <main className="pt-24 pb-8">
         <div className="container mx-auto px-4 max-w-4xl">
-          {/* Page header */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold mb-4">Settings</h1>
             <p className="text-gray-400">Customize your Movime streaming experience</p>
@@ -135,7 +131,7 @@ export default function SettingsPage() {
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Playback Settings */}
-            <div className="bg-gray-900 rounded-lg p-6">
+            <div className="bg-white/[0.03] border border-white/10 rounded-lg p-6">
               <h2 className="text-2xl font-semibold mb-6 flex items-center">
                 <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.5a2.5 2.5 0 000-5H9v5zm0 0H7.5a2.5 2.5 0 000 5H9v-5zm0 0v5m0-5h2.5m-.5-2a2.5 2.5 0 000-5m0 5v5" />
@@ -144,13 +140,12 @@ export default function SettingsPage() {
               </h2>
               
               <div className="space-y-6">
-                {/* Preferred Source */}
                 <div>
                   <label className="block text-sm font-medium mb-2">Preferred Video Source</label>
                   <select
                     value={preferredSource}
                     onChange={(e) => setPreferredSource(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:border-red-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white"
                   >
                     {availableSources.map(source => (
                       <option key={source.id} value={source.id}>
@@ -163,13 +158,12 @@ export default function SettingsPage() {
                   </p>
                 </div>
 
-                {/* Default Quality */}
                 <div>
                   <label className="block text-sm font-medium mb-2">Default Quality</label>
                   <select
                     value={defaultQuality}
                     onChange={(e) => setDefaultQuality(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:border-red-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white"
                   >
                     <option value="1080p">1080p (Full HD)</option>
                     <option value="720p">720p (HD)</option>
@@ -181,14 +175,13 @@ export default function SettingsPage() {
                   </p>
                 </div>
 
-                {/* Auto Play */}
                 <div>
                   <label className="flex items-center">
                     <input
                       type="checkbox"
                       checked={autoPlay}
                       onChange={(e) => setAutoPlay(e.target.checked)}
-                      className="mr-3 w-4 h-4 text-red-600 bg-gray-800 border-gray-600 rounded focus:ring-red-500"
+                      className="mr-3 w-4 h-4 text-white bg-black border-white/20 rounded focus:ring-white"
                     />
                     <span className="text-sm font-medium">Auto-play next episode</span>
                   </label>
@@ -200,14 +193,14 @@ export default function SettingsPage() {
 
               <button
                 onClick={saveSettings}
-                className="w-full mt-6 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                className="w-full mt-6 px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-gray-100 transition-colors"
               >
                 Save Settings
               </button>
             </div>
 
             {/* Data Management */}
-            <div className="bg-gray-900 rounded-lg p-6">
+            <div className="bg-white/[0.03] border border-white/10 rounded-lg p-6">
               <h2 className="text-2xl font-semibold mb-6 flex items-center">
                 <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
@@ -216,7 +209,6 @@ export default function SettingsPage() {
               </h2>
               
               <div className="space-y-6">
-                {/* Watch Later Info */}
                 <div>
                   <h3 className="font-medium mb-2">Watch Later</h3>
                   <p className="text-gray-400 text-sm mb-3">
@@ -224,13 +216,12 @@ export default function SettingsPage() {
                   </p>
                   <button
                     onClick={clearWatchLater}
-                    className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors border border-white/10"
                   >
                     Clear Watch Later
                   </button>
                 </div>
 
-                {/* Storage Info */}
                 <div>
                   <h3 className="font-medium mb-2">Storage</h3>
                   <p className="text-gray-400 text-sm mb-3">
@@ -238,7 +229,7 @@ export default function SettingsPage() {
                   </p>
                   <button
                     onClick={clearAllData}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors border border-white/10"
                   >
                     Clear All Data
                   </button>
@@ -248,7 +239,7 @@ export default function SettingsPage() {
           </div>
 
           {/* App Info */}
-          <div className="mt-8 bg-gray-900 rounded-lg p-6">
+          <div className="mt-8 bg-white/[0.03] border border-white/10 rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-6 flex items-center">
               <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

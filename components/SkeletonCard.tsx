@@ -4,7 +4,7 @@ import React from 'react';
 
 export function SkeletonCard() {
   return (
-    <div className="relative bg-gray-900 rounded-xl overflow-hidden">
+    <div className="relative bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden">
       <div className="relative aspect-[2/3] skeleton-shimmer" />
     </div>
   );
