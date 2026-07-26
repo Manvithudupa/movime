@@ -6,10 +6,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { availableSources } from '@/lib/sources';
 import { getLocalStorage, setLocalStorage } from '@/lib/utils';
+import { useAuth } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { isSignedIn } = useAuth();
   const [preferredSource, setPreferredSource] = useState('');
   const [defaultQuality, setDefaultQuality] = useState('720p');
   const [autoPlay, setAutoPlay] = useState(true);
@@ -21,7 +23,7 @@ export default function SettingsPage() {
   useEffect(() => {
     loadSettings();
     loadWatchLater();
-  }, []);
+  }, [isSignedIn]);
 
   const loadSettings = () => {
     setPreferredSource(getLocalStorage('preferredSource', availableSources[0]?.id || ''));
@@ -29,10 +31,26 @@ export default function SettingsPage() {
     setAutoPlay(getLocalStorage('autoPlay', true));
   };
 
-  const loadWatchLater = () => {
-    const saved = getLocalStorage('watchLater', []);
-    setWatchLater(saved);
-    setWatchLaterCount(saved.length);
+  const loadWatchLater = async () => {
+    if (isSignedIn) {
+      try {
+        const response = await fetch('/api/watchlist');
+        if (response.ok) {
+          const data = await response.json();
+          setWatchLater(data);
+          setWatchLaterCount(data.length);
+        }
+      } catch (error) {
+        console.error('Error loading watchlist:', error);
+        const saved = getLocalStorage('watchLater', []);
+        setWatchLater(saved);
+        setWatchLaterCount(saved.length);
+      }
+    } else {
+      const saved = getLocalStorage('watchLater', []);
+      setWatchLater(saved);
+      setWatchLaterCount(saved.length);
+    }
   };
 
   const saveSettings = () => {
@@ -42,10 +60,23 @@ export default function SettingsPage() {
     alert('Settings saved successfully!');
   };
 
-  const clearWatchLater = () => {
+  const clearWatchLater = async () => {
     if (confirm('Are you sure you want to clear your watch later list?')) {
+      if (isSignedIn) {
+        // For API-based: need to delete each item
+        for (const item of watchLater) {
+          try {
+            await fetch(`/api/watchlist?content_id=${item.content_id}&content_type=${item.content_type}`, {
+              method: 'DELETE',
+            });
+          } catch (error) {
+            console.error('Error clearing watchlist:', error);
+          }
+        }
+      } else {
+        setLocalStorage('watchLater', []);
+      }
       setWatchLater([]);
-      setLocalStorage('watchLater', []);
       setWatchLaterCount(0);
     }
   };
@@ -62,8 +93,6 @@ export default function SettingsPage() {
   const handleViewChange = (view: string) => {
     if (view === 'home') {
       router.push('/');
-    } else if (view === 'livesports') {
-      router.push('/livesports');
     } else if (view === 'settings') {
       return;
     } else {
@@ -231,7 +260,7 @@ export default function SettingsPage() {
               <div>
                 <h3 className="font-medium mb-2">Version Information</h3>
                 <p className="text-gray-400">Movime Streaming Platform v2.0</p>
-                <p className="text-gray-400">Built with Next.js and React</p>
+                <p className="text-gray-400">Built with Next.js, React, and Supabase</p>
               </div>
               
               <div>
@@ -239,8 +268,9 @@ export default function SettingsPage() {
                 <ul className="text-gray-400 space-y-1">
                   <li>• HD/4K Video Streaming</li>
                   <li>• TV Shows & Movies</li>
-                  <li>• Watch Later List</li>
+                  <li>• Cloud-Synced Watchlist</li>
                   <li>• Multiple Video Sources</li>
+                  <li>• Cross-Device Sync</li>
                 </ul>
               </div>
             </div>

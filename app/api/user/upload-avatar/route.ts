@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs/server'
-import { prisma } from '@/lib/prisma'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await currentUser()
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json(
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { image, fileName } = await request.json()
+    const { image } = await request.json()
 
     if (!image) {
       return NextResponse.json(
@@ -22,30 +22,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // In a production app, you would:
-    // 1. Upload to cloud storage (Cloudinary, AWS S3, Vercel Blob, etc.)
-    // 2. Get the public URL
-    // 3. Store only the URL in the database
-    
-    // For demo purposes, we'll store the base64 directly (not recommended for production)
-    // This is just for development - in production, use proper image hosting
-    
-    const updatedUser = await prisma.user.update({
-      where: { clerkId: user.id },
-      data: {
-        image: image, // In production, this would be the cloud storage URL
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-      }
-    })
+    // Store the base64 image directly in the profile's avatar_url
+    // In production, you'd upload to Supabase Storage instead
+    const { data: updatedProfile, error } = await supabase
+      .from('profiles')
+      .update({
+        avatar_url: image,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Avatar upload error:', error)
+      return NextResponse.json(
+        { error: 'Failed to upload avatar' },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       success: true,
-      imageUrl: updatedUser.image,
+      imageUrl: updatedProfile.avatar_url,
       message: 'Profile picture updated successfully'
     })
   } catch (error) {
@@ -57,9 +56,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE() {
   try {
-    const user = await currentUser()
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json(
@@ -68,18 +68,21 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { clerkId: user.id },
-      data: {
-        image: null,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-      }
-    })
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        avatar_url: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id)
+
+    if (error) {
+      console.error('Avatar removal error:', error)
+      return NextResponse.json(
+        { error: 'Failed to remove avatar' },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       success: true,

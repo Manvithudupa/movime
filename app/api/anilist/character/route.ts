@@ -1,0 +1,155 @@
+import { NextRequest, NextResponse } from 'next/server'
+
+const ANILIST_API_URL = 'https://graphql.anilist.co'
+
+const CHARACTER_SEARCH_QUERY = `
+  query ($search: String, $page: Int, $perPage: Int) {
+    Page(page: $page, perPage: $perPage) {
+      pageInfo {
+        total
+        currentPage
+        lastPage
+        hasNextPage
+      }
+      characters(search: $search) {
+        id
+        name {
+          first
+          last
+          full
+          native
+        }
+        image {
+          large
+          medium
+        }
+        media(page: 1, perPage: 3) {
+          nodes {
+            id
+            title {
+              romaji
+              english
+            }
+            type
+          }
+        }
+        description
+        gender
+        dateOfBirth {
+          year
+          month
+          day
+        }
+        age
+      }
+    }
+  }
+`
+
+const CHARACTER_DETAIL_QUERY = `
+  query ($id: Int) {
+    Character(id: $id) {
+      id
+      name {
+        first
+        last
+        full
+        native
+      }
+      image {
+        large
+        medium
+      }
+      media(page: 1, perPage: 5) {
+        nodes {
+          id
+          title {
+            romaji
+            english
+          }
+          type
+          format
+        }
+      }
+      description
+      gender
+      dateOfBirth {
+        year
+        month
+        day
+      }
+      age
+      favourites
+    }
+  }
+`
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const query = searchParams.get('q')
+  const id = searchParams.get('id')
+
+  if (id) {
+    // Fetch character by ID
+    try {
+      const response = await fetch(ANILIST_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: CHARACTER_DETAIL_QUERY,
+          variables: { id: parseInt(id) }
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (data.errors) {
+        return NextResponse.json({ error: data.errors[0].message }, { status: 400 })
+      }
+      
+      return NextResponse.json(data.data?.Character || null)
+    } catch (error) {
+      console.error('AniList character fetch error:', error)
+      return NextResponse.json({ error: 'Failed to fetch character' }, { status: 500 })
+    }
+  }
+
+  if (!query) {
+    return NextResponse.json({ error: 'Search query required' }, { status: 400 })
+  }
+
+  try {
+    const response = await fetch(ANILIST_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: CHARACTER_SEARCH_QUERY,
+        variables: { search: query, page: 1, perPage: 20 }
+      })
+    })
+    
+    const data = await response.json()
+    
+    if (data.errors) {
+      return NextResponse.json({ error: data.errors[0].message }, { status: 400 })
+    }
+
+    // Return only relevant character data (strip description for performance)
+    const characters = (data.data?.Page?.characters || []).map((char: any) => ({
+      id: char.id,
+      name: char.name,
+      image: char.image,
+      media: char.media,
+      gender: char.gender,
+      age: char.age,
+    }))
+
+    return NextResponse.json({
+      characters,
+      pageInfo: data.data?.Page?.pageInfo
+    })
+  } catch (error) {
+    console.error('AniList search error:', error)
+    return NextResponse.json({ error: 'Failed to search characters' }, { status: 500 })
+  }
+}

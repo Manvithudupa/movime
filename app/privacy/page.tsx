@@ -107,9 +107,9 @@ export default function PrivacyPolicy() {
               
               <h3 className="text-xl font-medium mb-3 text-purple-400">Authentication</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
-                We use Clerk for authentication services. When you create an account, your information 
-                is processed according to Clerk&#39;s privacy policy. We recommend reviewing their privacy 
-                practices at clerk.com.
+                We use Supabase for authentication services. When you create an account, your information 
+                is processed according to Supabase&#39;s privacy policy. We recommend reviewing their privacy 
+                practices at supabase.com.
               </p>
 
               <h3 className="text-xl font-medium mb-3 text-purple-400">Streaming Sources</h3>

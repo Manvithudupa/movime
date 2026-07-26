@@ -153,11 +153,11 @@ export default function AboutPage() {
               </div>
               
               <div className="text-center">
-                <div className="w-16 h-16 bg-purple-600 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <span className="text-white font-bold text-lg">C</span>
+                <div className="w-16 h-16 bg-green-600 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <span className="text-white font-bold text-lg">S</span>
                 </div>
-                <h4 className="text-lg font-semibold mb-2 text-white">Clerk</h4>
-                <p className="text-gray-400 text-sm">Authentication & user management</p>
+                <h4 className="text-lg font-semibold mb-2 text-white">Supabase</h4>
+                <p className="text-gray-400 text-sm">Authentication & cloud database</p>
               </div>
             </div>
           </div>

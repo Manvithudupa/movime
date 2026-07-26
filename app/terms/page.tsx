@@ -152,8 +152,8 @@ export default function TermsOfService() {
 
                 <h3 className="text-xl font-medium text-purple-400 mt-6">Authentication Services</h3>
                 <p className="text-gray-300 leading-relaxed">
-                  We use Clerk for authentication services. By creating an account, you agree to be bound 
-                  by Clerk&#39;s terms of service and privacy policy in addition to ours.
+                  We use Supabase for authentication services. By creating an account, you agree to be bound 
+                  by Supabase&#39;s terms of service and privacy policy in addition to ours.
                 </p>
               </div>
             </section>

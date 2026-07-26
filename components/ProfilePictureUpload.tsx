@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react'
 import Image from '@/components/ProxyImage'
-import { useUser } from '@clerk/nextjs'
+import { useAuth } from '@/components/AuthProvider'
 import Avatar from './Avatar'
 
 interface ProfilePictureUploadProps {
@@ -19,7 +19,6 @@ export default function ProfilePictureUpload({
   const [uploading, setUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { user } = useUser()
 
   const handleFileUpload = async (file: File) => {
     if (!file) return
@@ -39,7 +38,7 @@ export default function ProfilePictureUpload({
     setUploading(true)
 
     try {
-      // Convert to base64 for storage (in a real app, you'd upload to cloud storage)
+      // Convert to base64 for storage
       const reader = new FileReader()
       reader.onload = async (e) => {
         const base64 = e.target?.result as string

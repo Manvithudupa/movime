@@ -21,6 +21,7 @@ import {
   filterAdultContent
 } from '@/lib/utils';
 import type { ContentItem } from '@/lib/types';
+import { useAuth } from '@/components/AuthProvider';
 import HeroSection from '@/components/HeroSection';
 import Navbar from '@/components/Navbar';
 import ContentSection from '@/components/ContentSection';
@@ -79,6 +80,21 @@ const ContentCard = memo(({
         ) : (
           <div className="w-full h-full bg-gray-700 flex items-center justify-center">
             <span className="text-gray-400">No Image</span>
+          </div>
+        )}
+        
+        {/* Status Badge */}
+        {item.status && (
+          <div className={`absolute top-3 left-3 z-10 px-2 py-0.5 rounded-full text-[10px] font-semibold shadow-lg ${
+            item.status === 'watching' ? 'bg-green-600 text-white' :
+            item.status === 'completed' ? 'bg-blue-600 text-white' :
+            item.status === 'dropped' ? 'bg-red-600 text-white' :
+            'bg-yellow-600/80 text-white'
+          }`}>
+            {item.status === 'watching' ? '▶ Watching' :
+             item.status === 'completed' ? '✓ Completed' :
+             item.status === 'dropped' ? '✕ Dropped' :
+             '⏳ Plan to Watch'}
           </div>
         )}
         
@@ -154,6 +170,7 @@ ContentCard.displayName = 'ContentCard';
 function HomePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isSignedIn } = useAuth();
   const [currentView, setCurrentView] = useState(() => searchParams.get('view') || 'home');
   const [movies, setMovies] = useState<ContentItem[]>([]);
   const [tvShows, setTVShows] = useState<ContentItem[]>([]);
@@ -168,6 +185,7 @@ function HomePageContent() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState('all');
   const [selectedYear, setSelectedYear] = useState('all');
+  const [watchlistFilter, setWatchlistFilter] = useState('all');
   const [moviesPage, setMoviesPage] = useState(1);
   const [tvPage, setTvPage] = useState(1);
   const [hollywoodPage, setHollywoodPage] = useState(1);
@@ -176,6 +194,7 @@ function HomePageContent() {
   const [netflixPage, setNetflixPage] = useState(1);
   const [amazonPrimePage, setAmazonPrimePage] = useState(1);
   const [watchLater, setWatchLater] = useState<any[]>([]);
+  const showSearchInput = false; // Search is handled via /search page
   
   // Ref to track if we're loading more content
   const isLoadingMoreRef = useRef(false);
@@ -183,7 +202,7 @@ function HomePageContent() {
   useEffect(() => {
     loadContent();
     loadWatchLater();
-  }, []);
+  }, [isSignedIn]);
 
   // Scroll to top whenever the view changes
   useEffect(() => {
@@ -267,10 +286,6 @@ function HomePageContent() {
         false
       );
 
-      console.log('Amazon Prime raw results:', amazonPrimeData.results?.length || 0);
-      console.log('Amazon Prime filtered results:', filteredAmazonPrime.length);
-      console.log('Amazon Prime data sample:', amazonPrimeData.results?.slice(0, 2));
-
       setMovies(filteredMovies);
       setTVShows(filteredTVShows);
       setHollywoodMovies(filteredHollywood);
@@ -285,36 +300,116 @@ function HomePageContent() {
     }
   };
 
-  const loadWatchLater = useCallback(() => {
-    const saved = getLocalStorage('watchLater', []);
-    setWatchLater(saved);
-  }, []);
-
-  const addToWatchLater = useCallback((item: ContentItem) => {
-    const watchLaterItem = {
-      id: item.id,
-      type: item.media_type || (item.title ? 'movie' : 'tv'),
-      title: item.title || item.name || '',
-      poster: item.poster_path,
-      addedAt: new Date().toISOString()
-    };
-
-    setWatchLater(prev => {
-      const existingIndex = prev.findIndex(w => w.id === item.id && w.type === watchLaterItem.type);
-      let newWatchLater;
-      if (existingIndex >= 0) {
-        newWatchLater = prev.filter((_, index) => index !== existingIndex);
-      } else {
-        newWatchLater = [...prev, watchLaterItem];
+  const loadWatchLater = useCallback(async () => {
+    if (!isSignedIn) {
+      // Fallback to localStorage for non-authenticated users
+      const saved = getLocalStorage('watchLater', []);
+      setWatchLater(saved);
+      return;
+    }
+    try {
+      const response = await fetch('/api/watchlist');
+      if (response.ok) {
+        const data = await response.json();
+        // Transform API data to ContentCard-compatible format
+        const transformed = data.map((item: any) => ({
+          id: item.content_id,
+          type: item.content_type,
+          media_type: item.content_type,
+          title: item.title,
+          poster_path: item.poster_path,
+          vote_average: 0,
+          overview: '',
+          status: item.status || 'plan_to_watch',
+          _apiRowId: item.id,
+        }));
+        setWatchLater(transformed);
       }
-      setLocalStorage('watchLater', newWatchLater);
-      return newWatchLater;
-    });
-  }, []);
+    } catch (error) {
+      console.error('Error loading watchlist:', error);
+      // Fallback to localStorage
+      const saved = getLocalStorage('watchLater', []);
+      setWatchLater(saved);
+    }
+  }, [isSignedIn]);
+
+  const statusLabels: Record<string, { label: string, color: string }> = {
+    watching: { label: 'Watching', color: 'bg-green-500' },
+    completed: { label: 'Completed', color: 'bg-blue-500' },
+    plan_to_watch: { label: 'Plan to Watch', color: 'bg-yellow-500' },
+    dropped: { label: 'Dropped', color: 'bg-red-500' },
+  };
+
+  const transformApiItem = (apiItem: any) => ({
+    id: apiItem.content_id,
+    type: apiItem.content_type,
+    media_type: apiItem.content_type,
+    title: apiItem.title,
+    poster_path: apiItem.poster_path,
+    vote_average: 0,
+    overview: '',
+    status: apiItem.status || 'plan_to_watch',
+    _apiRowId: apiItem.id,
+  });
+
+  const addToWatchLater = useCallback(async (item: ContentItem) => {
+    const contentType = item.media_type || (item.title ? 'movie' : 'tv');
+    const itemId = item.id;
+
+    if (isSignedIn) {
+      try {
+        const response = await fetch('/api/watchlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content_id: itemId,
+            content_type: contentType,
+            title: item.title || item.name || '',
+            poster_path: item.poster_path,
+          }),
+        });
+        if (response.ok) {
+          const result = await response.json();
+          if (result.added) {
+            // Transform the API response to match our format
+            setWatchLater(prev => [...prev, transformApiItem(result.item)]);
+          } else {
+            setWatchLater(prev => prev.filter((w: any) => w.id !== itemId));
+          }
+        }
+      } catch (error) {
+        console.error('Error updating watchlist:', error);
+        // Fallback to localStorage
+        setWatchLater(prev => {
+          const existingIndex = prev.findIndex((w: any) => w.id === itemId);
+          let newWatchLater;
+          if (existingIndex >= 0) {
+            newWatchLater = prev.filter((_, index) => index !== existingIndex);
+          } else {
+            newWatchLater = [...prev, { id: itemId, type: contentType, title: item.title || item.name || '', poster: item.poster_path }];
+          }
+          setLocalStorage('watchLater', newWatchLater);
+          return newWatchLater;
+        });
+      }
+    } else {
+      setWatchLater(prev => {
+        const existingIndex = prev.findIndex((w: any) => w.id === itemId);
+        let newWatchLater;
+        if (existingIndex >= 0) {
+          newWatchLater = prev.filter((_, index) => index !== existingIndex);
+        } else {
+          newWatchLater = [...prev, { id: itemId, type: contentType, title: item.title || item.name || '', poster: item.poster_path }];
+        }
+        setLocalStorage('watchLater', newWatchLater);
+        return newWatchLater;
+      });
+    }
+  }, [isSignedIn]);
 
   const isInWatchLater = useCallback((item: ContentItem) => {
-    const type = item.media_type || (item.title ? 'movie' : 'tv');
-    return watchLater.some(w => w.id === item.id && w.type === type);
+    const itemId = item.id;
+    return watchLater.some((w: any) => w.id === itemId);
   }, [watchLater]);
 
   const loadMoreContent = async (contentType: string) => {
@@ -495,7 +590,9 @@ function HomePageContent() {
     }
 
     // Apply filters
-    if (selectedGenre !== 'all') {
+    if (currentView === 'watchlater' && watchlistFilter !== 'all') {
+      content = content.filter((item: any) => item.status === watchlistFilter);
+    } else if (selectedGenre !== 'all') {
       content = content.filter((item: any) => 
         item.genre_ids?.includes(parseInt(selectedGenre))
       );
@@ -509,7 +606,7 @@ function HomePageContent() {
     }
 
     return content;
-  }, [currentView, movies, tvShows, hollywoodMovies, bollywoodMovies, animeContent, netflixContent, amazonPrimeContent, searchResults, watchLater, selectedGenre, selectedYear]);
+  }, [currentView, movies, tvShows, hollywoodMovies, bollywoodMovies, animeContent, netflixContent, amazonPrimeContent, searchResults, watchLater, selectedGenre, selectedYear, watchlistFilter]);
 
   const mainClassName = (currentView === 'home' || (currentView === 'anime' && animeContent.length > 0 && !loading))
     ? 'pb-8'
@@ -525,24 +622,19 @@ function HomePageContent() {
       {/* Navigation */}
       <Navbar
         currentView={currentView}
-        showSearch={false}
+        showSearch={showSearchInput}
         searchQuery={searchQuery}
         watchLaterCount={watchLater.length}
         onViewChange={(view) => {
-          if (view === 'livesports') {
-            router.push('/livesports'); // Changed from window.location.href
-            return;
-          }
           setCurrentView(view);
           if (view !== 'search') {
             setSearchQuery('');
-            // setShowSearch(false); // Removed as showSearch is no longer used
           }
           // Reset filters when changing views
           setSelectedGenre('all');
           setSelectedYear('all');
         }}
-        onSearchToggle={() => { router.push('/search'); }} // Changed from window.location.href
+        onSearchToggle={() => { router.push('/search'); }}
         onSearchChange={setSearchQuery}
       />
 
@@ -679,7 +771,26 @@ function HomePageContent() {
                   {currentView === 'netflix' && '🔴 Netflix Content'}
                   {currentView === 'amazonprime' && '🎥 Amazon Prime Video'}
                   {currentView === 'search' && `🔍 Results for "${searchQuery}"`}
-                  {currentView === 'watchlater' && '🔖 Watch Later'}
+                  {currentView === 'watchlater' && (
+            <>
+              🔖 Watch Later
+              <div className="flex flex-wrap gap-2 mt-3">
+                {['all', 'watching', 'plan_to_watch', 'completed', 'dropped'].map(filter => (
+                  <button
+                    key={filter}
+                    onClick={() => setWatchlistFilter(filter)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                      watchlistFilter === filter
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    }`}
+                  >
+                    {filter === 'all' ? 'All' : statusLabels[filter]?.label || filter}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
                 </h2>
                 {currentView === 'anime' && (
                   <p className="text-gray-300 text-sm mt-1">Top Japanese animation series and movies</p>
@@ -695,7 +806,7 @@ function HomePageContent() {
               >
                 {filteredContent.map((item, index) => (
                   <motion.div
-                    key={`${item.id}-${item.type || item.media_type || 'unknown'}`}
+                    key={`${item.id}-${item.type || item.media_type || item.content_type || 'unknown'}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}

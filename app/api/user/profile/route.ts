@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs/server'
-import { prisma } from '@/lib/prisma'
+import { createClient } from '@/lib/supabase/server'
 
 export async function GET() {
   try {
-    const user = await currentUser()
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json(
@@ -13,30 +13,20 @@ export async function GET() {
       )
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: user.id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        bio: true,
-        location: true,
-        website: true,
-        watchLater: true,
-        preferences: true,
-        createdAt: true,
-      }
-    })
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
 
-    if (!dbUser) {
+    if (error || !profile) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'Profile not found' },
         { status: 404 }
       )
     }
 
-    return NextResponse.json(dbUser)
+    return NextResponse.json(profile)
   } catch (error) {
     console.error('Profile fetch error:', error)
     return NextResponse.json(
@@ -48,7 +38,8 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    const user = await currentUser()
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json(
@@ -57,31 +48,35 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const { name, bio, location, website } = await request.json()
+    const { name, bio, gender, location, website, anime_character } = await request.json()
 
-    const updatedUser = await prisma.user.update({
-      where: { clerkId: user.id },
-      data: {
-        name,
-        bio,
-        location,
-        website,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        bio: true,
-        location: true,
-        website: true,
-        watchLater: true,
-        preferences: true,
-        createdAt: true,
-      }
-    })
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    }
+    
+    if (name !== undefined) updateData.name = name
+    if (bio !== undefined) updateData.bio = bio
+    if (gender !== undefined) updateData.gender = gender
+    if (location !== undefined) updateData.location = location
+    if (website !== undefined) updateData.website = website
+    if (anime_character !== undefined) updateData.anime_character = anime_character
 
-    return NextResponse.json(updatedUser)
+    const { data: updatedProfile, error } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', user.id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Profile update error:', error)
+      return NextResponse.json(
+        { error: 'Failed to update profile' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json(updatedProfile)
   } catch (error) {
     console.error('Profile update error:', error)
     return NextResponse.json(

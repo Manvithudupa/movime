@@ -54,9 +54,22 @@ function WatchPageContent() {
   }, [content, selectedSeason]);
 
   useEffect(() => {
+    loadWatchLaterCount();
+  }, []);
+
+  const loadWatchLaterCount = async () => {
+    try {
+      const response = await fetch('/api/watchlist');
+      if (response.ok) {
+        const data = await response.json();
+        setWatchLaterCount(data.length || 0);
+        return;
+      }
+    } catch {}
+    // Fallback to localStorage
     const watchLater = getLocalStorage('watchLater', []);
     setWatchLaterCount(watchLater.length);
-  }, []);
+  };
 
   const loadContent = async () => {
     if (!contentId || !contentType) return;

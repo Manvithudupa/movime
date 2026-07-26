@@ -10,24 +10,33 @@ import {
   TMDB_IMAGE_BASE_URL,
   formatRuntime,
   getLocalStorage,
-  setLocalStorage,
   filterAdultContent,
   blockedMovieIds
 } from '@/lib/utils';
 import type { Movie, TVShow, Season, Episode, WatchLaterItem, Video } from '@/lib/types';
+import { useAuth } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
 
 function DetailsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { isSignedIn } = useAuth();
   const [content, setContent] = useState<Movie | TVShow | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
   const [seasonData, setSeasonData] = useState<Season | null>(null);
   const [watchLaterCount, setWatchLaterCount] = useState(0);
-  // Navbar search is not used in this page; keep a stable string to satisfy prop
   const searchQuery = '';
-  const [watchLater, setWatchLater] = useState<WatchLaterItem[]>([]);
+  const [watchLater, setWatchLater] = useState<any[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string>('plan_to_watch');
+  const [showStatusPicker, setShowStatusPicker] = useState(false);
+
+  const statusLabels: Record<string, { label: string, color: string, icon: string }> = {
+    watching: { label: 'Watching', color: 'bg-green-600', icon: '▶' },
+    completed: { label: 'Completed', color: 'bg-blue-600', icon: '✓' },
+    plan_to_watch: { label: 'Plan to Watch', color: 'bg-yellow-600', icon: '⏳' },
+    dropped: { label: 'Dropped', color: 'bg-red-600', icon: '✕' },
+  };
 
   const contentId = searchParams.get('id');
   const contentType = searchParams.get('type') as 'movie' | 'tv';
@@ -50,11 +59,37 @@ function DetailsPageContent() {
     };
   };
 
-  const loadWatchLater = useCallback(() => {
-    const saved = getLocalStorage('watchLater', [] as WatchLaterItem[]);
-    setWatchLater(saved as WatchLaterItem[]);
-    setWatchLaterCount(saved.length);
-  }, []);
+  const loadWatchLater = useCallback(async () => {
+    if (isSignedIn) {
+      try {
+        const response = await fetch('/api/watchlist');
+        if (response.ok) {
+          const data = await response.json();
+          // Transform API data to consistent format
+          const transformed = data.map((item: any) => ({
+            id: item.content_id,
+            type: item.content_type,
+            content_id: item.content_id,
+            content_type: item.content_type,
+            title: item.title,
+            poster: item.poster_path,
+            _apiRowId: item.id,
+          }));
+          setWatchLater(transformed);
+          setWatchLaterCount(data.length);
+        }
+      } catch (error) {
+        console.error('Error loading watchlist:', error);
+        const saved = getLocalStorage('watchLater', [] as WatchLaterItem[]);
+        setWatchLater(saved as WatchLaterItem[]);
+        setWatchLaterCount(saved.length);
+      }
+    } else {
+      const saved = getLocalStorage('watchLater', [] as WatchLaterItem[]);
+      setWatchLater(saved as WatchLaterItem[]);
+      setWatchLaterCount(saved.length);
+    }
+  }, [isSignedIn]);
 
   const loadContent = useCallback(async () => {
     if (!contentId || !contentType) return;
@@ -62,7 +97,6 @@ function DetailsPageContent() {
     try {
       const data = await fetchContentDetails(contentId, contentType);
       setContent(data);
-      // If it's a TV show, load the first non-specials season (season_number > 0) by default
       if (contentType === 'tv' && data?.seasons?.length) {
         const firstReal = data.seasons.find((s: Season) => s.season_number > 0);
         setSelectedSeason(firstReal?.season_number || 1);
@@ -97,36 +131,90 @@ function DetailsPageContent() {
     }
   }, [content, contentType, selectedSeason, loadSeasonData]);
 
+  const getCurrentStatus = (): string => {
+    const item = watchLater.find((w: any) => w.content_id === content?.id || w.id === content?.id);
+    return item?.status || 'plan_to_watch';
+  };
 
-
-  const addToWatchLater = () => {
+  const addToWatchLater = async (status?: string) => {
     if (!content) return;
+    const chosenStatus = status || selectedStatus;
 
+    if (isSignedIn) {
+      try {
+        const response = await fetch('/api/watchlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content_id: content.id,
+            content_type: contentType,
+            title: 'title' in content ? content.title : content.name,
+            poster_path: content.poster_path,
+            status: chosenStatus,
+          }),
+        });
+        if (response.ok) {
+          const result = await response.json();
+          if (result.added) {
+            const transformed = {
+              id: result.item.content_id,
+              content_id: result.item.content_id,
+              content_type: result.item.content_type,
+              title: result.item.title,
+              poster: result.item.poster_path,
+              status: result.item.status,
+              _apiRowId: result.item.id,
+            };
+            setWatchLater(prev => [...prev, transformed]);
+          } else {
+            setWatchLater(prev => prev.filter((w: any) => !(w.content_id === content.id || w.id === content.id)));
+          }
+          setWatchLaterCount(prev => result.added ? prev + 1 : Math.max(0, prev - 1));
+        }
+      } catch (error) {
+        console.error('Error updating watchlist:', error);
+        toggleWatchLaterLocal();
+      }
+    } else {
+      toggleWatchLaterLocal();
+    }
+  };
+
+  const toggleWatchLaterLocal = () => {
     const watchLaterItem = {
-      id: content.id,
+      id: content!.id,
       type: contentType,
-      title: 'title' in content ? content.title : content.name,
-      poster: content.poster_path,
+      title: 'title' in content! ? content!.title : content!.name,
+      poster: content!.poster_path,
       addedAt: new Date().toISOString()
     };
 
-    const existingIndex = watchLater.findIndex(w => w.id === content.id && w.type === contentType);
-    let newWatchLater;
-    
-    if (existingIndex >= 0) {
-      newWatchLater = watchLater.filter((_, index) => index !== existingIndex);
-    } else {
-      newWatchLater = [...watchLater, watchLaterItem];
-    }
-
-    setWatchLater(newWatchLater);
-    setLocalStorage('watchLater', newWatchLater);
-    setWatchLaterCount(newWatchLater.length);
+    setWatchLater((prev: any[]) => {
+      let newWatchLater;
+      const existingIndex = prev.findIndex((w: any) => 
+        (w.content_id === content!.id && w.content_type === contentType) || 
+        (w.id === content!.id && w.type === contentType)
+      );
+      
+      if (existingIndex >= 0) {
+        newWatchLater = prev.filter((_: any, i: number) => i !== existingIndex);
+      } else {
+        newWatchLater = [...prev, watchLaterItem];
+      }
+      localStorage.setItem('watchLater', JSON.stringify(newWatchLater));
+      return newWatchLater;
+    });
+    setWatchLaterCount(prev => {
+      const exists = isInWatchLater();
+      return exists ? prev - 1 : prev + 1;
+    });
   };
 
   const isInWatchLater = () => {
     if (!content) return false;
-    return watchLater.some(w => w.id === content.id && w.type === contentType);
+    return watchLater.some((w: any) => 
+      w.content_id === content.id || w.id === content.id
+    );
   };
 
   const handleWatchNow = (episodeId?: number) => {
@@ -200,12 +288,10 @@ function DetailsPageContent() {
     return vids.find((v) => v.type === 'Trailer' && v.site === 'YouTube') || vids[0] || null;
   })();
 
-
   const getRecommendations = () => {
     if (!content) return [] as Array<Movie | TVShow>;
     const similar: Array<Movie | TVShow> = (content.similar?.results as Array<Movie | TVShow>) || [];
     if (!Array.isArray(similar) || similar.length === 0) return [] as Array<Movie | TVShow>;
-    // Basic filtering: remove current item, blocked IDs, missing posters, low rated noise, adult-ish content
     const allowAdult = false;
     const base = similar.filter((item) =>
       item.id !== content.id &&
@@ -213,9 +299,7 @@ function DetailsPageContent() {
       Boolean(item.poster_path)
     );
     let recs = filterAdultContent(base, allowAdult) as Array<Movie | TVShow>;
-    // Optional quality filtering
     recs = recs.filter((r) => (r.vote_average || 0) >= 5.5);
-    // De-duplicate by id
     const seen = new Set();
     const unique: Array<Movie | TVShow> = [];
     for (const r of recs) { if (!seen.has(r.id)) { seen.add(r.id); unique.push(r); } }
@@ -357,13 +441,76 @@ function DetailsPageContent() {
                   <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M8 5v10l7-5z"/></svg>
                   PLAY
                 </button>
-                <button
-                  onClick={addToWatchLater}
-                  className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 rounded-sm font-semibold text-xs sm:text-sm tracking-wide transition-all border border-white/20 hover:border-white/40"
-                >
-                  <svg className={`w-4 sm:w-5 h-4 sm:h-5 ${isInWatchLater() ? 'fill-current' : ''}`} fill={isInWatchLater() ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-                  {isInWatchLater() ? 'MY LIST ✓' : '+ MY LIST'}
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => isInWatchLater() ? addToWatchLater() : setShowStatusPicker(!showStatusPicker)}
+                    className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 rounded-sm font-semibold text-xs sm:text-sm tracking-wide transition-all border border-white/20 hover:border-white/40"
+                  >
+                    <svg className={`w-4 sm:w-5 h-4 sm:h-5 ${isInWatchLater() ? 'fill-current' : ''}`} fill={isInWatchLater() ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+                    {isInWatchLater() ? `${statusLabels[getCurrentStatus()]?.label || 'MY LIST'} ✓` : '+ MY LIST'}
+                  </button>
+
+                  {/* Status Picker Dropdown */}
+                  {showStatusPicker && !isInWatchLater() && (
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+                      {Object.entries(statusLabels).map(([key, val]) => (
+                        <button
+                          key={key}
+                          onClick={() => {
+                            addToWatchLater(key);
+                            setShowStatusPicker(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-200 hover:bg-white/10 hover:text-white transition-colors text-left"
+                        >
+                          <span className={`w-2 h-2 rounded-full ${val.color}`}></span>
+                          {val.icon} {val.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Status display when already added */}
+                  {isInWatchLater() && (
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+                      {Object.entries(statusLabels).map(([key, val]) => (
+                        <button
+                          key={key}
+                          onClick={async () => {
+                            try {
+                              await fetch('/api/watchlist', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  content_id: content?.id,
+                                  content_type: contentType,
+                                  status: key,
+                                }),
+                              });
+                              // Refresh watchlist
+                              loadWatchLater();
+                            } catch (error) {
+                              console.error('Failed to update status:', error);
+                            }
+                            setShowStatusPicker(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors text-left ${
+                            getCurrentStatus() === key
+                              ? 'bg-purple-600/20 text-purple-300'
+                              : 'text-gray-200 hover:bg-white/10 hover:text-white'
+                          }`}
+                        >
+                          <span className={`w-2 h-2 rounded-full ${val.color}`}></span>
+                          {val.icon} {val.label}
+                          {getCurrentStatus() === key && (
+                            <svg className="w-4 h-4 ml-auto text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               {trailer && (
                 <button
@@ -539,7 +686,7 @@ function DetailsPageContent() {
                     const title = 'title' in item ? item.title : item.name;
                     const yearSrc = 'release_date' in item ? item.release_date : item.first_air_date;
                     const year = (yearSrc || '').slice(0,4);
-                    const mediaType = contentType; // similar returns same type
+                    const mediaType = contentType;
                     return (
                       <Link
                         key={item.id}
