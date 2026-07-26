@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Image from '@/components/ProxyImage'
+import { toast } from 'sonner'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -37,8 +38,16 @@ export default function SignupPage() {
       return
     }
 
-    router.push('/auth/login?verified=true')
-    router.refresh()
+    toast.success('Account created successfully!', {
+      description: 'Please check your email to verify your account before signing in.',
+      duration: 5000,
+    })
+
+    // Keep button disabled while showing toast, then redirect
+    setTimeout(() => {
+      router.push('/auth/login?verified=true')
+      router.refresh()
+    }, 2000)
   }
 
   const handleGoogleLogin = async () => {

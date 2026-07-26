@@ -109,6 +109,11 @@ export interface StreamingSource {
   description?: string;
   isFrench?: boolean;
   requiresNoSandbox?: boolean;
+  /**
+   * 'embed' = third-party iframe embed (may contain ads)
+   * 'native' = direct HLS/video stream played in native player (no ads)
+   */
+  playerType?: 'embed' | 'native';
   urls: {
     movie?: string;
     tv?: string;

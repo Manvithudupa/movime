@@ -104,7 +104,8 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-bold mb-3 text-white">Security First</h3>
               <p className="text-gray-400">
-                Smart iframe sandboxing, security warnings, and ad-blocker recommendations keep you safe while streaming.
+                Smart iframe sandboxing blocks popup ads, and we recommend installing <strong>uBlock Origin</strong> 
+                (free, open-source) for the cleanest ad-free streaming experience on third-party sources.
               </p>
             </div>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -12,8 +12,25 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [justVerified, setJustVerified] = useState(false)
+  const [justReset, setJustReset] = useState(false)
 
   const supabase = createClient()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('verified') === 'true') {
+      setJustVerified(true)
+    }
+    if (params.get('passwordReset') === 'true') {
+      setJustReset(true)
+    }
+    // Clean the URL without a full page reload
+    if (params.get('verified') === 'true' || params.get('passwordReset') === 'true') {
+      const cleanUrl = window.location.pathname
+      window.history.replaceState({}, '', cleanUrl)
+    }
+  }, [])
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,9 +83,44 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8">
+          {/* Email verification notice */}
+          {justVerified && (
+            <div className="mb-4 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-green-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="text-green-300 font-medium text-sm">Account created successfully!</p>
+                  <p className="text-green-400/80 text-xs mt-1 leading-relaxed">
+                    We&apos;ve sent a verification email to your inbox. 
+                    Please check your email and click the verification link to activate your account before signing in.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Password reset success notice */}
+          {justReset && (
+            <div className="mb-4 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-green-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="text-green-300 font-medium text-sm">Password reset successful!</p>
+                  <p className="text-green-400/80 text-xs mt-1 leading-relaxed">
+                    Your password has been updated. Sign in with your new password below.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Error */}
           {error && (
-            <div className="mb-4 p-3 bg-white/5 border border-white/10 rounded-lg text-gray-300 text-sm">
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-300 text-sm">
               {error}
             </div>
           )}
@@ -96,6 +148,11 @@ export default function LoginPage() {
                 required
                 className="w-full px-4 py-3 bg-black border border-white/20 rounded-xl focus:border-white focus:outline-none focus:ring-1 focus:ring-white text-white placeholder-gray-500 transition-all"
               />
+            </div>
+            <div className="flex justify-end -mt-2">
+              <Link href="/auth/forgot-password" className="text-sm text-gray-400 hover:text-white transition-colors">
+                Forgot password?
+              </Link>
             </div>
             <button
               type="submit"

@@ -246,7 +246,7 @@ function WatchPageContent() {
                   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="no-referrer-when-downgrade"
                   loading="lazy"
-                  sandbox={currentSource.requiresNoSandbox ? undefined : "allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"}
+                  sandbox={currentSource.requiresNoSandbox ? undefined : "allow-scripts allow-same-origin allow-presentation allow-forms"}
                   title="Player"
                   style={{ border: 'none', background: '#000' }}
                 />
@@ -275,19 +275,33 @@ function WatchPageContent() {
                       <button
                         key={source.id}
                         onClick={() => setCurrentSource(source)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
+                        className={`relative px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
                           currentSource.id === source.id
                             ? 'border-white bg-white/20 text-white'
                             : 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
                         }`}
+                        title={source.playerType === 'native' ? 'Native player - no ads' : 'Third-party embed - ads may appear'}
                       >
-                        {source.name}
+                        <span>{source.name}</span>
                       </button>
                     ))}
                 </div>
                 <p className="text-[11px] text-gray-600 mt-3 leading-relaxed">
                   If a source has low quality or doesn&apos;t work, try another one.
                 </p>
+
+                {/* Ad-blocker tip */}
+                <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <svg className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 4h.01M20.5 12a8.5 8.5 0 11-17 0 8.5 8.5 0 0117 0zm-8.5-6h.01M12 9v4" />
+                    </svg>
+                    <p className="text-[11px] text-blue-300/80 leading-relaxed">
+                      These sources use third-party embeds which may show ads. For the best experience, 
+                      install <strong>uBlock Origin</strong> (free ad blocker) in your browser.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

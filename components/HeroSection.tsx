@@ -260,7 +260,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
 
       {/* Desktop Main Content */}
       <motion.div 
-        className="hidden md:flex relative z-20 px-4 sm:px-6 lg:px-8 pl-16 sm:pl-24 lg:pl-32 h-full items-start pt-48 sm:pt-44 md:pt-56 lg:pt-64 pb-24 sm:pb-28 lg:pb-36"
+        className="hidden md:flex relative z-20 px-4 sm:px-6 lg:px-8 pl-16 sm:pl-24 lg:pl-32 h-full items-start pt-48 sm:pt-44 md:pt-56 lg:pt-64 pb-32 sm:pb-36 lg:pb-48"
         initial={{ opacity: 0, x: -100 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, delay: 0.3 }}
@@ -306,7 +306,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
                 {truncateOverview(currentMovie.overview, 100)}
               </motion.p>
               <motion.div 
-                className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-10"
+                className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-10 max-w-lg"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}

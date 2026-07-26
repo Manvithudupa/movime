@@ -149,7 +149,7 @@ export default function SettingsPage() {
                   >
                     {availableSources.map(source => (
                       <option key={source.id} value={source.id}>
-                        {source.name} {source.requiresNoSandbox ? '(Ads Possible)' : '(Secure)'}
+                        {source.name} {source.requiresNoSandbox ? '(Embed - Unrestricted)' : '(Embed - Sandboxed)'}
                       </option>
                     ))}
                   </select>

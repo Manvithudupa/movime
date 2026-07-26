@@ -219,6 +219,7 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                                     allowFullScreen
                                     scrolling="no"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
                                     title={`Episode ${epNum}`}
                                 />
                             ) : (
