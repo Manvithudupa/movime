@@ -106,11 +106,9 @@ export default function Navbar({
             </Link>
 
             <nav className="hidden lg:flex space-x-7 ml-8">
-              {['home', 'movies', 'tv', 'anime', 'watchlater'].map((view, index) => {
-                const active = currentView === view || (currentView === 'watch-sports' && view === 'livesports');
-                const label = view === 'watchlater'
-                  ? `My List (${watchLaterCount})`
-                  : view === 'tv'
+              {['home', 'movies', 'tv', 'anime'].map((view, index) => {
+                const active = currentView === view;
+                const label = view === 'tv'
                   ? 'TV Shows'
                   : view.charAt(0).toUpperCase() + view.slice(1);
                 return (
@@ -140,6 +138,23 @@ export default function Navbar({
                   </motion.button>
                 );
               })}
+              <Link
+                href="/watchlist"
+                className={`relative text-sm font-medium tracking-wide transition-all duration-150 group ${
+                  currentView === 'watchlist' ? 'text-white' : 'text-white/70 hover:text-white'
+                }`}
+              >
+                <span className="relative inline-block">
+                  My List ({watchLaterCount})
+                  <motion.span
+                    className="absolute left-0 right-0 -bottom-1 h-[2px] rounded-full origin-center bg-white/70"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: currentView === 'watchlist' ? 1 : 0 }}
+                    whileHover={{ scaleX: 1 }}
+                    transition={{ duration: 0.15 }}
+                  />
+                </span>
+              </Link>
             </nav>
           </div>
 

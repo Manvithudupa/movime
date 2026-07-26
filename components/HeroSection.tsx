@@ -17,14 +17,16 @@ import type { ContentItem, Movie } from '@/lib/types';
 interface HeroSectionProps {
   onWatchNow?: (movie: ContentItem) => void;
   onMoreDetails?: (movie: ContentItem) => void;
+  onAddToWatchLater?: (movie: ContentItem) => void;
+  isInWatchLater?: (movie: ContentItem) => boolean;
 }
 
-export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionProps) {
+export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLater, isInWatchLater }: HeroSectionProps) {
   const [featuredMovies, setFeaturedMovies] = useState<Movie[]>([]);
   const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
-  const [watchLater, setWatchLater] = useState<any[]>([]);
+  const [localWatchLater, setLocalWatchLater] = useState<any[]>([]);
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -136,13 +138,24 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
 
   const currentMovie = featuredMovies[currentMovieIndex];
 
-  const isInWatchLater = (movie: any) => watchLater.some(w => w.id === movie.id && w.type === 'movie');
+    const isMovieInWatchLater = (movie: any): boolean => {
+    if (isInWatchLater) {
+      return isInWatchLater(movie as ContentItem);
+    }
+    return localWatchLater.some(w => w.id === movie.id && w.type === 'movie');
+  };
+  
   const toggleWatchLater = (movie: any) => {
-    const exists = isInWatchLater(movie);
+    // Use the parent callback if provided (handles API sync)
+    if (onAddToWatchLater) {
+      onAddToWatchLater(movie as ContentItem);
+    }
+    // Also update local state for instant visual feedback
+    const exists = localWatchLater.some(w => w.id === movie.id && w.type === 'movie');
     const updated = exists
-      ? watchLater.filter(w => !(w.id === movie.id && w.type === 'movie'))
-      : [...watchLater, { id: movie.id, type: 'movie', title: movie.title, poster: movie.poster_path, addedAt: new Date().toISOString() }];
-    setWatchLater(updated);
+      ? localWatchLater.filter(w => !(w.id === movie.id && w.type === 'movie'))
+      : [...localWatchLater, { id: movie.id, type: 'movie', title: movie.title, poster: movie.poster_path, addedAt: new Date().toISOString() }];
+    setLocalWatchLater(updated);
     setLocalStorage('watchLater', updated);
   };
 
@@ -316,8 +329,8 @@ export default function HeroSection({ onWatchNow, onMoreDetails }: HeroSectionPr
                   whileTap={{ scale: 0.95 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <svg className={`w-4 sm:w-5 h-4 sm:h-5 ${isInWatchLater(currentMovie) ? 'fill-current' : ''}`} fill={isInWatchLater(currentMovie) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-                  {isInWatchLater(currentMovie) ? 'MY LIST ✓' : '+ MY LIST'}
+                  <svg className={`w-4 sm:w-5 h-4 sm:h-5 ${isMovieInWatchLater(currentMovie) ? 'fill-current' : ''}`} fill={isMovieInWatchLater(currentMovie) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+                  {isMovieInWatchLater(currentMovie) ? 'MY LIST ✓' : '+ MY LIST'}
                 </motion.button>
                 <motion.button
                   onClick={handleMoreDetails}

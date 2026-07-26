@@ -185,7 +185,6 @@ function HomePageContent() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState('all');
   const [selectedYear, setSelectedYear] = useState('all');
-  const [watchlistFilter, setWatchlistFilter] = useState('all');
   const [moviesPage, setMoviesPage] = useState(1);
   const [tvPage, setTvPage] = useState(1);
   const [hollywoodPage, setHollywoodPage] = useState(1);
@@ -332,13 +331,6 @@ function HomePageContent() {
       setWatchLater(saved);
     }
   }, [isSignedIn]);
-
-  const statusLabels: Record<string, { label: string, color: string }> = {
-    watching: { label: 'Watching', color: 'bg-green-500' },
-    completed: { label: 'Completed', color: 'bg-blue-500' },
-    plan_to_watch: { label: 'Plan to Watch', color: 'bg-yellow-500' },
-    dropped: { label: 'Dropped', color: 'bg-red-500' },
-  };
 
   const transformApiItem = (apiItem: any) => ({
     id: apiItem.content_id,
@@ -597,14 +589,10 @@ function HomePageContent() {
       content = amazonPrimeContent;
     } else if (currentView === 'search') {
       content = searchResults;
-    } else if (currentView === 'watchlater') {
-      return watchLater;
     }
 
     // Apply filters
-    if (currentView === 'watchlater' && watchlistFilter !== 'all') {
-      content = content.filter((item: any) => item.status === watchlistFilter);
-    } else if (selectedGenre !== 'all') {
+    if (selectedGenre !== 'all') {
       content = content.filter((item: any) => 
         item.genre_ids?.includes(parseInt(selectedGenre))
       );
@@ -618,7 +606,7 @@ function HomePageContent() {
     }
 
     return content;
-  }, [currentView, movies, tvShows, hollywoodMovies, bollywoodMovies, animeContent, netflixContent, amazonPrimeContent, searchResults, watchLater, selectedGenre, selectedYear, watchlistFilter]);
+  }, [currentView, movies, tvShows, hollywoodMovies, bollywoodMovies, animeContent, netflixContent, amazonPrimeContent, searchResults, watchLater, selectedGenre, selectedYear]);
 
   const mainClassName = (currentView === 'home' || (currentView === 'anime' && animeContent.length > 0 && !loading))
     ? 'pb-8'
@@ -655,6 +643,8 @@ function HomePageContent() {
         <HeroSection 
           onWatchNow={handleHeroWatchNow}
           onMoreDetails={handleHeroMoreDetails}
+          onAddToWatchLater={addToWatchLater}
+          isInWatchLater={isInWatchLater}
         />
       )}
 
@@ -667,7 +657,7 @@ function HomePageContent() {
       <main className={mainClassName}>
         <div className="px-4 sm:px-6 lg:px-8">
           {/* Filters */}
-          {currentView !== 'watchlater' && currentView !== 'home' && (
+          {currentView !== 'home' && (
             <div className="mb-8 space-y-4">
               
               
@@ -783,26 +773,7 @@ function HomePageContent() {
                   {currentView === 'netflix' && '🔴 Netflix Content'}
                   {currentView === 'amazonprime' && '🎥 Amazon Prime Video'}
                   {currentView === 'search' && `🔍 Results for "${searchQuery}"`}
-                  {currentView === 'watchlater' && (
-            <>
-              🔖 Watch Later
-              <div className="flex flex-wrap gap-2 mt-3">
-                {['all', 'watching', 'plan_to_watch', 'completed', 'dropped'].map(filter => (
-                  <button
-                    key={filter}
-                    onClick={() => setWatchlistFilter(filter)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                      watchlistFilter === filter
-                        ? 'bg-white text-black'
-                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
-                    }`}
-                  >
-                    {filter === 'all' ? 'All' : statusLabels[filter]?.label || filter}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+
                 </h2>
                 {currentView === 'anime' && (
                   <p className="text-gray-300 text-sm mt-1">Top Japanese animation series and movies</p>
