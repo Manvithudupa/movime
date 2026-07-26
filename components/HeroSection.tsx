@@ -8,9 +8,7 @@ import {
   fetchMovies, 
   TMDB_IMAGE_BASE_URL,
   fetchContentDetails,
-  formatRuntime,
-  getLocalStorage,
-  setLocalStorage
+  formatRuntime
 } from '@/lib/utils';
 import type { ContentItem, Movie } from '@/lib/types';
 
@@ -19,9 +17,17 @@ interface HeroSectionProps {
   onMoreDetails?: (movie: ContentItem) => void;
   onAddToWatchLater?: (movie: ContentItem) => void;
   isInWatchLater?: (movie: ContentItem) => boolean;
+  getWatchStatus?: (movie: ContentItem) => string | undefined;
 }
 
-export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLater, isInWatchLater }: HeroSectionProps) {
+const statusLabels: Record<string, string> = {
+  watching: 'Watching',
+  completed: 'Completed',
+  plan_to_watch: 'Plan to Watch',
+  dropped: 'Dropped',
+};
+
+export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLater, isInWatchLater, getWatchStatus }: HeroSectionProps) {
   const [featuredMovies, setFeaturedMovies] = useState<Movie[]>([]);
   const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -146,17 +152,10 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
   };
   
   const toggleWatchLater = (movie: any) => {
-    // Use the parent callback if provided (handles API sync)
+    // Let the parent callback handle all state (handles both API and localStorage sync)
     if (onAddToWatchLater) {
       onAddToWatchLater(movie as ContentItem);
     }
-    // Also update local state for instant visual feedback
-    const exists = localWatchLater.some(w => w.id === movie.id && w.type === 'movie');
-    const updated = exists
-      ? localWatchLater.filter(w => !(w.id === movie.id && w.type === 'movie'))
-      : [...localWatchLater, { id: movie.id, type: 'movie', title: movie.title, poster: movie.poster_path, addedAt: new Date().toISOString() }];
-    setLocalWatchLater(updated);
-    setLocalStorage('watchLater', updated);
   };
 
   const getCertification = (movie: any): string => {
@@ -299,12 +298,12 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
               {getPrimaryGenre(currentMovie) && <span>{getPrimaryGenre(currentMovie)}</span>}
               </motion.div>
               <motion.p 
-                className="text-gray-300 text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-lg"
+                className="text-gray-300 text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed mb-3 sm:mb-4 md:mb-6 max-w-lg line-clamp-3"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
-                {truncateOverview(currentMovie.overview, 120)}
+                {truncateOverview(currentMovie.overview, 100)}
               </motion.p>
               <motion.div 
                 className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-10"
@@ -330,7 +329,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
                   transition={{ duration: 0.2 }}
                 >
                   <svg className={`w-4 sm:w-5 h-4 sm:h-5 ${isMovieInWatchLater(currentMovie) ? 'fill-current' : ''}`} fill={isMovieInWatchLater(currentMovie) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-                  {isMovieInWatchLater(currentMovie) ? 'MY LIST ✓' : '+ MY LIST'}
+                  {isMovieInWatchLater(currentMovie) ? `${getWatchStatus ? statusLabels[getWatchStatus(currentMovie as ContentItem) || 'plan_to_watch'] || 'MY LIST' : 'MY LIST'} ✓` : '+ MY LIST'}
                 </motion.button>
                 <motion.button
                   onClick={handleMoreDetails}

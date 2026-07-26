@@ -71,6 +71,7 @@ function DetailsPageContent() {
             content_type: item.content_type,
             title: item.title,
             poster: item.poster_path,
+            status: item.status,
             _apiRowId: item.id,
           }));
           setWatchLater(transformed);
@@ -422,7 +423,7 @@ function DetailsPageContent() {
                 {getRuntime() && <span>{getRuntime()}</span>}
                 {getPrimaryGenre() && <span>{getPrimaryGenre()}</span>}
               </div>
-              <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-6 sm:mb-8">
+              <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-6 sm:mb-8 line-clamp-6">
                 {content.overview}
               </p>
               <div className="flex flex-wrap gap-3 sm:gap-4 mb-5 sm:mb-6">
@@ -435,7 +436,7 @@ function DetailsPageContent() {
                 </button>
                 <div className="relative">
                   <button
-                    onClick={() => isInWatchLater() ? addToWatchLater() : setShowStatusPicker(!showStatusPicker)}
+                    onClick={() => setShowStatusPicker(!showStatusPicker)}
                     className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 rounded-sm font-semibold text-xs sm:text-sm tracking-wide transition-all border border-white/20 hover:border-white/40"
                   >
                     <svg className={`w-4 sm:w-5 h-4 sm:h-5 ${isInWatchLater() ? 'fill-current' : ''}`} fill={isInWatchLater() ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
@@ -460,7 +461,7 @@ function DetailsPageContent() {
                     </div>
                   )}
 
-                  {isInWatchLater() && (
+                  {showStatusPicker && isInWatchLater() && (
                     <div className="absolute top-full left-0 mt-2 w-48 bg-black border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
                       {Object.entries(statusLabels).map(([key, val]) => (
                         <button
@@ -497,6 +498,20 @@ function DetailsPageContent() {
                           )}
                         </button>
                       ))}
+                      <div className="border-t border-white/10">
+                        <button
+                          onClick={() => {
+                            addToWatchLater();
+                            setShowStatusPicker(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors text-left"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Remove from List
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

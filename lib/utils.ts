@@ -1,3 +1,5 @@
+import { availableSources } from './sources';
+
 // TMDB API configuration
 export const TMDB_API_KEY = '1070730380f5fee0d87cf0382670b255';
 export const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
@@ -637,20 +639,6 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
   });
 };
 
-export const fetchSportsMatches = async () => {
-  const cacheKey = serializeCacheKey(['fetchSportsMatches']);
-
-  return cachedApiRequest(cacheKey, async () => {
-    try {
-      const response = await fetch('https://streamed.su/api/matches');
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching sports matches:', error);
-      return [];
-    }
-  }, 2 * 60 * 1000);
-};
-
 // Utility functions
 export const formatRuntime = (minutes: number) => {
   const hours = Math.floor(minutes / 60);
@@ -659,8 +647,7 @@ export const formatRuntime = (minutes: number) => {
 };
 
 export const getVideoUrl = (sourceId: string, contentId: string, type: 'movie' | 'tv', season?: number, episode?: number) => {
-  const sources = require('./sources').availableSources;
-  const source = sources.find((s: any) => s.id === sourceId);
+  const source = availableSources.find((s: any) => s.id === sourceId);
   
   if (!source) return '';
   

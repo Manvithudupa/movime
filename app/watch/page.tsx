@@ -9,8 +9,8 @@ import {
   fetchContentDetails, 
   fetchSeasonDetails, 
   getVideoUrl, 
+  TMDB_API_KEY,
   TMDB_IMAGE_BASE_URL,
-  formatRuntime,
   getLocalStorage
 } from '@/lib/utils';
 import { availableSources } from '@/lib/sources';
@@ -78,7 +78,7 @@ function WatchPageContent() {
       setContent(data);
 
       const rec = await fetch(
-        `https://api.themoviedb.org/3/${contentType}/${contentId}/recommendations?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+        `https://api.themoviedb.org/3/${contentType}/${contentId}/recommendations?api_key=${TMDB_API_KEY}`
       );
       const recData = await rec.json();
       setRecommendations(recData.results || []);

@@ -639,12 +639,15 @@ function HomePageContent() {
       />
 
       {/* Hero Section - Only show on home page */}
-      {currentView === 'home' && (
-        <HeroSection 
+      {currentView === 'home' && (              <HeroSection 
           onWatchNow={handleHeroWatchNow}
           onMoreDetails={handleHeroMoreDetails}
           onAddToWatchLater={addToWatchLater}
           isInWatchLater={isInWatchLater}
+          getWatchStatus={(item) => {
+            const found = watchLater.find((w: any) => w.id === item.id);
+            return found?.status;
+          }}
         />
       )}
 

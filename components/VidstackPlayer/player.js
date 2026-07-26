@@ -13,12 +13,6 @@ function VidstackPlayer({ data, sources, skiptimes, epid, thumbnails, subtitles,
     const { duration } = useMediaStore(playerRef);
     const remote = useMediaRemote(playerRef);
     
-    // Log subtitles on mount/change
-    useEffect(() => {
-        console.log('[Vidstack] Received subtitles:', subtitles);
-        console.log('[Vidstack] Subtitles count:', subtitles?.length || 0);
-    }, [subtitles]);
-    
     // Get the best available source URL
     const getSourceUrl = () => {
         if (!sources || sources.length === 0) return '';

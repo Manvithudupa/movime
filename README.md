@@ -8,12 +8,12 @@
 
 ## ✨ Features
 
-- **🎥 Multi-Source Streaming** — Watch content from 21 embed providers with automatic fallback
+- **🎥 Multi-Source Streaming** — Watch content from 21 embed providers with automatic source switching
 - **📺 TV Shows & Seasons** — Browse episodes with season selectors and episode detail cards
 - **🐱 Anime Integration** — Dedicated anime section with AniList+TMDB cross-referencing for accurate season/episode mapping
-- **🔍 Smart Search** — Full-text search with relevance scoring, year filtering, and adult content filtering
-- **🔖 Watch Later** — Save content to a personal watch list (persisted in localStorage)
-- **👤 User Accounts** — Clerk-powered authentication with profile management (avatar, bio, location)
+- **🔍 Smart Search** — Full-text search with relevance scoring, year/genre filtering, and adult content filtering
+- **🔖 Watch Later** — Save content with status tracking (Watching, Completed, Plan to Watch, Dropped), synced across devices via Supabase
+- **👤 User Accounts** — Supabase-powered authentication with profile management (avatar, bio, anime character picker)
 - **🌈 Anime Title Preferences** — Switch between romaji, english, or native title display
 - **📱 Progressive Web App** — Installable on mobile and desktop with offline service worker
 - **⚡ Video Progress** — Auto-resume playback from where you left off
@@ -21,6 +21,7 @@
 - **🔄 Source Fallback** — Automatic source switching if a provider fails
 - **🔞 Content Filtering** — Adult content and blocked content filtering for a safe experience
 - **📈 Trending & Categories** — Hollywood, Bollywood, Netflix Originals, Amazon Prime sections
+- **⏭️ Skip Intro/Outro** — Auto-skip option for anime openings and endings
 
 ---
 
@@ -29,24 +30,35 @@
 | Route | Description |
 |-------|-------------|
 | `/` | Homepage with 7 content sections (Trending Movies, TV Shows, Hollywood, Bollywood, Anime, Netflix, Amazon Prime) and hero carousel |
-| `/details?id=&type=` | Content detail page with poster, info, season/episode browser, recommendations |
+| `/details?id=&type=` | Content detail page with poster, info, watchlist management, season/episode browser, recommendations |
 | `/watch?id=&type=` | Watch page with iframe-based video player and source selector sidebar |
 | `/search` | Dedicated search page with sorting (relevance, popularity, rating, year, title) |
-| `/settings` | User preferences (preferred source, default quality, auto-play) |
-| `/profile` | User profile management (requires authentication) |
+| `/settings` | User preferences (preferred source, default quality, auto-play, data management) |
+| `/profile` | User profile management with anime character picker (requires authentication) |
+| `/watchlist` | Full watchlist page with status filtering (Watching, Completed, Plan to Watch, Dropped) |
 | `/contact` | Contact form and support information |
 | `/privacy` | Privacy policy |
 | `/terms` | Terms of service |
 | `/about` | About Movime |
 
+### Auth Pages
+
+| Route | Description |
+|-------|-------------|
+| `/auth/login` | Sign in with email/password |
+| `/auth/signup` | Create a new account |
+| `/auth/callback` | OAuth callback handler for Supabase |
+
 ### API Routes
 
 | Route | Method | Description |
 |-------|--------|-------------|
+| `/api/watchlist` | GET | Fetch user's watchlist items |
+| `/api/watchlist` | POST | Add item to watchlist (or toggle if exists) |
+| `/api/watchlist` | PATCH | Update item status |
+| `/api/watchlist` | DELETE | Remove item from watchlist |
 | `/api/user/profile` | GET/PUT | Fetch or update user profile |
-| `/api/user/avatar` | GET | Get user avatar |
-| `/api/user/upload-avatar` | POST/DELETE | Upload or remove avatar |
-| `/api/webhooks/clerk` | POST | Clerk webhook for user CRUD sync to database |
+| `/api/anilist/character?q=` | GET | Search AniList anime characters |
 
 ---
 
@@ -55,23 +67,21 @@
 | Technology | Purpose |
 |------------|---------|
 | **Next.js 15** | React framework with App Router, server actions, and RSC |
-| **TypeScript** | Type-safe development |
+| **TypeScript** | Type-safe development with strict mode |
 | **Tailwind CSS** | Utility-first styling with custom animations |
-| **Prisma** | PostgreSQL ORM for user data |
-| **Clerk** | Authentication (multi-provider, webhook sync) |
+| **Supabase** | Authentication, PostgreSQL database, Row Level Security |
 | **Vidstack** | HLS video player with subtitles, chapters, seek controls |
 | **Zustand** | Lightweight state management (title preferences, now-playing info) |
-| **Framer Motion** | Page transitions, card hover animations, hero carousel |
+| **Framer Motion** | Page transitions, card hover animations, hero carousel, skeleton loading |
 | **TMDB API** | Movie/TV show metadata, images, recommendations |
-| **AniList API** | Anime season breakdown, episode mapping |
+| **AniList API** | Anime character search, season breakdown, episode mapping |
 | **sonner** | Toast notifications |
 | **next-pwa** | Progressive Web App support |
 | **Vercel Analytics** | Usage analytics and speed insights |
-| **Svix** | Clerk webhook signature verification |
 
 ### Streaming Providers (iframe embed)
 
-The platform aggregates from **21 tested embed providers** including VidLink, AutoEmbed, VidSrcSU, VidSrcSBS, VidSrcRIP, VidSrcPM, VidSrcME, VidSrcNL, VidSrcDEV, Flicky, VidStreaming, VidStreamPro, 2Embed, 123Embed, VidEasy, VidFast, CinemaOS, VidNest, MappleTV, RiveStream, and VidZee.
+The platform aggregates from **21 embed providers** including VidLink, AutoEmbed, VidSrcSU, VidSrcSBS, VidSrcRIP, VidSrcPM, VidSrcME, VidSrcNL, VidSrcDEV, Flicky, VidStreaming, VidStreamPro, 2Embed, 123Embed, VidEasy, VidFast, CinemaOS, VidNest, MappleTV, RiveStream, and VidZee.
 
 ### Anime Streaming (server actions)
 
@@ -84,7 +94,7 @@ Anime episodes are fetched via server actions using **FlixHQ**, **HiAnime**, **A
 ### Prerequisites
 
 - Node.js 18+ and npm/bun
-- PostgreSQL database (for user features)
+- Supabase project (for authentication and database)
 - TMDB API key ([get one free](https://www.themoviedb.org/settings/api))
 
 ### Installation
@@ -108,16 +118,9 @@ bun install
 Create a `.env.local` file with the following:
 
 ```env
-# TMDB API (required for content discovery)
-NEXT_PUBLIC_TMDB_API_KEY=your_tmdb_api_key
-
-# Clerk (required for authentication)
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_pub_key
-CLERK_SECRET_KEY=your_clerk_secret_key
-CLERK_WEBHOOK_SECRET=your_clerk_webhook_secret
-
-# Database (required for user profiles)
-DATABASE_URL=postgresql://user:pass@localhost:5432/movime
+# Supabase (required for authentication & watchlist sync)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Anime streaming APIs (optional - for anime playback)
 FLIXHQ_API_URL=https://your-flixhq-proxy.com
@@ -128,17 +131,18 @@ NEXT_PUBLIC_PROXY_URI=https://cors-proxy.your-domain.com/
 NEXT_PUBLIC_IMAGE_PROXY=https://images.weserv.nl/?url=
 ```
 
+### Supabase Setup
+
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Run the SQL schema from `lib/supabase/schema.sql` in the Supabase SQL Editor
+3. Enable email/password auth in Authentication → Providers
+4. Copy your project URL and anon key to `.env.local`
+
 ### Development
 
 ```bash
 # Start dev server
 npm run dev
-
-# Generate Prisma client
-npx prisma generate
-
-# Push schema to database
-npm run db:push
 ```
 
 ### Build for Production
@@ -158,50 +162,56 @@ movime/
 │   ├── about/          # About page
 │   ├── actions/        # Server actions (source.js)
 │   ├── api/
-│   │   ├── user/       # User profile & avatar API routes
-│   │   └── webhooks/   # Clerk webhook handler
+│   │   ├── anilist/    # AniList character search API
+│   │   ├── user/       # User profile API
+│   │   └── watchlist/  # Watchlist CRUD API
+│   ├── auth/           # Login, signup, callback pages
 │   ├── contact/        # Contact page
-│   ├── details/        # Content detail page
+│   ├── details/        # Content detail page with watchlist management
 │   ├── privacy/        # Privacy policy
-│   ├── profile/        # User profile page
-│   ├── search/         # Search page
+│   ├── profile/        # User profile page with anime character picker
+│   ├── search/         # Search page with sort/filter
 │   ├── settings/       # User settings page
 │   ├── terms/          # Terms of service
 │   ├── watch/          # Watch/player page
-│   ├── layout.tsx      # Root layout (Clerk, fonts, PWA)
+│   ├── watchlist/      # Full watchlist management page
+│   ├── layout.tsx      # Root layout (AuthProvider, PWA, fonts, analytics)
 │   ├── page.tsx        # Homepage
 │   └── globals.css     # Global styles & animations
 ├── components/
-│   ├── AnimeHero.tsx            # Anime carousel hero
-│   ├── AuthProvider.tsx         # Clerk provider wrapper
-│   ├── Avatar.tsx               # User avatar component
-│   ├── ContentSection.tsx       # Horizontal scrollable content row
-│   ├── Footer.tsx               # App footer
-│   ├── HeroSection.tsx          # Hero carousel (featured movies)
-│   ├── LoadingBar.tsx           # Route loading indicator
-│   ├── Navbar.tsx               # Navigation bar (Clerk user menu)
-│   ├── PlayerComponent.js       # Video player orchestrator
-│   ├── PlayerEpisodeList.js     # Episode list for FlixHQ
-│   ├── ProfilePictureUpload.tsx # Avatar upload UI
-│   ├── ProxyImage.tsx           # Image proxy wrapper
-│   ├── SkeletonCard.tsx         # Loading skeletons
-│   ├── Toaster.tsx              # Toast notifications
-│   └── VidstackPlayer/          # Vidstack HLS player
+│   ├── AniListCharacterPicker.tsx  # Modal for picking anime character avatar
+│   ├── AnimeHero.tsx              # Anime carousel hero banner
+│   ├── AuthProvider.tsx           # Supabase auth context provider
+│   ├── Avatar.tsx                 # User avatar with fallback initials
+│   ├── ContentSection.tsx         # Horizontal scrollable content row
+│   ├── Footer.tsx                 # App footer with disclaimer
+│   ├── HeroSection.tsx            # Hero carousel (featured movies)
+│   ├── LoadingBar.tsx             # Route loading indicator
+│   ├── Navbar.tsx                 # Navigation bar with user menu
+│   ├── PlayerComponent.js         # Video player orchestrator
+│   ├── PlayerEpisodeList.js       # Episode list for video player
+│   ├── ProxyImage.tsx             # Image proxy wrapper (privacy/caching)
+│   ├── SkeletonCard.tsx           # Loading skeleton placeholders
+│   ├── Toaster.tsx                # Toast notifications (sonner)
+│   └── VidstackPlayer/            # Vidstack HLS player component
 ├── lib/
-│   ├── animeMapper.ts   # AniList + TMDB anime mapping
-│   ├── prisma.ts        # Prisma client singleton
-│   ├── sources.ts       # Available streaming sources
-│   ├── store.ts         # Zustand stores
+│   ├── animeMapper.ts   # AniList + TMDB anime season mapping
+│   ├── sources.ts       # 21 available embed streaming sources
+│   ├── store.ts         # Zustand stores (title prefs, now-playing)
+│   ├── supabase/
+│   │   ├── client.ts    # Supabase browser client
+│   │   ├── server.ts    # Supabase server client (cookies)
+│   │   ├── middleware.ts # Supabase session refresh middleware
+│   │   └── schema.sql   # Database schema (profiles, watch_later)
 │   ├── types.ts         # TypeScript interfaces
-│   └── utils.ts         # API functions, cache, filtering
-├── prisma/
-│   └── schema.prisma    # Database schema
-├── public/              # Static assets, PWA manifest
+│   └── utils.ts         # API functions, caching, content filtering
+├── public/              # Static assets, PWA manifest, icons
 ├── scripts/             # Build scripts (icon generation)
-├── styles/              # Vidstack custom styles
+├── styles/              # Vidstack custom CSS module
 ├── utils/
-│   ├── logger.ts        # Development logger
-│   └── VideoProgressSave.js  # Watch progress persistence
+│   ├── logger.ts        # Development-only logger
+│   └── VideoProgressSave.js  # Watch progress persistence hook
+├── middleware.ts        # Supabase session refresh middleware
 ├── package.json
 ├── next.config.js       # Next.js + PWA config
 ├── tailwind.config.js   # Tailwind theme
@@ -216,23 +226,31 @@ movime/
 
 1. Browse content on the homepage or use search
 2. Click any card to go to the detail page
-3. Click **Watch** or go directly via `/watch?id=123&type=movie`
-4. If a source fails, the fallback system automatically tries the next one
-5. Manually switch sources from the source sidebar on the watch page
+3. Click **Play** or go directly via `/watch?id=123&type=movie`
+4. If a source fails, manually switch sources from the source sidebar
+5. For TV shows, select season and episode before watching
+
+### Watchlist Management
+
+1. On any detail page, click **+ MY LIST** to add content
+2. Choose a status: Watching, Completed, Plan to Watch, or Dropped
+3. Click the button again to update status or remove from list
+4. View and filter your full watchlist at `/watchlist`
 
 ### Search Tips
 
 - Type any movie/TV show/anime name
-- Search results are relevance-sorted with substring matching
+- Search results are relevance-sorted
 - Use the sort menu to sort by popularity, rating, year, or title
 - Content is filtered for appropriate audiences by default
+- Search by year using the year filter dropdown
 
 ### Anime Viewing
 
-- Navigate to the **Anime** section
-- Click any anime to see details with season/episode breakdown
-- Episodes use server actions to fetch from FlixHQ/HiAnime/AnimePahe/MegaPlay
-- Toggle between sub/dub on supported providers
+- Navigate to the **Anime** section on the homepage
+- Click any anime to see details with enhanced season/episode breakdown
+- Anime episodes are fetched from FlixHQ/HiAnime/AnimePahe/MegaPlay providers
+- Skip intro/outro buttons appear during anime playback
 
 ---
 
@@ -261,6 +279,10 @@ The `{id}`, `{season}`, and `{episode}` placeholders are automatically replaced.
 
 Anime sources are fetched server-side via `app/actions/source.js`. Each provider (FlixHQ, HiAnime, AnimePahe, MegaPlay) requires its own API proxy URL configured in environment variables.
 
+### Image Proxy
+
+Images from TMDB are proxied through `https://images.weserv.nl/?url=` by default to improve privacy and caching. Configure via `NEXT_PUBLIC_IMAGE_PROXY`. AniList images bypass the proxy.
+
 ---
 
 ## 🤝 Contributing
@@ -284,7 +306,8 @@ This project is for educational purposes only. See `LICENSE` for more informatio
 ## 🙏 Acknowledgments
 
 - [TMDB](https://www.themoviedb.org/) for movie/TV metadata
-- [AniList](https://anilist.co/) for anime data
+- [AniList](https://anilist.co/) for anime data and character search
 - [Vidstack](https://www.vidstack.io/) for the video player
-- [Clerk](https://clerk.com/) for authentication
+- [Supabase](https://supabase.com/) for authentication and database
+- [Vercel](https://vercel.com/) for hosting and analytics
 - All the third-party embed providers for streaming infrastructure
