@@ -633,9 +633,22 @@ function HomePageContent() {
         onSearchChange={setSearchQuery}
       />
 
-      {/* Continue Watching Section - shown independently from main content loading */}
+      {/* Hero Section - Only show on home page */}
+      {currentView === 'home' && (              <HeroSection 
+          onWatchNow={handleHeroWatchNow}
+          onMoreDetails={handleHeroMoreDetails}
+          onAddToWatchLater={addToWatchLater}
+          isInWatchLater={isInWatchLater}
+          getWatchStatus={(item) => {
+            const found = watchLater.find((w: any) => w.id === item.id);
+            return found?.status;
+          }}
+        />
+      )}
+
+      {/* Continue Watching Section - between hero/spotlight and trending content */}
       {currentView === 'home' && continueWatching.length > 0 && (
-        <div className="pt-24 sm:pt-20">
+        <div className="pt-8 sm:pt-10">
           <div className="px-4 sm:px-6 lg:px-8 max-w-screen-2xl mx-auto">
             <div className="mb-4">
               <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
@@ -736,19 +749,6 @@ function HomePageContent() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Hero Section - Only show on home page */}
-      {currentView === 'home' && (              <HeroSection 
-          onWatchNow={handleHeroWatchNow}
-          onMoreDetails={handleHeroMoreDetails}
-          onAddToWatchLater={addToWatchLater}
-          isInWatchLater={isInWatchLater}
-          getWatchStatus={(item) => {
-            const found = watchLater.find((w: any) => w.id === item.id);
-            return found?.status;
-          }}
-        />
       )}
 
       {/* Anime Hero Banner - Only show on anime view */}

@@ -356,8 +356,8 @@ function DetailsPageContent() {
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
         </div>
 
-        {/* Gradient overlay for mobile readability */}
-        <div className="absolute top-14 left-0 right-0 h-20 bg-gradient-to-b from-black/60 to-transparent z-10 pointer-events-none md:hidden" />
+        {/* Gradient overlay for mobile readability — covers the entire navbar area smoothly */}
+        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/40 via-black/15 to-transparent z-10 pointer-events-none md:hidden" />
         
         {/* Back to Home Button */}
         <div className="fixed top-16 sm:top-24 left-2 sm:left-4 z-50">
