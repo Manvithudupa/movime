@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react";
 
-function VideoProgressSave() {
+function useVideoProgressSave() {
 
     const [settings, setSettings] = useState(() => {
     const storedSettings = localStorage?.getItem("vidstack_settings");
@@ -22,4 +22,4 @@ function VideoProgressSave() {
   return [getVideoProgress, UpdateVideoProgress];
 }
 
-export default VideoProgressSave;
+export default useVideoProgressSave;

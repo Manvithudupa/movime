@@ -221,7 +221,7 @@ export default function Navbar({
 
               <Link
                 href="/settings"
-                className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-all duration-100 group"
+                className="hidden sm:inline-flex p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-all duration-100 group"
                 title="Settings"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">

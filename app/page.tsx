@@ -200,7 +200,6 @@ function HomePageContent() {
   const continueWatching = useContinueWatchingStore((s) => s.items);
   const fetchContinueWatching = useContinueWatchingStore((s) => s.fetch);
   const removeContinueWatching = useContinueWatchingStore((s) => s.remove);
-  const showSearchInput = false; // Search is handled via /search page
   
   // Ref to track if we're loading more content
   const isLoadingMoreRef = useRef(false);
@@ -617,7 +616,7 @@ function HomePageContent() {
       {/* Navigation */}
       <Navbar
         currentView={currentView}
-        showSearch={showSearchInput}
+        showSearch={false}
         searchQuery={searchQuery}
         watchLaterCount={watchLater.length}
         onViewChange={(view) => {

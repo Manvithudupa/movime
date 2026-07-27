@@ -26,7 +26,6 @@ function DetailsPageContent() {
   const [loading, setLoading] = useState(true);
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
   const [seasonData, setSeasonData] = useState<Season | null>(null);
-  const searchQuery = '';
   const [selectedStatus, setSelectedStatus] = useState<string>('plan_to_watch');
   const [showStatusPicker, setShowStatusPicker] = useState(false);
 
@@ -290,7 +289,7 @@ function DetailsPageContent() {
         <Navbar
           currentView="details"
           showSearch={false}
-          searchQuery={searchQuery}
+          searchQuery={''}
           watchLaterCount={watchLaterCount}
           onViewChange={() => {}}
           onSearchToggle={() => { router.push('/search'); }}
@@ -309,7 +308,7 @@ function DetailsPageContent() {
         <Navbar
           currentView="details"
           showSearch={false}
-          searchQuery={searchQuery}
+          searchQuery={''}
           watchLaterCount={watchLaterCount}
           onViewChange={() => {}}
           onSearchToggle={() => { router.push('/search'); }}
@@ -336,7 +335,7 @@ function DetailsPageContent() {
       <Navbar
         currentView="details"
         showSearch={false}
-        searchQuery={searchQuery}
+        searchQuery={''}
         watchLaterCount={watchLaterCount}
         onViewChange={() => {}}
         onSearchToggle={() => { router.push('/search'); }}

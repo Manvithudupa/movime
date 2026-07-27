@@ -5,10 +5,10 @@ import '@vidstack/react/player/styles/default/layouts/video.css';
 import { MediaPlayer, useMediaStore, MediaProvider, useMediaRemote, TextTrack, Gesture, Track, PlayButton } from '@vidstack/react';
 import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
 import styles from '@/styles/Vidstackstyles.module.css'
-import VideoProgressSave from '@/utils/VideoProgressSave';
+import useVideoProgressSave from '@/utils/useVideoProgressSave';
 
 function VidstackPlayer({ data, sources, skiptimes, epid, thumbnails, subtitles, getNextEpisode, currentep, provider, subtype, epnum, settings }) {
-    const [getVideoProgress, UpdateVideoProgress] = VideoProgressSave();
+    const [getVideoProgress, UpdateVideoProgress] = useVideoProgressSave();
     const playerRef = useRef(null);
     const { duration } = useMediaStore(playerRef);
     const remote = useMediaRemote(playerRef);
