@@ -15,7 +15,7 @@ import {
 import { availableSources } from '@/lib/sources';
 import type { Movie, TVShow, Season } from '@/lib/types';
 import Navbar from '@/components/Navbar';
-import { useWatchlistStore } from '@/lib/store';
+import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
 import Footer from '@/components/Footer';
 import dynamic from 'next/dynamic';
 
@@ -34,6 +34,8 @@ function WatchPageContent() {
   const [showSearch, setShowSearch] = useState(false);
   const watchLaterCount = useWatchlistStore((s) => s.count);
   const fetchWatchlist = useWatchlistStore((s) => s.fetch);
+  const upsertContinueWatching = useContinueWatchingStore((s) => s.upsert);
+  const fetchContinueWatching = useContinueWatchingStore((s) => s.fetch);
   const [searchQuery, setSearchQuery] = useState('');
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [iframeKey, setIframeKey] = useState(0);
@@ -56,7 +58,8 @@ function WatchPageContent() {
 
   useEffect(() => {
     fetchWatchlist(false);
-  }, [fetchWatchlist]);
+    fetchContinueWatching();
+  }, [fetchWatchlist, fetchContinueWatching]);
 
   const loadContent = async () => {
     if (!contentId || !contentType) return;
@@ -301,7 +304,18 @@ function WatchPageContent() {
         {/* Info row */}
         <div className="flex flex-col sm:flex-row gap-8">
           {/* Poster */}
-          {content.poster_path && (
+          {/* Save progress on first load and when episode changes */}
+      <SaveProgress 
+        contentId={contentId!}
+        contentType={contentType}
+        content={content}
+        contentTitle={contentTitle}
+        selectedSeason={selectedSeason}
+        selectedEpisode={selectedEpisode}
+        upsertContinueWatching={upsertContinueWatching}
+      />
+
+      {content.poster_path && (
             <div className="flex-shrink-0 w-32 sm:w-36 mx-auto sm:mx-0">
               <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
                 <Image
@@ -417,6 +431,62 @@ function WatchPageContent() {
       <Footer />
     </motion.div>
   );
+}
+
+// Component to save watch progress for continue watching feature
+function SaveProgress({ 
+  contentId, 
+  contentType, 
+  content, 
+  contentTitle, 
+  selectedSeason, 
+  selectedEpisode, 
+  upsertContinueWatching 
+}: { 
+  contentId: string; 
+  contentType: string; 
+  content: any; 
+  contentTitle: string; 
+  selectedSeason: number; 
+  selectedEpisode: number; 
+  upsertContinueWatching: (item: any) => Promise<void>; 
+}) {
+  useEffect(() => {
+    if (!contentId || !content) return;
+    
+    const posterPath = content.poster_path || null;
+    const backdropPath = content.backdrop_path || null;
+    const contentNumId = parseInt(contentId, 10);
+    
+    const watchData: any = {
+      content_id: contentNumId,
+      content_type: contentType,
+      title: contentTitle,
+      poster_path: posterPath,
+      backdrop_path: backdropPath,
+      progress_seconds: 0,
+      duration_seconds: 0,
+      is_completed: false,
+    };
+    
+    if (contentType === 'tv') {
+      watchData.season_number = selectedSeason;
+      watchData.episode_number = selectedEpisode;
+      
+      // Try to get episode title from season data if available
+      const season = (content as any).seasons?.find((s: any) => s.season_number === selectedSeason);
+      if (season?.episodes) {
+        const ep = season.episodes.find((e: any) => e.episode_number === selectedEpisode);
+        if (ep?.name) {
+          watchData.episode_title = ep.name;
+        }
+      }
+    }
+    
+    upsertContinueWatching(watchData);
+  }, [contentId, contentType, selectedSeason, selectedEpisode, content]);
+  
+  return null;
 }
 
 export default function WatchPage() {

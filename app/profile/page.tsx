@@ -8,7 +8,7 @@ import { useAuth, type Profile, type AnimeCharacterData } from '@/components/Aut
 import AniListCharacterPicker from '@/components/AniListCharacterPicker'
 import Avatar from '@/components/Avatar'
 import Navbar from '@/components/Navbar'
-import { useWatchlistStore } from '@/lib/store'
+import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store'
 
 export default function ProfilePage() {
   const { user, profile: authProfile, isLoading: authLoading, isSignedIn, refreshProfile } = useAuth()
@@ -28,6 +28,8 @@ export default function ProfilePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const watchLaterCount = useWatchlistStore((s) => s.count)
   const fetchWatchlist = useWatchlistStore((s) => s.fetch)
+  const continueWatchingCount = useContinueWatchingStore((s) => s.count)
+  const fetchContinueWatching = useContinueWatchingStore((s) => s.fetch)
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
 
@@ -86,8 +88,11 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
-    if (isSignedIn) fetchWatchlist(true)
-  }, [isSignedIn, fetchWatchlist])
+    if (isSignedIn) {
+      fetchWatchlist(true)
+      fetchContinueWatching()
+    }
+  }, [isSignedIn, fetchWatchlist, fetchContinueWatching])
 
   const handleImageUpdate = (imageUrl: string) => {
     if (profile) {
@@ -467,9 +472,20 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
         >
           {[
+            {
+              title: 'Continue Watching',
+              value: continueWatchingCount || 0,
+              subtitle: 'In progress',
+              icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ),
+            },
             {
               title: 'Watchlist',
               value: watchLaterCount || 0,

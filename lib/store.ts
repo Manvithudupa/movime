@@ -165,3 +165,169 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
     return get().items.some(i => i.content_id === contentId)
   },
 }))
+
+// ============================================================
+// Continue Watching Store
+// ============================================================
+
+export interface ContinueWatchingItem {
+  id: string | number
+  content_id: number
+  content_type: 'movie' | 'tv'
+  title: string
+  poster_path: string | null
+  backdrop_path: string | null
+  season_number: number | null
+  episode_number: number | null
+  episode_title: string | null
+  progress_seconds: number
+  duration_seconds: number
+  progress_percentage: number
+  is_completed: boolean
+  updated_at: string
+}
+
+const CONTINUE_WATCHING_CACHE_TTL = 30 * 1000 // 30 seconds cache
+
+interface ContinueWatchingStore {
+  items: ContinueWatchingItem[]
+  count: number
+  lastFetched: number
+  isLoading: boolean
+  fetch: () => Promise<void>
+  upsert: (item: Partial<ContinueWatchingItem>) => Promise<void>
+  remove: (contentId: number, contentType: string, seasonNumber?: number, episodeNumber?: number) => Promise<void>
+  clear: () => void
+}
+
+export const useContinueWatchingStore = create<ContinueWatchingStore>((set, get) => ({
+  items: [],
+  count: 0,
+  lastFetched: 0,
+  isLoading: false,
+
+  fetch: async () => {
+    const state = get()
+    const now = Date.now()
+
+    if (state.items.length > 0 && now - state.lastFetched < CONTINUE_WATCHING_CACHE_TTL) {
+      return
+    }
+
+    if (state.isLoading) return
+
+    set({ isLoading: true })
+
+    try {
+      const response = await fetch('/api/continue-watching')
+      if (response.ok) {
+        const data = await response.json()
+        const items = Array.isArray(data) ? data : []
+        set({ items, count: items.length, lastFetched: Date.now(), isLoading: false })
+        return
+      }
+      
+      // Try localStorage fallback
+      const saved = getLocalStorage('continueWatching', [])
+      set({ items: saved, count: saved.length, lastFetched: Date.now(), isLoading: false })
+    } catch (error) {
+      console.error('Error fetching continue watching:', error)
+      const saved = getLocalStorage('continueWatching', [])
+      set({ items: saved, count: saved.length, lastFetched: Date.now(), isLoading: false })
+    }
+  },
+
+  upsert: async (item) => {
+    // Optimistic update
+    const currentItems = get().items
+    const existingIndex = currentItems.findIndex(
+      i => i.content_id === item.content_id && 
+           i.content_type === item.content_type &&
+           i.season_number === (item.season_number || null) &&
+           i.episode_number === (item.episode_number || null)
+    )
+
+    let updatedItems: ContinueWatchingItem[]
+    if (existingIndex >= 0) {
+      updatedItems = [...currentItems]
+      updatedItems[existingIndex] = { ...updatedItems[existingIndex], ...item, updated_at: new Date().toISOString() } as ContinueWatchingItem
+    } else {
+      const newItem: ContinueWatchingItem = {
+        id: `local-${Date.now()}`,
+        content_id: item.content_id!,
+        content_type: item.content_type as 'movie' | 'tv',
+        title: item.title || '',
+        poster_path: item.poster_path || null,
+        backdrop_path: item.backdrop_path || null,
+        season_number: item.season_number || null,
+        episode_number: item.episode_number || null,
+        episode_title: item.episode_title || null,
+        progress_seconds: item.progress_seconds || 0,
+        duration_seconds: item.duration_seconds || 0,
+        progress_percentage: item.progress_percentage || 0,
+        is_completed: item.is_completed || false,
+        updated_at: new Date().toISOString(),
+      }
+      updatedItems = [newItem, ...currentItems]
+    }
+
+    // Sort by updated_at descending
+    updatedItems.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+
+    set({ items: updatedItems, count: updatedItems.length })
+
+    // Save to localStorage as fallback
+    setLocalStorage('continueWatching', updatedItems)
+
+    // Try to sync with server
+    try {
+      const response = await fetch('/api/continue-watching', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item),
+      })
+      if (response.ok) {
+        const result = await response.json()
+        if (result.item) {
+          // Replace optimistic entry with server response
+          const syncedItems = get().items.map(i => 
+            i.content_id === result.item.content_id && i.content_type === result.item.content_type
+              ? { ...result.item, id: result.item.id }
+              : i
+          )
+          set({ items: syncedItems })
+        }
+      }
+    } catch (error) {
+      // Silently fail - localStorage fallback is available
+      console.error('Error syncing continue watching:', error)
+    }
+  },
+
+  remove: async (contentId, contentType, seasonNumber, episodeNumber) => {
+    set((state) => {
+      const newItems = state.items.filter(i => 
+        !(i.content_id === contentId && 
+          i.content_type === contentType &&
+          (seasonNumber === undefined || i.season_number === seasonNumber) &&
+          (episodeNumber === undefined || i.episode_number === episodeNumber))
+      )
+      return { items: newItems, count: newItems.length }
+    })
+
+    const params = new URLSearchParams({ content_id: String(contentId), content_type: contentType })
+    if (seasonNumber !== undefined) params.set('season_number', String(seasonNumber))
+    if (episodeNumber !== undefined) params.set('episode_number', String(episodeNumber))
+
+    try {
+      await fetch(`/api/continue-watching?${params}`, { method: 'DELETE' })
+    } catch (error) {
+      console.error('Error removing continue watching:', error)
+    }
+  },
+
+  clear: () => {
+    set({ items: [], count: 0, lastFetched: 0, isLoading: false })
+    setLocalStorage('continueWatching', [])
+  },
+}))

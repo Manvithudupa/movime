@@ -22,7 +22,7 @@ import {
 } from '@/lib/utils';
 import type { ContentItem } from '@/lib/types';
 import { useAuth } from '@/components/AuthProvider';
-import { useWatchlistStore } from '@/lib/store';
+import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
 import HeroSection from '@/components/HeroSection';
 import Navbar from '@/components/Navbar';
 import ContentSection from '@/components/ContentSection';
@@ -197,6 +197,9 @@ function HomePageContent() {
   const fetchWatchlist = useWatchlistStore((s) => s.fetch);
   const addItemToStore = useWatchlistStore((s) => s.add);
   const removeItemFromStore = useWatchlistStore((s) => s.remove);
+  const continueWatching = useContinueWatchingStore((s) => s.items);
+  const fetchContinueWatching = useContinueWatchingStore((s) => s.fetch);
+  const removeContinueWatching = useContinueWatchingStore((s) => s.remove);
   const showSearchInput = false; // Search is handled via /search page
   
   // Ref to track if we're loading more content
@@ -205,7 +208,8 @@ function HomePageContent() {
   useEffect(() => {
     loadContent();
     fetchWatchlist(!!isSignedIn);
-  }, [isSignedIn, fetchWatchlist]);
+    fetchContinueWatching();
+  }, [isSignedIn, fetchWatchlist, fetchContinueWatching]);
 
   // Scroll to top whenever the view changes
   useEffect(() => {
@@ -628,6 +632,111 @@ function HomePageContent() {
         onSearchToggle={() => { router.push('/search'); }}
         onSearchChange={setSearchQuery}
       />
+
+      {/* Continue Watching Section - shown independently from main content loading */}
+      {currentView === 'home' && continueWatching.length > 0 && (
+        <div className="pt-24 sm:pt-20">
+          <div className="px-4 sm:px-6 lg:px-8 max-w-screen-2xl mx-auto">
+            <div className="mb-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Continue Watching
+              </h2>
+              <p className="text-gray-400 text-sm mt-1">Pick up where you left off</p>
+            </div>
+            <div className="flex overflow-x-auto scrollbar-hide gap-4 pb-4">
+              {continueWatching.slice(0, 10).map((item) => {
+                const type = item.content_type;
+                const href = item.content_type === 'tv'
+                  ? `/watch?id=${item.content_id}&type=tv&season=${item.season_number || 1}&episode=${item.episode_number || 1}`
+                  : `/watch?id=${item.content_id}&type=movie`;
+                
+                const posterSrc = item.poster_path 
+                  ? (item.poster_path.startsWith('http') 
+                    ? item.poster_path 
+                    : `https://image.tmdb.org/t/p/w342${item.poster_path}`)
+                  : null;
+
+                return (
+                  <Link
+                    key={`cw-${item.content_id}-${item.season_number || ''}-${item.episode_number || ''}`}
+                    href={href}
+                    className="group flex-shrink-0 w-40"
+                  >
+                    <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-white/5">
+                      {posterSrc ? (
+                        <Image
+                          src={posterSrc}
+                          alt={item.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          sizes="160px"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs">No Image</div>
+                      )}
+                      
+                      {/* Progress bar at bottom */}
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                        <div 
+                          className="h-full bg-white transition-all duration-300"
+                          style={{ width: `${Math.min(item.progress_percentage, 100)}%` }}
+                        />
+                      </div>
+
+                      {/* Play overlay on hover */}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-3">
+                          <svg className="w-6 h-6 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      {/* Dismiss button */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          removeContinueWatching(
+                            item.content_id, 
+                            item.content_type, 
+                            item.season_number ?? undefined, 
+                            item.episode_number ?? undefined
+                          );
+                        }}
+                        className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                        title="Remove from continue watching"
+                      >
+                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1.5 line-clamp-1 group-hover:text-white transition-colors font-medium">
+                      {item.title}
+                    </p>
+                    {item.content_type === 'tv' && item.episode_number && (
+                      <p className="text-[10px] text-gray-500 line-clamp-1">
+                        S{item.season_number || 1} · E{item.episode_number}
+                        {item.episode_title && ` · ${item.episode_title}`}
+                      </p>
+                    )}
+                    {item.progress_percentage > 0 && (
+                      <p className="text-[10px] text-gray-500 mt-0.5">
+                        {item.progress_percentage >= 90 ? 'Almost done' : `${item.progress_percentage}% watched`}
+                      </p>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section - Only show on home page */}
       {currentView === 'home' && (              <HeroSection 

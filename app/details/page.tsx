@@ -15,7 +15,7 @@ import {
 } from '@/lib/utils';
 import type { Movie, TVShow, Season, Episode, WatchLaterItem, Video } from '@/lib/types';
 import { useAuth } from '@/components/AuthProvider';
-import { useWatchlistStore } from '@/lib/store';
+import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
 import Navbar from '@/components/Navbar';
 
 function DetailsPageContent() {
@@ -35,6 +35,9 @@ function DetailsPageContent() {
   const fetchWatchlist = useWatchlistStore((s) => s.fetch);
   const addItemToStore = useWatchlistStore((s) => s.add);
   const removeItemFromStore = useWatchlistStore((s) => s.remove);
+  const continueWatching = useContinueWatchingStore((s) => s.items);
+  const fetchContinueWatching = useContinueWatchingStore((s) => s.fetch);
+
 
   const statusLabels: Record<string, { label: string, color: string, icon: string }> = {
     watching: { label: 'Watching', color: 'bg-white', icon: '▶' },
@@ -94,8 +97,9 @@ function DetailsPageContent() {
     if (contentId && contentType) {
       loadContent();
       fetchWatchlist(!!isSignedIn);
+      fetchContinueWatching();
     }
-  }, [contentId, contentType, loadContent, fetchWatchlist, isSignedIn]);
+  }, [contentId, contentType, loadContent, fetchWatchlist, isSignedIn, fetchContinueWatching]);
 
   useEffect(() => {
     if (content && contentType === 'tv' && selectedSeason) {
@@ -403,6 +407,33 @@ function DetailsPageContent() {
                 {content.overview}
               </p>
               <div className="flex flex-wrap gap-3 sm:gap-4 mb-5 sm:mb-6">
+                {/* Resume / Continue Watching Button */}
+                {(() => {
+                  const contItem = content ? continueWatching.find(
+                    (cw) => cw.content_id === content.id && cw.content_type === contentType
+                  ) : null;
+
+                  if (contItem && contItem.progress_percentage > 0 && contItem.progress_percentage < 100) {
+                    const resumeUrl = contItem.content_type === 'tv'
+                      ? `/watch?id=${contItem.content_id}&type=tv&season=${contItem.season_number || 1}&episode=${contItem.episode_number || 1}`
+                      : `/watch?id=${contItem.content_id}&type=movie`;
+
+                    return (
+                      <Link
+                        href={resumeUrl}
+                        className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white font-semibold px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 rounded-sm text-xs sm:text-sm tracking-wide transition-all border border-white/40 hover:border-white/60"
+                      >
+                        <svg className="w-4 sm:w-5 h-4 sm:h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>
+                        RESUME · {contItem.progress_percentage}%
+                        {contItem.content_type === 'tv' && contItem.episode_number && (
+                          <span className="text-white/70">S{contItem.season_number || 1}:E{contItem.episode_number}</span>
+                        )}
+                      </Link>
+                    );
+                  }
+                  return null;
+                })()}
+                
                 <button
                   onClick={() => handleWatchNow()}
                   className="flex items-center gap-2 bg-white text-black font-semibold px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 rounded-sm text-xs sm:text-sm tracking-wide transition-all shadow-md hover:shadow-lg hover:bg-gray-100"
