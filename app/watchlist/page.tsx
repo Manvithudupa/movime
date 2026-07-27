@@ -323,7 +323,7 @@ export default function WatchlistPage() {
                         </svg>
                         Status
                       </button>
-                      {openDropdownId === item.id && (
+                      {openDropdownId === String(item.id) && (
                         <div className="absolute bottom-full left-0 right-0 mb-1 z-50">
                           <div className="bg-black border border-white/10 rounded-lg overflow-hidden shadow-2xl">
                             {STATUS_OPTIONS.map(opt => (

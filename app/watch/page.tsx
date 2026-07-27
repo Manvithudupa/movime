@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   fetchContentDetails, 
   fetchSeasonDetails, 
@@ -151,11 +151,6 @@ function WatchPageContent() {
       setIframeKey((value) => value + 1);
     }
   };
-
-  const getBackdropUrl = () =>
-    content?.backdrop_path
-      ? `${TMDB_IMAGE_BASE_URL.replace('w500', 'w1280')}${content.backdrop_path}`
-      : '';
 
   if (loading) return <div className="min-h-screen bg-black" />;
 

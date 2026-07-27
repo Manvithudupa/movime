@@ -5,22 +5,43 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
-import { searchContent, TMDB_IMAGE_BASE_URL, filterAdultContent, blockedMovieIds, getLocalStorage, fetchContentDetails } from '@/lib/utils';
+import { searchContent, TMDB_IMAGE_BASE_URL, filterAdultContent, blockedMovieIds, fetchContentDetails } from '@/lib/utils';
 import type { ContentItem } from '@/lib/types';
+import { useWatchlistStore } from '@/lib/store';
+
+const ContentCard = ({ item }: { item: any }) => {
+  const title = item.title || item.name || '';
+  const poster = item.poster_path;
+  const type = item.media_type || (item.title ? 'movie' : 'tv');
+  return (
+    <Link href={`/details?id=${item.id}&type=${type}`} className="group relative rounded-lg overflow-hidden bg-white/[0.03] border border-white/5 hover:border-white/20 transition-all">
+      <div className="relative aspect-[2/3] w-full">
+        {poster ? (
+          <Image src={`${TMDB_IMAGE_BASE_URL}${poster}`} alt={title} fill className="object-cover group-hover:scale-105 transition-all duration-300" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">No Image</div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute bottom-0 p-3">
+          <h3 className="text-sm font-semibold leading-tight line-clamp-2">{title}</h3>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+const SkeletonCard = () => (
+  <div className="relative rounded-lg overflow-hidden bg-white/5 animate-pulse aspect-[2/3]" />
+);
 
 export default function SearchPage() {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [watchLaterCount, setWatchLaterCount] = useState(0);
+  const watchLaterCount = useWatchlistStore((s) => s.count);
   const [sortBy, setSortBy] = useState<'relevance' | 'popularity' | 'rating' | 'year' | 'title'>('relevance');
   const [showSortMenu, setShowSortMenu] = useState(false);
-
-  useEffect(() => {
-    const saved = getLocalStorage('watchLater', []);
-    setWatchLaterCount(saved.length);
-  }, []);
 
   const runtimeCache = useRef<Record<string, number>>({});
   const lastBasicResults = useRef<string>(''); 
@@ -86,7 +107,6 @@ export default function SearchPage() {
       if (!allowShort && base.length && lastBasicResults.current !== q) {
         lastBasicResults.current = q;
         (async () => {
-          const enriched: any[] = [];
             for (const item of base.slice(0, 30)) {
               const key = item.id.toString();
               if (!(key in runtimeCache.current)) {
@@ -133,30 +153,7 @@ export default function SearchPage() {
     }
   }, [results, sortBy]);
 
-  const ContentCard = ({ item }: { item: any }) => {
-    const title = item.title || item.name || '';
-    const poster = item.poster_path;
-    const type = item.media_type || (item.title ? 'movie' : 'tv');
-    return (
-      <Link href={`/details?id=${item.id}&type=${type}`} className="group relative rounded-lg overflow-hidden bg-white/[0.03] border border-white/5 hover:border-white/20 transition-all">
-        <div className="relative aspect-[2/3] w-full">
-          {poster ? (
-            <Image src={`${TMDB_IMAGE_BASE_URL}${poster}`} alt={title} fill className="object-cover group-hover:scale-105 transition-all duration-300" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">No Image</div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="absolute bottom-0 p-3">
-            <h3 className="text-sm font-semibold leading-tight line-clamp-2">{title}</h3>
-          </div>
-        </div>
-      </Link>
-    );
-  };
 
-  const SkeletonCard = () => (
-    <div className="relative rounded-lg overflow-hidden bg-white/5 animate-pulse aspect-[2/3]" />
-  );
 
   return (
   <div className="min-h-screen bg-black text-white">

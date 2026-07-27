@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import { useWatchlistStore } from '@/lib/store';
 
 export default function PrivacyPolicy() {
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [watchLaterCount] = useState(0);
+  const watchLaterCount = useWatchlistStore((s) => s.count);
 
   const handleSearchToggle = () => {
     setShowSearch(!showSearch);
@@ -19,8 +21,10 @@ export default function PrivacyPolicy() {
     setSearchQuery(query);
   };
 
+  const router = useRouter();
+
   const handleViewChange = (view: string) => {
-    window.location.href = `/?view=${view}`;
+    router.push(`/?view=${view}`);
   };
 
   return (

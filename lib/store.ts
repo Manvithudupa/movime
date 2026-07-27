@@ -289,9 +289,12 @@ export const useContinueWatchingStore = create<ContinueWatchingStore>((set, get)
       if (response.ok) {
         const result = await response.json()
         if (result.item) {
-          // Replace optimistic entry with server response
+          // Replace optimistic entry with server response — match by season/episode too for TV shows
           const syncedItems = get().items.map(i => 
-            i.content_id === result.item.content_id && i.content_type === result.item.content_type
+            i.content_id === result.item.content_id && 
+            i.content_type === result.item.content_type &&
+            i.season_number === (result.item.season_number || null) &&
+            i.episode_number === (result.item.episode_number || null)
               ? { ...result.item, id: result.item.id }
               : i
           )

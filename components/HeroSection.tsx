@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from '@/components/ProxyImage';
-import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   fetchMovies, 
@@ -32,7 +31,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
   const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
-  const [localWatchLater, setLocalWatchLater] = useState<any[]>([]);
+
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -148,7 +147,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
     if (isInWatchLater) {
       return isInWatchLater(movie as ContentItem);
     }
-    return localWatchLater.some(w => w.id === movie.id && w.type === 'movie');
+    return false;
   };
   
   const toggleWatchLater = (movie: any) => {

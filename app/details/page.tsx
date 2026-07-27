@@ -407,11 +407,15 @@ function DetailsPageContent() {
                 {content.overview}
               </p>
               <div className="flex flex-wrap gap-3 sm:gap-4 mb-5 sm:mb-6">
-                {/* Resume / Continue Watching Button */}
+                {/* Resume / Continue Watching Button — picks the most recent entry for TV shows */}
                 {(() => {
-                  const contItem = content ? continueWatching.find(
+                  const matches = content ? continueWatching.filter(
                     (cw) => cw.content_id === content.id && cw.content_type === contentType
-                  ) : null;
+                  ) : [];
+                  // Sort by updated_at descending to get the most recent
+                  const contItem = matches.sort(
+                    (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+                  )[0];
 
                   if (contItem && contItem.progress_percentage > 0 && contItem.progress_percentage < 100) {
                     const resumeUrl = contItem.content_type === 'tv'

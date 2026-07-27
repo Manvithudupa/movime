@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, Suspense, useCallback, useMemo, mem
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   fetchMovies, 
   fetchTVShows, 
