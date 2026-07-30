@@ -11,7 +11,7 @@ import Navbar from '@/components/Navbar'
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store'
 
 export default function ProfilePage() {
-  const { user, profile: authProfile, isLoading: authLoading, isSignedIn, refreshProfile } = useAuth()
+  const { profile: authProfile, isLoading: authLoading, isSignedIn, refreshProfile } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -94,13 +94,6 @@ export default function ProfilePage() {
     }
   }, [isSignedIn, fetchWatchlist, fetchContinueWatching])
 
-  const handleImageUpdate = (imageUrl: string) => {
-    if (profile) {
-      setProfile({ ...profile, avatar_url: imageUrl || null })
-      refreshProfile()
-    }
-  }
-
   // Fix: When setting an anime character, also update avatar_url with the character's image
   const handleCharacterSelect = async (character: AnimeCharacterData) => {
     if (!profile) return
@@ -177,7 +170,7 @@ export default function ProfilePage() {
         setProfile(updatedProfile)
         refreshProfile()
       } else {
-        const err = await response.json()
+        await response.json()
         setSaveMessage('Failed to remove character.')
         setTimeout(() => setSaveMessage(null), 3000)
       }

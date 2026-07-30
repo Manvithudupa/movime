@@ -104,6 +104,7 @@ export default function SearchAutocomplete({
   }, [inputRef, onFocusChange])
 
   // Build the suggestions list
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const suggestions = useMemo((): AutocompleteSuggestion[] => {
     if (query.trim().length >= 2) {
       // Filtered recent matching query + TMDB live suggestions

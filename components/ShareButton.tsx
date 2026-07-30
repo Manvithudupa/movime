@@ -39,7 +39,7 @@ export default function ShareButton({
       try {
         await navigator.share(shareData)
         return
-      } catch (err: any) {
+      } catch (err: unknown) {
         // User cancelled or API failed — fall through to clipboard
         if (err.name !== 'AbortError') {
           console.warn('Share API failed:', err)

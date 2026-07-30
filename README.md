@@ -1,6 +1,23 @@
 # Movime 🎬
 
-**Click, watch, enjoy.** Movime is a free streaming platform that aggregates movies, TV shows, and anime from multiple third-party sources into one seamless interface. Built with Next.js 15, TypeScript, and Tailwind CSS.
+<p align="center">
+  <img src="public/logo.png" alt="Movime Logo" width="120" height="120" />
+</p>
+
+<p align="center">
+  <strong>Click, watch, enjoy.</strong> Movime is a free streaming platform that aggregates movies, TV shows, and anime from multiple third-party sources into one seamless interface.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/next.js-15.3-black?style=flat-square&logo=next.js" alt="Next.js 15" />
+  <img src="https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-3.3-06B6D4?style=flat-square&logo=tailwind-css" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Supabase-FF6600?style=flat-square&logo=supabase" alt="Supabase" />
+  <img src="https://img.shields.io/badge/PWA-ready-5A0FC8?style=flat-square&logo=pwa" alt="PWA" />
+  <img src="https://img.shields.io/badge/license-educational-lightgrey?style=flat-square" alt="License" />
+</p>
+
+---
 
 > **Disclaimer:** Movime does not host or store any media files. All content is sourced from third-party providers and is intended for educational and informational use only.
 
@@ -9,19 +26,21 @@
 ## ✨ Features
 
 - **🎥 Multi-Source Streaming** — Watch content from 21 embed providers with automatic source switching
+- **🎞️ Vidstack HLS Player** — High-quality native HLS video player with subtitles, chapters, and seek controls
 - **📺 TV Shows & Seasons** — Browse episodes with season selectors and episode detail cards
 - **🐱 Anime Integration** — Dedicated anime section with AniList+TMDB cross-referencing for accurate season/episode mapping
-- **🔍 Smart Search** — Full-text search with relevance scoring, year/genre filtering, and adult content filtering
+- **🏠 Anime Hero Banner** — Dedicated anime hero carousel section for anime content
+- **⏭️ Skip Intro/Outro** — Auto-skip option for anime openings and endings with smart detection
+- **🔍 Smart Search** — Full-text search with relevance scoring, live autocomplete, recent searches, trending suggestions, year/genre filtering, and adult content filtering
 - **🔖 Watch Later** — Save content with status tracking (Watching, Completed, Plan to Watch, Dropped), synced across devices via Supabase
 - **👤 User Accounts** — Supabase-powered authentication with profile management (avatar, bio, anime character picker)
 - **🌈 Anime Title Preferences** — Switch between romaji, english, or native title display
 - **📱 Progressive Web App** — Installable on mobile and desktop with offline service worker
-- **⚡ Video Progress** — Auto-resume playback from where you left off
-- **🎞️ Vidstack Player** — High-quality HLS video player with subtitle support and skip intro/outro
+- **⚡ Video Progress** — Auto-resume playback from where you left off with progress persistence
 - **🔄 Source Fallback** — Automatic source switching if a provider fails
 - **🔞 Content Filtering** — Adult content and blocked content filtering for a safe experience
 - **📈 Trending & Categories** — Hollywood, Bollywood, Netflix Originals, Amazon Prime sections
-- **⏭️ Skip Intro/Outro** — Auto-skip option for anime openings and endings
+- **🚀 Optimized Performance** — API response caching, in-flight request deduplication, and localStorage persistence for fast loads
 
 ---
 

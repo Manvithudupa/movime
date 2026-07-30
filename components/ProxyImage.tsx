@@ -20,7 +20,9 @@ function proxiedSrc(src?: string | StaticImageData): string | StaticImageData | 
   return `${PROXY_BASE}${encodeURIComponent(src)}`
 }
 
-export default function ProxyImage(props: ImageProps) {
-  const { src, ...rest } = props
-  return <Image src={proxiedSrc(src as any) as any} {...(rest as any)} />
+export default function ProxyImage({ alt, ...props }: ImageProps) {
+  const { src: _src, ...rest } = props
+  const src = proxiedSrc(_src as any) as any
+  const resolvedAlt = alt || (typeof _src === 'string' ? _src.split('/').pop()?.split('.')[0] || 'Image' : 'Image')
+  return <Image src={src} alt={resolvedAlt} {...(rest as any)} />
 }

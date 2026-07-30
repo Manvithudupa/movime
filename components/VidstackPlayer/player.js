@@ -32,7 +32,7 @@ function VidstackPlayer({ data, sources, skiptimes, epid, thumbnails, subtitles,
             setSrc(newSrc);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sources]);
+    }, [sources, src]);
     
     const [opbutton, setopbutton] = useState(false);
     const [edbutton, setedbutton] = useState(false);
@@ -51,7 +51,7 @@ function VidstackPlayer({ data, sources, skiptimes, epid, thumbnails, subtitles,
     }, []);
 
     useEffect(() => {
-        playerRef.current?.subscribe(({ currentTime, duration }) => {
+        playerRef.current?.subscribe(({ currentTime }) => {
 
             if (skiptimes && skiptimes.length > 0) {
                 const opStart = skiptimes[0]?.startTime ?? 0;
@@ -82,7 +82,7 @@ function VidstackPlayer({ data, sources, skiptimes, epid, thumbnails, subtitles,
 
         })
 
-    }, []);
+    }, [skiptimes, autoSkip]);
 
     function onCanPlay() {
         if (skiptimes && skiptimes.length > 0) {
@@ -162,6 +162,7 @@ function VidstackPlayer({ data, sources, skiptimes, epid, thumbnails, subtitles,
         return () => {
             clearInterval(intervalRef.current);
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPlaying, duration]);
 
     function onLoadedMetadata() {

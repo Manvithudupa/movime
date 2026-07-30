@@ -10,7 +10,7 @@ import { searchContent, TMDB_IMAGE_BASE_URL, filterAdultContent, blockedMovieIds
 import type { ContentItem } from '@/lib/types';
 import { useWatchlistStore } from '@/lib/store';
 
-const ContentCard = ({ item }: { item: any }) => {
+const ContentCard = ({ item }: { item: Record<string, any> }) => {
   const title = item.title || item.name || '';
   const poster = item.poster_path;
   const type = item.media_type || (item.title ? 'movie' : 'tv');
@@ -263,7 +263,7 @@ export default function SearchPage() {
         )}
 
         {!loading && query.length > 0 && results.length === 0 && (
-          <p className="text-center text-gray-500">No results for "{query}"</p>
+          <p className="text-center text-gray-500">No results for &quot;{query}&quot;</p>
         )}
 
         {!loading && results.length > 0 && (

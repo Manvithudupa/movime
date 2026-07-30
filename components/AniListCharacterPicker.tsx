@@ -121,6 +121,7 @@ export default function AniListCharacterPicker({ onSelect, onClose, currentChara
                   }`}
                 >
                   <div className="aspect-[3/4] relative bg-black">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={character.image.large}
                       alt={character.name.full}

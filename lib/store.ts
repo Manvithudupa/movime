@@ -28,16 +28,16 @@ interface NowPlayingStore {
   } | null;
 }
 
-export const useNowPlaying = create<NowPlayingStore>((set) => ({
+export const useNowPlaying = create<NowPlayingStore>(() => ({
   nowPlaying: null,
 }));
 
 // Store for anime data info
 interface DataInfoStore {
-  dataInfo: any | null;
+  dataInfo: Record<string, unknown> | null;
 }
 
-export const useDataInfo = create<DataInfoStore>((set) => ({
+export const useDataInfo = create<DataInfoStore>(() => ({
   dataInfo: null,
 }));
 

@@ -45,6 +45,7 @@ export default function Avatar({ src, alt, size, fallbackText, className = '' }:
   if (isBase64) {
     return (
       <div style={circleStyle} className={`${className}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
           alt={alt}

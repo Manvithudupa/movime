@@ -4,8 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from '@/components/ProxyImage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  fetchMovies, 
-  TMDB_IMAGE_BASE_URL,
+  fetchMovies,
   fetchContentDetails,
   formatRuntime
 } from '@/lib/utils';
@@ -56,7 +55,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
         
         if (moviesResponse.results && moviesResponse.results.length > 0) {
           const topMovies = moviesResponse.results.slice(0, 6);
-          const movieDetailsPromises = topMovies.map((movie: any) => fetchContentDetails(movie.id.toString(), 'movie'));
+          const movieDetailsPromises = topMovies.map((movie: Record<string, any>) => fetchContentDetails(movie.id.toString(), 'movie'));
           
           const movieDetails = await Promise.all(movieDetailsPromises);
           const validMovies = movieDetails.filter(movie => movie !== null) as Movie[];

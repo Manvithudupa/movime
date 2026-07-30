@@ -57,8 +57,8 @@ export interface User {
   bio: string | null;
   location: string | null;
   website: string | null;
-  watchLater: any[];
-  preferences: any;
+  watchLater: WatchLaterItem[];
+  preferences: Record<string, unknown>;
   createdAt: string;
 }
 

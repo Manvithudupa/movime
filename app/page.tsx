@@ -208,6 +208,7 @@ function HomePageContent() {
     loadContent();
     fetchWatchlist(!!isSignedIn);
     fetchContinueWatching();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn, fetchWatchlist, fetchContinueWatching]);
 
   // Scroll to top whenever the view changes
@@ -222,6 +223,7 @@ function HomePageContent() {
       }, 500);
       return () => clearTimeout(timer);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   const loadContent = async () => {
@@ -377,9 +379,9 @@ function HomePageContent() {
     } else {
       toggleLocalWatchlist(item, contentType, exists)
     }
-  }, [isSignedIn, watchLater, addItemToStore, removeItemFromStore, rollbackWatchlistItem]);
+  }, [isSignedIn, watchLater, addItemToStore, removeItemFromStore, rollbackWatchlistItem, toggleLocalWatchlist]);
 
-  const toggleLocalWatchlist = (item: ContentItem, contentType: string, wasInList: boolean) => {
+  const toggleLocalWatchlist = useCallback((item: ContentItem, contentType: string, wasInList: boolean) => {
     const saved = getLocalStorage('watchLater', []);
     const itemId = item.id;
     if (wasInList) {
@@ -403,7 +405,7 @@ function HomePageContent() {
       setLocalStorage('watchLater', updated)
       addItemToStore(newItem)
     }
-  }
+  }, [addItemToStore, removeItemFromStore])
 
   const isInWatchLater = useCallback((item: ContentItem) => {
     const itemId = item.id;
@@ -423,7 +425,6 @@ function HomePageContent() {
       let currentContent;
       let setContent;
       let setPage;
-      let fetchFn;
 
       switch (contentType) {
         case 'movies':
@@ -431,49 +432,42 @@ function HomePageContent() {
           currentContent = movies;
           setContent = setMovies;
           setPage = setMoviesPage;
-          fetchFn = fetchMovies;
           break;
         case 'tv':
           nextPage = tvPage + 1;
           currentContent = tvShows;
           setContent = setTVShows;
           setPage = setTvPage;
-          fetchFn = fetchTVShows;
           break;
         case 'hollywood':
           nextPage = hollywoodPage + 1;
           currentContent = hollywoodMovies;
           setContent = setHollywoodMovies;
           setPage = setHollywoodPage;
-          fetchFn = fetchHollywoodMovies;
           break;
         case 'bollywood':
           nextPage = bollywoodPage + 1;
           currentContent = bollywoodMovies;
           setContent = setBollywoodMovies;
           setPage = setBollywoodPage;
-          fetchFn = fetchBollywoodMovies;
           break;
         case 'anime':
           nextPage = animePage + 1;
           currentContent = animeContent;
           setContent = setAnimeContent;
           setPage = setAnimePage;
-          fetchFn = fetchAnimeContent;
           break;
         case 'netflix':
           nextPage = netflixPage + 1;
           currentContent = netflixContent;
           setContent = setNetflixContent;
           setPage = setNetflixPage;
-          fetchFn = fetchNetflixContent;
           break;
         case 'amazonprime':
           nextPage = amazonPrimePage + 1;
           currentContent = amazonPrimeContent;
           setContent = setAmazonPrimeContent;
           setPage = setAmazonPrimePage;
-          fetchFn = fetchAmazonPrimeContent;
           break;
         default:
           return;
@@ -600,7 +594,7 @@ function HomePageContent() {
     }
 
     return content;
-  }, [currentView, movies, tvShows, hollywoodMovies, bollywoodMovies, animeContent, netflixContent, amazonPrimeContent, searchResults, watchLater, selectedGenre, selectedYear]);
+  }, [currentView, movies, tvShows, hollywoodMovies, bollywoodMovies, animeContent, netflixContent, amazonPrimeContent, searchResults, selectedGenre, selectedYear]);
 
   const mainClassName = (currentView === 'home' || (currentView === 'anime' && animeContent.length > 0 && !loading))
     ? 'pb-8 pt-2'
@@ -661,6 +655,7 @@ function HomePageContent() {
             </div>
             <div className="flex overflow-x-auto scrollbar-hide gap-4 pb-4">
               {continueWatching.slice(0, 10).map((item) => {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const type = item.content_type;
                 const href = item.content_type === 'tv'
                   ? `/watch?id=${item.content_id}&type=tv&season=${item.season_number || 1}&episode=${item.episode_number || 1}`
@@ -889,7 +884,7 @@ function HomePageContent() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.2, staggerChildren: 0.05 }}
               >
-                {filteredContent.map((item, index) => (
+                {filteredContent.map((item) => (
                   <motion.div
                     key={`${item.id}-${item.type || item.media_type || item.content_type || 'unknown'}`}
                     initial={{ opacity: 0, y: 20 }}

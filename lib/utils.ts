@@ -63,7 +63,7 @@ const getCachedApiValue = <T>(key: string): T | undefined => {
   }
 };
 
-const setCachedApiValue = (key: string, value: any, ttlMs = API_CACHE_TTL_MS) => {
+const setCachedApiValue = (key: string, value: unknown, ttlMs = API_CACHE_TTL_MS) => {
   const expiresAt = Date.now() + ttlMs;
   apiMemoryCache.set(key, { expiresAt, value });
 
@@ -141,27 +141,7 @@ const ANILIST_SEARCH_QUERY = `
   }
 `;
 
-const ANILIST_EPISODES_QUERY = `
-  query ($id: Int) {
-    Media(id: $id, type: ANIME) {
-      id
-      episodes
-      title {
-        romaji
-        english
-      }
-      streamingEpisodes {
-        title
-        url
-      }
-      nextAiringEpisode {
-        episode
-      }
-    }
-  }
-`;
-
-export const isAnimeContent = (item: any): boolean => {
+export const isAnimeContent = (item: Record<string, any>): boolean => {
   if (!item) return false;
   
   const genres = item.genres || [];
@@ -207,30 +187,6 @@ const searchAniListAnime = async (title: string) => {
   }, 15 * 60 * 1000);
 };
 
-const getAniListEpisodes = async (aniListId: number) => {
-  const cacheKey = serializeCacheKey(['aniListEpisodes', aniListId]);
-
-  return cachedApiRequest(cacheKey, async () => {
-    try {
-      const response = await fetch(ANILIST_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: ANILIST_EPISODES_QUERY,
-          variables: { id: aniListId }
-        })
-      });
-      
-      const data = await response.json();
-      return data.data?.Media || null;
-    } catch (error) {
-      console.warn('AniList episodes fetch failed:', error);
-      return null;
-    }
-  }, 15 * 60 * 1000);
-};
 
 export const fetchMovies = async (page = 1) => {
   const cacheKey = serializeCacheKey(['fetchMovies', page]);
@@ -452,7 +408,7 @@ export const fetchContentDetails = async (id: string, type: 'movie' | 'tv') => {
                 } else {
                   break;
                 }
-              } catch (error) {
+              } catch {
                 break; 
               }
             }
@@ -585,7 +541,7 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
               } else {
                 break;
               }
-            } catch (error) {
+            } catch {
               break;
             }
           }
@@ -710,7 +666,7 @@ export const getVideoUrl = (sourceId: string, contentId: string, type: 'movie' |
 };
 
 // Local storage helpers
-export const getLocalStorage = (key: string, defaultValue: any = null) => {
+export const getLocalStorage = <T = any>(key: string, defaultValue: T | null = null): T | null => {
   if (typeof window === 'undefined') return defaultValue;
   
   try {
@@ -721,7 +677,7 @@ export const getLocalStorage = (key: string, defaultValue: any = null) => {
   }
 };
 
-export const setLocalStorage = (key: string, value: any) => {
+export const setLocalStorage = (key: string, value: unknown): void => {
   if (typeof window === 'undefined') return;
   
   try {
@@ -753,7 +709,7 @@ export const adultContentKeywords = [
   'brothel', 'prostitute', 'call girl', 'gigolo', 'swinger'
 ];
 
-export const isAdultContent = (item: any): boolean => {
+export const isAdultContent = (item: Record<string, any>): boolean => {
   if (!item) return false;
   
   const title = (item.title || item.name || '').toLowerCase();
@@ -772,7 +728,7 @@ export const isAdultContent = (item: any): boolean => {
   return hasAdultKeywords || isExplicitRating || (hasAdultGenreCombination && hasAdultKeywords);
 };
 
-export const filterAdultContent = (items: any[], allowAdultContent: boolean = false): any[] => {
+export const filterAdultContent = <T extends Record<string, any>>(items: T[], allowAdultContent: boolean = false): T[] => {
   if (allowAdultContent) return items;
   return items.filter(item => !isAdultContent(item));
 };

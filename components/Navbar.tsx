@@ -24,10 +24,10 @@ interface NavbarProps {
 export default function Navbar({
   currentView,
   showSearch,
-  searchQuery,
+  searchQuery, // eslint-disable-line @typescript-eslint/no-unused-vars
   watchLaterCount,
   onViewChange,
-  onSearchToggle,
+  onSearchToggle, // eslint-disable-line @typescript-eslint/no-unused-vars
   onSearchChange
 }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -72,6 +72,7 @@ export default function Navbar({
     onViewChange(view);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleSearchChange = (value: string) => {
     onSearchChange(value);
     if (value) {

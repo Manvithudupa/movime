@@ -9,11 +9,10 @@ import {
   fetchSeasonDetails, 
   TMDB_IMAGE_BASE_URL,
   formatRuntime,
-  getLocalStorage,
   filterAdultContent,
   blockedMovieIds
 } from '@/lib/utils';
-import type { Movie, TVShow, Season, Episode, WatchLaterItem, Video } from '@/lib/types';
+import type { Movie, TVShow, Season, Episode, Video } from '@/lib/types';
 import { useAuth } from '@/components/AuthProvider';
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
 import Navbar from '@/components/Navbar';
@@ -27,8 +26,9 @@ function DetailsPageContent() {
   const [loading, setLoading] = useState(true);
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
   const [seasonData, setSeasonData] = useState<Season | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string>('plan_to_watch');
+  const [selectedStatus] = useState<string>('plan_to_watch');
   const [showStatusPicker, setShowStatusPicker] = useState(false);
+  const [isTrailerMuted, setIsTrailerMuted] = useState(true);
 
   const watchLater = useWatchlistStore((s) => s.items);
   const watchLaterCount = useWatchlistStore((s) => s.count);
@@ -348,16 +348,50 @@ function DetailsPageContent() {
         <div className="absolute inset-0">
           {trailer ? (
             <>
-              {/* YouTube trailer as full-bleed background */}
-              <iframe
-                src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1&loop=1&playlist=${trailer.key}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&playsinline=1`}
-                className="absolute top-1/2 left-1/2 w-[177.78%] h-full min-w-full min-h-[56.25%] pointer-events-none"
-                style={{ transform: 'translate(-50%, -50%) scale(1.15)' }}
-                allow="autoplay; encrypted-media"
-                title={`${getTitle()} Trailer`}
-              />
-              {/* Gradient overlays for text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10" />
+              {/* Backdrop as subtle background behind the trailer */}
+              {content.backdrop_path && (
+                <Image
+                  src={getBackdropUrl()}
+                  alt=""
+                  fill
+                  className="object-cover opacity-30"
+                  priority
+                />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black/80" />
+
+              {/* Centered trailer container with proper spacing */}
+              <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12">
+                <div className="relative w-full max-w-5xl aspect-video rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=${isTrailerMuted ? 1 : 0}&loop=1&playlist=${trailer.key}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&playsinline=1`}
+                    className="absolute inset-0 w-full h-full"
+                    allow="autoplay; encrypted-media"
+                    title={`${getTitle()} Trailer`}
+                  />
+                </div>
+              </div>
+
+              {/* Sound toggle button */}
+              <button
+                onClick={() => setIsTrailerMuted(!isTrailerMuted)}
+                className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 z-20 bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-full p-2.5 sm:p-3 border border-white/20 hover:border-white/40 transition-all duration-200 hover:scale-110 active:scale-95"
+                aria-label={isTrailerMuted ? "Unmute trailer" : "Mute trailer"}
+              >
+                {isTrailerMuted ? (
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  </svg>
+                )}
+              </button>
+              
+              {/* Bottom gradient overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent pointer-events-none" />
             </>
           ) : (
             <>

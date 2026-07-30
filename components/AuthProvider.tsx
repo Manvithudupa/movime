@@ -173,7 +173,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
 
     // 2. Revalidate from Supabase in background
-    supabaseRef.current.auth.getSession().then(({ data: { session } }: { data: { session: any } }) => {
+    supabaseRef.current.auth.getSession().then(({ data: { session } }: { data: { session: Record<string, any> | null } }) => {
       const currentUser = session?.user ?? null;
       
       if (currentUser) {
@@ -199,7 +199,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     })
 
     // 3. Listen for auth changes
-    const { data: { subscription } } = supabaseRef.current.auth.onAuthStateChange((_event: string, session: any) => {
+    const { data: { subscription } } = supabaseRef.current.auth.onAuthStateChange((_event: string, session: Record<string, any> | null) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       

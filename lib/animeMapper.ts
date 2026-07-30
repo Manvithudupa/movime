@@ -128,7 +128,7 @@ export const getAniListAnimeDetails = async (aniListId: number) => {
 };
 
 // Extract season breakdown from AniList data
-export const extractAniListSeasons = (aniListData: any): AniListSeason[] => {
+export const extractAniListSeasons = (aniListData: Record<string, any>): AniListSeason[] => {
   if (!aniListData) return [];
   
   const seasons: AniListSeason[] = [];
@@ -154,7 +154,7 @@ export const extractAniListSeasons = (aniListData: any): AniListSeason[] => {
       .map((edge: any) => edge.node)
       .sort((a: any, b: any) => (a.seasonYear || 0) - (b.seasonYear || 0)); // Sort by year
     
-    sequels.forEach((sequel: any, index: number) => {
+    sequels.forEach((sequel: any) => {
       seasons.push({
         seasonNumber: seasons.length + 1,
         episodeCount: sequel.episodes,
@@ -204,7 +204,7 @@ const updateEpisodeName = (originalName: string, newEpisodeNumber: number): stri
   return updatedName;
 };
 
-export const mapAniListToTmdb = (aniListSeasons: AniListSeason[], tmdbEpisodes: any[], tmdbData: any) => {
+export const mapAniListToTmdb = (aniListSeasons: AniListSeason[], tmdbEpisodes: Array<Record<string, any>>, tmdbData: Record<string, any>) => {
   if (!aniListSeasons.length || !tmdbEpisodes.length) {
     return null;
   }
@@ -215,11 +215,11 @@ export const mapAniListToTmdb = (aniListSeasons: AniListSeason[], tmdbEpisodes: 
     seasonBreakdown: aniListSeasons.map(s => `S${s.seasonNumber}: ${s.episodeCount} eps`)
   });
   
-  const mappedSeasons: any[] = [];
+  const mappedSeasons: Array<Record<string, any>> = [];
   let episodeIndex = 0;
   
   for (const aniListSeason of aniListSeasons) {
-    const seasonEpisodes: any[] = [];
+    const seasonEpisodes: Array<Record<string, any>> = [];
     
     for (let ep = 1; ep <= aniListSeason.episodeCount; ep++) {
       const tmdbEpisode = tmdbEpisodes[episodeIndex] || {};

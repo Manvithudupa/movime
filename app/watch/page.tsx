@@ -18,9 +18,6 @@ import Navbar from '@/components/Navbar';
 import ShareButton from '@/components/ShareButton';
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
 import Footer from '@/components/Footer';
-import dynamic from 'next/dynamic';
-
-const PlayerComponent = dynamic(() => import('@/components/PlayerComponent'), { ssr: false });
 
 function WatchPageContent() {
   const searchParams = useSearchParams();
@@ -51,10 +48,12 @@ function WatchPageContent() {
 
   useEffect(() => {
     if (contentId && contentType) loadContent();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentId, contentType]);
 
   useEffect(() => {
     if (content && contentType === 'tv' && selectedSeason) loadSeasonData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, selectedSeason]);
 
   useEffect(() => {
@@ -447,11 +446,11 @@ function SaveProgress({
 }: { 
   contentId: string; 
   contentType: string; 
-  content: any; 
+  content: Record<string, any>; 
   contentTitle: string; 
   selectedSeason: number; 
   selectedEpisode: number; 
-  upsertContinueWatching: (item: any) => Promise<void>; 
+  upsertContinueWatching: (item: Record<string, any>) => Promise<void>; 
 }) {
   useEffect(() => {
     if (!contentId || !content) return;
@@ -460,7 +459,7 @@ function SaveProgress({
     const backdropPath = content.backdrop_path || null;
     const contentNumId = parseInt(contentId, 10);
     
-    const watchData: any = {
+    const watchData: Record<string, any> = {
       content_id: contentNumId,
       content_type: contentType,
       title: contentTitle,
@@ -486,7 +485,8 @@ function SaveProgress({
     }
     
     upsertContinueWatching(watchData);
-  }, [contentId, contentType, selectedSeason, selectedEpisode, content]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contentId, contentType, selectedSeason, selectedEpisode, content, contentTitle, upsertContinueWatching]);
   
   return null;
 }
