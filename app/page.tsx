@@ -252,47 +252,47 @@ function HomePageContent() {
           (movie: any) => !blockedMovieIds.includes(movie.id.toString())
         ) || [],
         false
-      );
+      ) as ContentItem[];
 
       const filteredHollywood = filterAdultContent(
         hollywoodData.results?.filter(
           (movie: any) => !blockedMovieIds.includes(movie.id.toString())
         ) || [],
         false
-      );
+      ) as ContentItem[];
 
       const filteredBollywood = filterAdultContent(
         bollywoodData.results?.filter(
           (movie: any) => !blockedMovieIds.includes(movie.id.toString())
         ) || [],
         false
-      );
+      ) as ContentItem[];
 
       const filteredAnime = filterAdultContent(
         animeData.results?.filter(
           (item: any) => !blockedMovieIds.includes(item.id.toString())
         ) || [],
         false
-      );
+      ) as ContentItem[];
 
       const filteredTVShows = filterAdultContent(
         tvData.results || [],
         false
-      );
+      ) as ContentItem[];
 
       const filteredNetflix = filterAdultContent(
         netflixData.results?.filter(
           (movie: any) => !blockedMovieIds.includes(movie.id.toString())
         ) || [],
         false
-      );
+      ) as ContentItem[];
 
       const filteredAmazonPrime = filterAdultContent(
         amazonPrimeData.results?.filter(
           (movie: any) => !blockedMovieIds.includes(movie.id.toString())
         ) || [],
         false
-      );
+      ) as ContentItem[];
 
       setMovies(filteredMovies);
       setTVShows(filteredTVShows);
@@ -505,7 +505,7 @@ function HomePageContent() {
           (item: any) => !blockedMovieIds.includes(item.id.toString())
         ) || [],
         false
-      );
+      ) as ContentItem[];
 
       setContent([...currentContent, ...filteredNewData]);
       setPage(nextPage);
@@ -537,7 +537,7 @@ function HomePageContent() {
           (item: any) => !blockedMovieIds.includes(item.id.toString())
         ) || [],
         isAdultSearch
-      );
+      ) as ContentItem[];
       
       setSearchResults(filteredResults);
     } catch (error) {

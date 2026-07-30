@@ -59,7 +59,7 @@ export default function SearchPage() {
       let filtered = filterAdultContent(
         data.results?.filter((item:any)=>!blockedMovieIds.includes(item.id.toString())) || [],
         allowAdult
-      );
+      ) as ContentItem[];
 
       const MIN_YEAR = 2004;
       const explicitOlderYearMatch = q.match(/\b(19\d{2}|200[0-3])\b/);
@@ -103,7 +103,7 @@ export default function SearchPage() {
       filtered.sort((a:any,b:any)=> (b.__rel - a.__rel) || ((b.popularity||0)-(a.popularity||0)) );
       filtered = filtered.map((i:any)=>{ delete i.__rel; return i; });
       const base = filtered.slice(0,60); 
-      setResults(base.slice(0,40));
+      setResults(base.slice(0,40) as ContentItem[]);
 
       const allowShort = /\b(short|clip|mini|reel)\b/i.test(qLower);
       const MIN_DURATION_MIN = 40;
@@ -126,7 +126,7 @@ export default function SearchPage() {
             if (!dur) return true;
             return dur >= MIN_DURATION_MIN;
           }).slice(0,40);
-          setResults(prev => q === query ? filteredRuntime : prev);
+          setResults(prev => q === query ? filteredRuntime as ContentItem[] : prev);
         })();
       }
     } catch (e) {
