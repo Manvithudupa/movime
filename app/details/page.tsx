@@ -17,6 +17,7 @@ import type { Movie, TVShow, Season, Episode, WatchLaterItem, Video } from '@/li
 import { useAuth } from '@/components/AuthProvider';
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
 import Navbar from '@/components/Navbar';
+import ShareButton from '@/components/ShareButton';
 
 function DetailsPageContent() {
   const searchParams = useSearchParams();
@@ -342,21 +343,38 @@ function DetailsPageContent() {
         onSearchChange={() => {}}
       />
 
-      {/* Hero Section */}
-      <div className="relative h-[50vh] sm:h-[56vh] md:h-[62vh] overflow-hidden">
+      {/* Hero Section — YouTube trailer embed with backdrop fallback */}
+      <div className="relative h-[50vh] sm:h-[56vh] md:h-[62vh] overflow-hidden bg-black">
         <div className="absolute inset-0">
-          <Image
-            src={getBackdropUrl()}
-            alt={getTitle()}
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+          {trailer ? (
+            <>
+              {/* YouTube trailer as full-bleed background */}
+              <iframe
+                src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=1&loop=1&playlist=${trailer.key}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&playsinline=1`}
+                className="absolute top-1/2 left-1/2 w-[177.78%] h-full min-w-full min-h-[56.25%] pointer-events-none"
+                style={{ transform: 'translate(-50%, -50%) scale(1.15)' }}
+                allow="autoplay; encrypted-media"
+                title={`${getTitle()} Trailer`}
+              />
+              {/* Gradient overlays for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10" />
+            </>
+          ) : (
+            <>
+              <Image
+                src={getBackdropUrl()}
+                alt={getTitle()}
+                fill
+                className="object-cover"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+            </>
+          )}
         </div>
 
         {/* Gradient overlay for mobile readability — covers the entire navbar area smoothly */}
-        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/40 via-black/15 to-transparent z-10 pointer-events-none md:hidden" />
+        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/80 via-black/40 to-transparent z-10 pointer-events-none" />
         
         {/* Back to Home Button */}
         <div className="fixed top-16 sm:top-24 left-2 sm:left-4 z-50">
@@ -527,18 +545,15 @@ function DetailsPageContent() {
                     </div>
                   )}
                 </div>
+                
+                {/* Share button */}
+                <ShareButton
+                  title={`${getTitle()} - Movime`}
+                  text={`Check out ${getTitle()} on Movime`}
+                  variant="full"
+                />
               </div>
-              {trailer && (
-                <button
-                  onClick={() => window.open(`https://www.youtube.com/watch?v=${trailer.key}`, '_blank')}
-                  className="flex items-center gap-2 sm:gap-3 group text-white/80 hover:text-white transition-colors"
-                >
-                  <span className="w-8 sm:w-9 md:w-11 h-8 sm:h-9 md:h-11 rounded-full flex items-center justify-center border-2 border-white/50 group-hover:border-white transition-colors">
-                    <svg className="w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M8 5v10l7-5z"/></svg>
-                  </span>
-                  <span className="text-xs sm:text-sm tracking-widest font-medium">WATCH TRAILER</span>
-                </button>
-              )}
+
             </div>
           </div>
         </div>

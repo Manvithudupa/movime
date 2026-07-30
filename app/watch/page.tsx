@@ -15,6 +15,7 @@ import {
 import { availableSources } from '@/lib/sources';
 import type { Movie, TVShow, Season } from '@/lib/types';
 import Navbar from '@/components/Navbar';
+import ShareButton from '@/components/ShareButton';
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
 import Footer from '@/components/Footer';
 import dynamic from 'next/dynamic';
@@ -208,10 +209,16 @@ function WatchPageContent() {
           <span className="text-gray-600">/</span>
           <span className="text-white font-medium text-sm line-clamp-1">{contentTitle}</span>
           {contentType === 'tv' && (
-            <span className="text-gray-400 text-sm ml-auto shrink-0">
+            <span className="text-gray-400 text-sm shrink-0">
               S{selectedSeason} · E{selectedEpisode}
             </span>
           )}
+          <div className="ml-auto flex items-center">
+            <ShareButton
+              title={`${contentTitle} - Movime`}
+              text={`Check out ${contentTitle} on Movime`}
+            />
+          </div>
         </div>
       </div>
 

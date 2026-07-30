@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import SearchAutocomplete from '@/components/SearchAutocomplete';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { searchContent, TMDB_IMAGE_BASE_URL, filterAdultContent, blockedMovieIds, fetchContentDetails } from '@/lib/utils';
@@ -43,6 +44,8 @@ export default function SearchPage() {
   const [sortBy, setSortBy] = useState<'relevance' | 'popularity' | 'rating' | 'year' | 'title'>('relevance');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
+  const [isFocused, setIsFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const runtimeCache = useRef<Record<string, number>>({});
   const lastBasicResults = useRef<string>(''); 
 
@@ -190,11 +193,26 @@ export default function SearchPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
+              ref={inputRef}
               value={query}
               onChange={(e)=>setQuery(e.target.value)}
+              onFocus={()=>setIsFocused(true)}
               placeholder="Have something in mind? (try: any genre / name)"
               className="w-full pl-12 pr-4 py-4 rounded-full movime-search-input outline-none text-sm text-white placeholder-white/40 transition-all"
               autoFocus
+            />
+            {/* Autocomplete dropdown */}
+            <SearchAutocomplete
+              query={query}
+              onSelect={(suggestion) => {
+                setQuery(suggestion);
+                setIsFocused(false);
+                inputRef.current?.blur();
+                performSearch(suggestion);
+              }}
+              isFocused={isFocused}
+              onFocusChange={setIsFocused}
+              inputRef={inputRef}
             />
           </div>
         </div>

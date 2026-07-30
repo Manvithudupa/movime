@@ -9,6 +9,7 @@ import { useAuth } from '@/components/AuthProvider';
 import Avatar from '@/components/Avatar';
 
 import { useEffect } from 'react';
+import BottomNav from '@/components/BottomNav';
 
 interface NavbarProps {
   currentView: string;
@@ -90,7 +91,8 @@ export default function Navbar({
   const userEmail = user?.email || '';
 
   return (
-    <motion.header
+    <>
+      <motion.header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-150 ease-out ${
         (isScrolled || showSearch)
           ? 'bg-black/80 backdrop-blur-md border-b border-white/10'
@@ -176,10 +178,10 @@ export default function Navbar({
             </nav>
           </div>
 
-          {/* Mobile Hamburger */}
+          {/* Mobile Hamburger — hidden on mobile, visible on tablet breakpoints but not desktop */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2 hover:bg-white/10 rounded-full transition-all duration-100 group relative z-50"
+            className="sm:flex lg:hidden p-2 hover:bg-white/10 rounded-full transition-all duration-100 group relative z-50"
             title={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
           >
@@ -418,5 +420,10 @@ export default function Navbar({
         )}
       </AnimatePresence>
     </motion.header>
+      {/* Bottom nav spacer — pushes content above the fixed bottom nav on mobile */}
+      <div className="h-16 sm:hidden" />
+      {/* Mobile Bottom Navigation */}
+      <BottomNav />
+    </>
   );
 }
