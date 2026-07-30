@@ -41,10 +41,11 @@ export default function ShareButton({
         return
       } catch (err: unknown) {
         // User cancelled or API failed — fall through to clipboard
-        if (err.name !== 'AbortError') {
+        if (err instanceof Error) {
+          if (err.name === 'AbortError') {
+            return // User cancelled, do nothing
+          }
           console.warn('Share API failed:', err)
-        } else {
-          return // User cancelled, do nothing
         }
       }
     }

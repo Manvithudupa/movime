@@ -322,6 +322,32 @@ function HomePageContent() {
     })
   }, [addItemToStore])
 
+  const toggleLocalWatchlist = useCallback((item: ContentItem, contentType: string, wasInList: boolean) => {
+    const saved = getLocalStorage('watchLater', []);
+    const itemId = item.id;
+    if (wasInList) {
+      const updated = saved.filter((w: any) => w.id !== itemId && w.content_id !== itemId);
+      setLocalStorage('watchLater', updated);
+      removeItemFromStore(itemId)
+    } else {
+      const newItem = {
+        id: itemId,
+        content_id: itemId,
+        content_type: contentType as 'movie' | 'tv',
+        type: contentType,
+        title: item.title || item.name || '',
+        poster: item.poster_path,
+        poster_path: item.poster_path,
+        status: 'plan_to_watch',
+        added_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      const updated = [...saved, newItem]
+      setLocalStorage('watchLater', updated)
+      addItemToStore(newItem)
+    }
+  }, [addItemToStore, removeItemFromStore])
+
   const addToWatchLater = useCallback(async (item: ContentItem) => {
     const contentType = item.media_type || (item.title ? 'movie' : 'tv');
     const itemId = item.id;
@@ -380,32 +406,6 @@ function HomePageContent() {
       toggleLocalWatchlist(item, contentType, exists)
     }
   }, [isSignedIn, watchLater, addItemToStore, removeItemFromStore, rollbackWatchlistItem, toggleLocalWatchlist]);
-
-  const toggleLocalWatchlist = useCallback((item: ContentItem, contentType: string, wasInList: boolean) => {
-    const saved = getLocalStorage('watchLater', []);
-    const itemId = item.id;
-    if (wasInList) {
-      const updated = saved.filter((w: any) => w.id !== itemId && w.content_id !== itemId);
-      setLocalStorage('watchLater', updated);
-      removeItemFromStore(itemId)
-    } else {
-      const newItem = {
-        id: itemId,
-        content_id: itemId,
-        content_type: contentType as 'movie' | 'tv',
-        type: contentType,
-        title: item.title || item.name || '',
-        poster: item.poster_path,
-        poster_path: item.poster_path,
-        status: 'plan_to_watch',
-        added_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }
-      const updated = [...saved, newItem]
-      setLocalStorage('watchLater', updated)
-      addItemToStore(newItem)
-    }
-  }, [addItemToStore, removeItemFromStore])
 
   const isInWatchLater = useCallback((item: ContentItem) => {
     const itemId = item.id;

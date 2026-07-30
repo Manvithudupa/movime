@@ -666,7 +666,11 @@ export const getVideoUrl = (sourceId: string, contentId: string, type: 'movie' |
 };
 
 // Local storage helpers
-export const getLocalStorage = <T = any>(key: string, defaultValue: T | null = null): T | null => {
+// Overload: when a non-null default is provided, the return type excludes null
+export function getLocalStorage<T>(key: string, defaultValue: T): T;
+// Overload: when no default or null default is provided, return type includes null
+export function getLocalStorage<T = any>(key: string, defaultValue?: T | null): T | null;
+export function getLocalStorage<T = any>(key: string, defaultValue: T | null = null): T | null {
   if (typeof window === 'undefined') return defaultValue;
   
   try {
