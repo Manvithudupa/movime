@@ -120,15 +120,6 @@ export interface StreamingSource {
   };
 }
 
-export interface SportsMatch {
-  id: string;
-  title: string;
-  category: string;
-  time: string;
-  date: string;
-  url: string;
-}
-
 export interface ContentItem {
   id: number;
   title?: string;

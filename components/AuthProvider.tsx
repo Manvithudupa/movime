@@ -122,7 +122,6 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const supabaseRef = useRef(getSupabaseClient())
-  const hasHydratedRef = useRef(false)
 
   const fetchProfile = async (userId: string, skipCache = false) => {
     // Try cache first
@@ -163,12 +162,10 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     if (cachedUser) {
       // Restore user from cache so the UI shows signed-in state instantly
       setUser({ ...cachedUser, aud: '', app_metadata: {}, created_at: '', role: '', updated_at: '' } as User);
-      hasHydratedRef.current = true;
-      
+
       const cachedProfile = getCachedData<Profile>(`${CACHE_KEY_PROFILE}_${cachedUser.id}`);
       if (cachedProfile) {
         setProfile(cachedProfile);
-        setIsLoading(false);
       }
     }
 
@@ -192,10 +189,14 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         // Clear cached data
         removeCachedData(CACHE_KEY_USER);
       }
-      
-      if (!hasHydratedRef.current) {
-        setIsLoading(false);
-      }
+
+      // The session check is authoritative — always finish hydrating, even when
+      // a cached user existed but the cached profile was missing/expired.
+      setIsLoading(false);
+    }).catch(() => {
+      // Never leave the app stuck in a loading state, even if the session
+      // check itself fails (e.g. network error).
+      setIsLoading(false);
     })
 
     // 3. Listen for auth changes
@@ -220,9 +221,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         }
       }
       
-      if (!hasHydratedRef.current) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     })
 
     return () => subscription.unsubscribe()

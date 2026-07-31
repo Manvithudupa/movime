@@ -204,13 +204,6 @@ export default function Navbar({
 
           {/* Right side icons & user */}
           <div className="flex items-center space-x-2 sm:space-x-4">
-            {currentView === 'watch-sports' && (
-              <div className="flex items-center space-x-2 px-3 py-1 bg-white/10 backdrop-blur-sm rounded-sm">
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                <span className="text-white font-medium text-xs uppercase tracking-wide">LIVE</span>
-              </div>
-            )}
-            
             <div className="flex items-center space-x-1 sm:space-x-2">
               <Link
                 href="/search"

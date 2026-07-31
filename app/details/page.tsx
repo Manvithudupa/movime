@@ -26,7 +26,6 @@ function DetailsPageContent() {
   const [loading, setLoading] = useState(true);
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
   const [seasonData, setSeasonData] = useState<Season | null>(null);
-  const [selectedStatus] = useState<string>('plan_to_watch');
   const [showStatusPicker, setShowStatusPicker] = useState(false);
   const [isTrailerMuted, setIsTrailerMuted] = useState(true);
 
@@ -114,7 +113,6 @@ function DetailsPageContent() {
 
   const addToWatchLater = async (status?: string) => {
     if (!content) return;
-    const chosenStatus = status || selectedStatus;
     const itemId = content.id;
 
     if (isSignedIn) {
@@ -127,7 +125,10 @@ function DetailsPageContent() {
             content_type: contentType,
             title: 'title' in content ? content.title : content.name,
             poster_path: content.poster_path,
-            status: chosenStatus,
+            // Only send an explicit status when one was chosen. Without a status
+            // the API treats this as a toggle (add/remove) instead of updating,
+            // which is what "Remove from List" relies on.
+            status: status || undefined,
           }),
         });
         if (response.ok) {

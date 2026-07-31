@@ -72,16 +72,29 @@ export async function POST(request: NextRequest) {
       ? Math.min(Math.round((progress_seconds / duration_seconds) * 100), 100) 
       : 0
 
-    // Try to find existing record first (manual upsert pattern)
-    const { data: existing } = await supabase
+    // Try to find existing record first (manual upsert pattern).
+    // NOTE: PostgREST `.eq('col', null)` matches nothing — NULL season/episode
+    // (movies) must use `.is('col', null)` instead. Otherwise every POST would
+    // insert a duplicate row rather than updating the existing one.
+    let existingQuery = supabase
       .from('continue_watching')
       .select('id')
       .eq('user_id', user.id)
       .eq('content_id', numericContentId)
       .eq('content_type', content_type)
-      .eq('season_number', content_type === 'tv' ? (season_number || null) : null)
-      .eq('episode_number', content_type === 'tv' ? (episode_number || null) : null)
-      .maybeSingle()
+
+    if (content_type === 'tv') {
+      const seasonValue = season_number || null
+      const episodeValue = episode_number || null
+      if (seasonValue == null) existingQuery = existingQuery.is('season_number', null)
+      else existingQuery = existingQuery.eq('season_number', seasonValue)
+      if (episodeValue == null) existingQuery = existingQuery.is('episode_number', null)
+      else existingQuery = existingQuery.eq('episode_number', episodeValue)
+    } else {
+      existingQuery = existingQuery.is('season_number', null).is('episode_number', null)
+    }
+
+    const { data: existing } = await existingQuery.maybeSingle()
 
     let result;
     let error;

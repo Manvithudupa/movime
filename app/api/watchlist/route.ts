@@ -191,11 +191,15 @@ export async function PATCH(request: NextRequest) {
       .eq('content_id', numericContentId)
       .eq('content_type', content_type)
       .select()
-      .single()
+      .maybeSingle()
 
     if (error) {
       console.error('Watchlist status update error:', error)
       return NextResponse.json({ error: `Failed to update status: ${error.message}` }, { status: 500 })
+    }
+
+    if (!updated) {
+      return NextResponse.json({ error: 'Item not found in watchlist' }, { status: 404 })
     }
 
     return NextResponse.json({ item: updated, message: `Status updated to ${status}` })

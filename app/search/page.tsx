@@ -47,9 +47,12 @@ export default function SearchPage() {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const runtimeCache = useRef<Record<string, number>>({});
-  const lastBasicResults = useRef<string>(''); 
+  const lastBasicResults = useRef<string>('');
+  // Holds the most recent query so async work can avoid clobbering newer results
+  const queryRef = useRef('');
 
   const performSearch = useCallback(async (q: string) => {
+    queryRef.current = q;
     if (!q.trim()) { setResults([]); return; }
     setLoading(true);
     try {
@@ -110,23 +113,33 @@ export default function SearchPage() {
       if (!allowShort && base.length && lastBasicResults.current !== q) {
         lastBasicResults.current = q;
         (async () => {
-            for (const item of base.slice(0, 30)) {
-              const key = item.id.toString();
-              if (!(key in runtimeCache.current)) {
+          try {
+            // Fetch runtimes in parallel with a small concurrency cap to stay
+            // gentle on the TMDB API (was sequential — up to ~30s of blocking).
+            const toFetch = base.slice(0, 30).filter((item: any) => !(item.id.toString() in runtimeCache.current));
+            const CONCURRENCY = 6;
+            let index = 0;
+            const worker = async () => {
+              while (index < toFetch.length) {
+                const item = toFetch[index++];
                 try {
+                  const key = item.id.toString();
                   const type = item.media_type === 'tv' ? 'tv' : 'movie';
                   const details = await fetchContentDetails(key, type as any);
                   const dur = details?.runtime || (Array.isArray(details?.episode_run_time) ? details?.episode_run_time[0] : undefined);
                   if (dur) runtimeCache.current[key] = dur;
                 } catch {}
               }
-            }
-          const filteredRuntime = base.filter(it => {
-            const dur = runtimeCache.current[it.id];
-            if (!dur) return true;
-            return dur >= MIN_DURATION_MIN;
-          }).slice(0,40);
-          setResults(prev => q === query ? filteredRuntime as ContentItem[] : prev);
+            };
+            await Promise.allSettled(Array.from({ length: Math.min(CONCURRENCY, toFetch.length) }, () => worker()));
+            const filteredRuntime = base.filter(it => {
+              const dur = runtimeCache.current[it.id];
+              if (!dur) return true;
+              return dur >= MIN_DURATION_MIN;
+            }).slice(0,40);
+            // Only apply if the user hasn't typed a newer query in the meantime.
+            setResults(prev => queryRef.current === q ? filteredRuntime as ContentItem[] : prev);
+          } catch {}
         })();
       }
     } catch (e) {
@@ -168,8 +181,6 @@ export default function SearchPage() {
         onViewChange={(view) => {
           if (view === 'home') {
             router.push('/');
-          } else if (view === 'livesports') {
-            router.push('/livesports');
           } else {
             router.push(`/?view=${view}`);
           }

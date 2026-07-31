@@ -5,7 +5,14 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const type = searchParams.get('type')
-  const next = searchParams.get('next') ?? '/'
+  let next = searchParams.get('next') ?? '/'
+
+  // Only allow same-site relative redirects to prevent open-redirect abuse
+  // (e.g. next="//evil.com" or next="/\\evil.com").
+  next = next.replace(/\\/g, '/')
+  if (!next.startsWith('/') || next.startsWith('//')) {
+    next = '/'
+  }
 
   if (code) {
     const supabase = await createClient()
