@@ -132,6 +132,8 @@ export interface ContentItem {
   media_type?: 'movie' | 'tv';
   overview: string;
   genre_ids?: number[];
+  genres?: Genre[];
+  status?: string;
 }
 
 export interface WatchLaterItem {

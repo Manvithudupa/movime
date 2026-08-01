@@ -238,7 +238,19 @@ export default function BrowseContent({
       />
 
       {/* Anime Hero Banner - only on the anime page */}
-      {hasHero && <AnimeHero animeContent={items} />}
+      {hasHero && (
+        <AnimeHero
+          animeContent={items}
+          onAddToWatchLater={addToWatchLater}
+          isInWatchLater={isInWatchLater}
+          getWatchStatus={(item) => {
+            const found = watchLater.find(
+              (w: any) => w.id === item.id || w.content_id === item.id
+            );
+            return found?.status;
+          }}
+        />
+      )}
 
       {/* Main content */}
       <main className={mainClassName}>
