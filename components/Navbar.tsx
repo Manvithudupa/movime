@@ -10,6 +10,7 @@ import Avatar from '@/components/Avatar';
 
 import { useEffect } from 'react';
 import BottomNav from '@/components/BottomNav';
+import { VIEW_ROUTES } from '@/lib/routes';
 
 interface NavbarProps {
   currentView: string;
@@ -69,7 +70,20 @@ export default function Navbar({
   }
 
   const handleViewChange = (view: string) => {
-    onViewChange(view);
+    const route = VIEW_ROUTES[view];
+    if (route) {
+      if (pathname === route) {
+        // Already on that page — keep parent state in sync and scroll to top
+        onViewChange(view);
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      } else {
+        router.push(route);
+      }
+    } else {
+      onViewChange(view);
+    }
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -352,7 +366,7 @@ export default function Navbar({
                       <motion.button
                         key={item.view}
                         onClick={() => {
-                          onViewChange(item.view);
+                          handleViewChange(item.view);
                           setIsMobileMenuOpen(false);
                         }}
                         initial={{ opacity: 0, x: -20 }}

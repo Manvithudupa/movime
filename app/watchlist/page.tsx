@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { getViewPath } from '@/lib/routes'
 import Link from 'next/link'
 import Image from '@/components/ProxyImage'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -46,7 +47,7 @@ export default function WatchlistPage() {
 
   const handleSearchToggle = () => setShowSearch(!showSearch)
   const handleSearchChange = (query: string) => setSearchQuery(query)
-  const handleViewChange = (view: string) => router.push(`/?view=${view}`)
+  const handleViewChange = (view: string) => router.push(getViewPath(view))
 
   useEffect(() => {
     setLoading(true)

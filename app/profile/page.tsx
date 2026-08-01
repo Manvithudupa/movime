@@ -8,6 +8,7 @@ import { useAuth, type Profile, type AnimeCharacterData } from '@/components/Aut
 import AniListCharacterPicker from '@/components/AniListCharacterPicker'
 import Avatar from '@/components/Avatar'
 import Navbar from '@/components/Navbar'
+import { getViewPath } from '@/lib/routes'
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store'
 
 export default function ProfilePage() {
@@ -46,7 +47,7 @@ export default function ProfilePage() {
 
   const handleSearchChange = (query: string) => setSearchQuery(query)
 
-  const handleViewChange = (view: string) => router.push(`/?view=${view}`)
+  const handleViewChange = (view: string) => router.push(getViewPath(view))
 
   useEffect(() => {
     if (isSignedIn && authProfile) {

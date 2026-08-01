@@ -7,6 +7,7 @@ import { availableSources } from '@/lib/sources';
 import { getLocalStorage, setLocalStorage } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
+import { getViewPath } from '@/lib/routes';
 import { useWatchlistStore } from '@/lib/store';
 
 export default function SettingsPage() {
@@ -69,13 +70,8 @@ export default function SettingsPage() {
   };
 
   const handleViewChange = (view: string) => {
-    if (view === 'home') {
-      router.push('/');
-    } else if (view === 'settings') {
-      return;
-    } else {
-      router.push(`/?view=${view}`);
-    }
+    if (view === 'settings') return;
+    router.push(getViewPath(view));
   };
 
   const handleSearchToggle = () => {
@@ -85,7 +81,7 @@ export default function SettingsPage() {
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     if (query) {
-      router.push(`/?search=${encodeURIComponent(query)}`);
+      router.push(`/search?q=${encodeURIComponent(query)}`);
     }
   };
 

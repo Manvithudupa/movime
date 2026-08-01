@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getViewPath } from '@/lib/routes';
 import Navbar from '@/components/Navbar';
 import { useWatchlistStore } from '@/lib/store';
 
@@ -24,7 +25,7 @@ export default function PrivacyPolicy() {
   const router = useRouter();
 
   const handleViewChange = (view: string) => {
-    router.push(`/?view=${view}`);
+    router.push(getViewPath(view));
   };
 
   return (

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, useCallback, useMemo, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getViewPath } from '@/lib/routes';
 import Navbar from '@/components/Navbar';
 import SearchAutocomplete from '@/components/SearchAutocomplete';
 import Image from '@/components/ProxyImage';
@@ -36,8 +37,21 @@ const SkeletonCard = () => (
 );
 
 export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+      </div>
+    }>
+      <SearchPageContent />
+    </Suspense>
+  );
+}
+
+function SearchPageContent() {
   const router = useRouter();
-  const [query, setQuery] = useState('');
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get('q') || '');
   const [results, setResults] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(false);
   const watchLaterCount = useWatchlistStore((s) => s.count);
@@ -178,13 +192,7 @@ export default function SearchPage() {
         showSearch={true}
         searchQuery={query}
         watchLaterCount={watchLaterCount}
-        onViewChange={(view) => {
-          if (view === 'home') {
-            router.push('/');
-          } else {
-            router.push(`/?view=${view}`);
-          }
-        }}
+        onViewChange={(view) => router.push(getViewPath(view))}
         onSearchToggle={() => {}}
         onSearchChange={setQuery}
       />

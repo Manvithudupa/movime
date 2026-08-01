@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { getViewPath } from '@/lib/routes';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -188,7 +189,7 @@ function WatchPageContent() {
         showSearch={showSearch}
         searchQuery={searchQuery}
         watchLaterCount={watchLaterCount}
-        onViewChange={(view) => router.push(view === 'home' ? '/' : `/?view=${view}`)}
+        onViewChange={(view) => router.push(getViewPath(view))}
         onSearchToggle={() => setShowSearch(!showSearch)}
         onSearchChange={(q) => setSearchQuery(q)}
       />

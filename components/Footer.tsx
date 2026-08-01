@@ -53,6 +53,9 @@ export default function Footer() {
             <ul className="space-y-1.5 sm:space-y-2">
               {[
                 { href: "/", label: "Home" },
+                { href: "/movies", label: "Movies" },
+                { href: "/tv", label: "TV Shows" },
+                { href: "/anime", label: "Anime" },
                 { href: "/about", label: "About" },
                 { href: "/settings", label: "Settings" }
               ].map((link, index) => (

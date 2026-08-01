@@ -50,13 +50,33 @@ function BottomNavInner() {
     },
     {
       label: 'Movies',
-      href: '/?view=movies',
+      href: '/movies',
       icon: (active: boolean) => (
         <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 0 : 1.5} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
         </svg>
       ),
-      isActive: pathname === '/' && currentView === 'movies',
+      isActive: pathname === '/movies',
+    },
+    {
+      label: 'TV Shows',
+      href: '/tv',
+      icon: (active: boolean) => (
+        <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 0 : 1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      ),
+      isActive: pathname === '/tv',
+    },
+    {
+      label: 'Anime',
+      href: '/anime',
+      icon: (active: boolean) => (
+        <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 0 : 1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      isActive: pathname === '/anime',
     },
     {
       label: 'My List',
@@ -106,7 +126,7 @@ function BottomNavInner() {
     >
       {/* Safe area spacer for modern phones */}
       <div className="bg-black/90 backdrop-blur-xl border-t border-white/10">
-        <div className="flex items-center justify-around px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
+        <div className="flex items-center justify-around px-1 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
           {navItems.map((item) => {
             const active = item.isActive
             return (
@@ -114,9 +134,9 @@ function BottomNavInner() {
                 key={item.label}
                 href={item.href}
                 onClick={item.onClick}
-                className="relative flex flex-col items-center gap-0.5 min-w-0 px-2 py-1 rounded-xl transition-all duration-150 group"
+                className="relative flex flex-col items-center gap-0.5 min-w-0 px-1 py-1 rounded-xl transition-all duration-150 group"
               >
-                <div className={`relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 ${
+                <div className={`relative flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200 ${
                   active
                     ? 'text-white'
                     : 'text-white/50 group-hover:text-white/80'

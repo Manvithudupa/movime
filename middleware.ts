@@ -1,7 +1,24 @@
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
+// Legacy ?view= params that now have their own dedicated pages
+const VIEW_REDIRECTS: Record<string, string> = {
+  movies: '/movies',
+  tv: '/tv',
+  anime: '/anime',
+}
+
 export async function middleware(request: NextRequest) {
+  // Redirect legacy URLs like /?view=movies to the dedicated pages
+  const view = request.nextUrl.searchParams.get('view')
+  const redirectPath = view ? VIEW_REDIRECTS[view] : null
+  if (redirectPath) {
+    const url = request.nextUrl.clone()
+    url.pathname = redirectPath
+    url.searchParams.delete('view')
+    return NextResponse.redirect(url)
+  }
+
   return await updateSession(request)
 }
 
