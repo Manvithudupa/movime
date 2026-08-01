@@ -212,8 +212,8 @@ export default function PrivacyPolicy() {
               </p>
               <div className="bg-white/[0.03] border border-white/10 rounded-lg p-6">
                 <ul className="text-gray-300 space-y-2">
-                  <li><strong>Email:</strong> mdtahseen2901@gmail.com</li>
-                  <li><strong>GitHub:</strong> <a href="https://github.com/mdtahseen7" className="text-white hover:text-gray-300">@mdtahseen7</a></li>
+                  <li><strong>Email:</strong> manvithudupa073@gmail.com</li>
+                  <li><strong>GitHub:</strong> <a href="https://github.com/Manvith911" className="text-white hover:text-gray-300">@Manvith911</a></li>
                   <li><strong>Response Time:</strong> We aim to respond within 48 hours</li>
                 </ul>
               </div>

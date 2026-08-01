@@ -458,7 +458,7 @@ function HomePageContent() {
           onAddToWatchLater={addToWatchLater}
           isInWatchLater={isInWatchLater}
           getWatchStatus={(item) => {
-            const found = watchLater.find((w: any) => w.id === item.id);
+            const found = watchLater.find((w: any) => w.id === item.id || w.content_id === item.id);
             return found?.status;
           }}
         />

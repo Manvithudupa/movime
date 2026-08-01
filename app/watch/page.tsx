@@ -17,12 +17,14 @@ import { availableSources } from '@/lib/sources';
 import type { Movie, TVShow, Season } from '@/lib/types';
 import Navbar from '@/components/Navbar';
 import ShareButton from '@/components/ShareButton';
+import { useAuth } from '@/components/AuthProvider';
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
 import Footer from '@/components/Footer';
 
 function WatchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { isSignedIn } = useAuth();
   const [content, setContent] = useState<Movie | TVShow | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentSource, setCurrentSource] = useState(availableSources[0]);
@@ -58,9 +60,9 @@ function WatchPageContent() {
   }, [content, selectedSeason]);
 
   useEffect(() => {
-    fetchWatchlist(false);
+    fetchWatchlist(!!isSignedIn);
     fetchContinueWatching();
-  }, [fetchWatchlist, fetchContinueWatching]);
+  }, [isSignedIn, fetchWatchlist, fetchContinueWatching]);
 
   const loadContent = async () => {
     if (!contentId || !contentType) return;
