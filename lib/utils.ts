@@ -460,6 +460,22 @@ export const fetchContentDetails = async (id: string, type: 'movie' | 'tv') => {
   });
 };
 
+export const fetchVideos = async (id: string, type: 'movie' | 'tv') => {
+  const cacheKey = serializeCacheKey(['fetchVideos', id, type]);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const response = await fetch(
+        `${TMDB_BASE_URL}/${type}/${id}/videos?api_key=${TMDB_API_KEY}&language=en-US`
+      );
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching videos:', error);
+      return { results: [] };
+    }
+  });
+};
+
 export const fetchGenres = async (type: 'movie' | 'tv') => {
   const cacheKey = serializeCacheKey(['fetchGenres', type]);
 
@@ -485,10 +501,10 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
       
       console.log(`[Season Details] Fetching season ${seasonNumber} for content ID: ${id}`);
       
-      const showResponse = await fetch(
-        `${TMDB_BASE_URL}/tv/${id}?api_key=${TMDB_API_KEY}&append_to_response=keywords`
-      );
-      const showData = await showResponse.json();
+      // Reuse the cached content-details payload (already includes keywords) so we
+      // don't issue a second raw TMDB request per season change.
+      const showData = await fetchContentDetails(id, 'tv');
+      if (!showData) return { episodes: [] };
       
       console.log(`[Season Details] Show data:`, {
         name: showData.name,

@@ -12,7 +12,7 @@ import {
   filterAdultContent,
   blockedMovieIds
 } from '@/lib/utils';
-import type { Movie, TVShow, Season, Episode, Video } from '@/lib/types';
+import type { Movie, TVShow, Season, Episode, Video, CastMember } from '@/lib/types';
 import { useAuth } from '@/components/AuthProvider';
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
 import Navbar from '@/components/Navbar';
@@ -96,7 +96,7 @@ function DetailsPageContent() {
     if (contentId && contentType) {
       loadContent();
       fetchWatchlist(!!isSignedIn);
-      fetchContinueWatching();
+      fetchContinueWatching(!!isSignedIn);
     }
   }, [contentId, contentType, loadContent, fetchWatchlist, isSignedIn, fetchContinueWatching]);
 
@@ -283,6 +283,25 @@ function DetailsPageContent() {
     return unique.slice(0, 15);
   };
 
+  const getCast = () => {
+    if (!content?.credits?.cast || !Array.isArray(content.credits.cast)) {
+      return [] as CastMember[];
+    }
+    // Sort by billing order explicitly, then dedupe by id and cap at 15
+    const seen = new Set<number>();
+    const unique: CastMember[] = [];
+    for (const member of content.credits.cast
+      .filter((m): m is CastMember => Boolean(m?.id))
+      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))) {
+      if (seen.has(member.id)) continue;
+      seen.add(member.id);
+      unique.push(member);
+      if (unique.length >= 15) break;
+    }
+    return unique;
+  };
+
+  const cast = getCast();
   const recommendations = getRecommendations();
 
   if (loading) {
@@ -593,6 +612,86 @@ function DetailsPageContent() {
           </div>
         </div>
       </div>
+
+      {/* Top Billed Cast Section */}
+      {cast.length > 0 && (
+        <div className="py-8 sm:py-10 md:py-12 bg-black/50 border-t border-white/5">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="mb-6 sm:mb-8">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-wide text-white">Top Billed Cast</h2>
+              <span className="text-[10px] sm:text-xs uppercase tracking-widest text-gray-400">Starring in {getTitle()}</span>
+            </div>
+            <div className="episodes-slider group relative">
+              <div className="overflow-x-auto scrollbar-hide">
+                <div className="flex space-x-4 sm:space-x-6 pb-3 sm:pb-4" style={{ width: 'max-content' }}>
+                  {cast.map((member) => {
+                    const profileSrc = member.profile_path
+                      ? `${TMDB_IMAGE_BASE_URL.replace('w500', 'w185')}${member.profile_path}`
+                      : null;
+                    return (
+                      <div
+                        key={member.id}
+                        className="group/cast flex-shrink-0 w-36 sm:w-40 rounded-xl overflow-hidden bg-white/[0.03] border border-white/10 hover:border-white/30 transition-all hover:shadow-[0_4px_18px_-4px_rgba(255,255,255,0.18)]"
+                      >
+                        <div className="relative aspect-[2/3] bg-white/5">
+                          {profileSrc ? (
+                            <Image
+                              src={profileSrc}
+                              alt={member.name}
+                              fill
+                              className="object-cover group-hover/cast:scale-105 transition-transform duration-500"
+                              sizes="160px"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center text-xl font-bold text-gray-300">
+                                {member.name.charAt(0).toUpperCase() || '?'}
+                              </div>
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-0 group-hover/cast:opacity-100 transition-opacity" />
+                        </div>
+                        <div className="p-2.5 sm:p-3 space-y-0.5">
+                          <h3 className="text-xs sm:text-sm font-semibold leading-snug line-clamp-1 group-hover/cast:text-white transition-colors">
+                            {member.name}
+                          </h3>
+                          <p className="text-[10px] sm:text-[11px] text-gray-400 line-clamp-2 leading-snug">
+                            {member.character || member.known_for_department || '—'}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="absolute top-1/2 -left-4 transform -translate-y-1/2 scroll-button">
+                <button
+                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                    e.preventDefault();
+                    const container = e.currentTarget.parentElement?.parentElement?.querySelector('.overflow-x-auto');
+                    container?.scrollBy({ left: -400, behavior: 'smooth' });
+                  }}
+                  className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                </button>
+              </div>
+              <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 scroll-button">
+                <button
+                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                    e.preventDefault();
+                    const container = e.currentTarget.parentElement?.parentElement?.querySelector('.overflow-x-auto');
+                    container?.scrollBy({ left: 400, behavior: 'smooth' });
+                  }}
+                  className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Episodes Section */}
   {contentType === 'tv' && content && 'number_of_seasons' in content && (

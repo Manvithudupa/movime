@@ -10,7 +10,6 @@ import {
   fetchContentDetails, 
   fetchSeasonDetails, 
   getVideoUrl, 
-  TMDB_API_KEY,
   TMDB_IMAGE_BASE_URL
 } from '@/lib/utils';
 import { availableSources } from '@/lib/sources';
@@ -61,7 +60,7 @@ function WatchPageContent() {
 
   useEffect(() => {
     fetchWatchlist(!!isSignedIn);
-    fetchContinueWatching();
+    fetchContinueWatching(!!isSignedIn);
   }, [isSignedIn, fetchWatchlist, fetchContinueWatching]);
 
   const loadContent = async () => {
@@ -71,11 +70,9 @@ function WatchPageContent() {
       const data = await fetchContentDetails(contentId, contentType);
       setContent(data);
 
-      const rec = await fetch(
-        `https://api.themoviedb.org/3/${contentType}/${contentId}/recommendations?api_key=${TMDB_API_KEY}`
-      );
-      const recData = await rec.json();
-      setRecommendations(recData.results || []);
+      // Recommendations come from the cached details payload (append_to_response=similar)
+      // instead of a separate uncached TMDB /recommendations request.
+      setRecommendations(data?.similar?.results || []);
 
       if (contentType === 'tv' && data?.seasons) {
         let targetSeason: number | undefined = undefined;
@@ -316,6 +313,7 @@ function WatchPageContent() {
         contentTitle={contentTitle}
         selectedSeason={selectedSeason}
         selectedEpisode={selectedEpisode}
+        isSignedIn={isSignedIn}
         upsertContinueWatching={upsertContinueWatching}
       />
 
@@ -445,6 +443,7 @@ function SaveProgress({
   contentTitle, 
   selectedSeason, 
   selectedEpisode, 
+  isSignedIn, 
   upsertContinueWatching 
 }: { 
   contentId: string; 
@@ -453,7 +452,8 @@ function SaveProgress({
   contentTitle: string; 
   selectedSeason: number; 
   selectedEpisode: number; 
-  upsertContinueWatching: (item: Record<string, any>) => Promise<void>; 
+  isSignedIn: boolean; 
+  upsertContinueWatching: (item: Record<string, any>, isSignedIn: boolean) => Promise<void>; 
 }) {
   useEffect(() => {
     if (!contentId || !content) return;
@@ -487,9 +487,9 @@ function SaveProgress({
       }
     }
     
-    upsertContinueWatching(watchData);
+    upsertContinueWatching(watchData, isSignedIn);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contentId, contentType, selectedSeason, selectedEpisode, content, contentTitle, upsertContinueWatching]);
+  }, [contentId, contentType, selectedSeason, selectedEpisode, content, contentTitle, isSignedIn, upsertContinueWatching]);
   
   return null;
 }

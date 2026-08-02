@@ -91,7 +91,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (isSignedIn) {
       fetchWatchlist(true)
-      fetchContinueWatching()
+      fetchContinueWatching(true)
     }
   }, [isSignedIn, fetchWatchlist, fetchContinueWatching])
 

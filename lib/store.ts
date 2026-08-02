@@ -154,9 +154,9 @@ interface ContinueWatchingStore {
   count: number
   lastFetched: number
   isLoading: boolean
-  fetch: () => Promise<void>
-  upsert: (item: Partial<ContinueWatchingItem>) => Promise<void>
-  remove: (contentId: number, contentType: string, seasonNumber?: number, episodeNumber?: number) => Promise<void>
+  fetch: (isSignedIn: boolean) => Promise<void>
+  upsert: (item: Partial<ContinueWatchingItem>, isSignedIn: boolean) => Promise<void>
+  remove: (contentId: number, contentType: string, isSignedIn: boolean, seasonNumber?: number, episodeNumber?: number) => Promise<void>
   clear: () => void
 }
 
@@ -166,7 +166,7 @@ export const useContinueWatchingStore = create<ContinueWatchingStore>((set, get)
   lastFetched: 0,
   isLoading: false,
 
-  fetch: async () => {
+  fetch: async (isSignedIn: boolean) => {
     const state = get()
     const now = Date.now()
 
@@ -179,12 +179,14 @@ export const useContinueWatchingStore = create<ContinueWatchingStore>((set, get)
     set({ isLoading: true })
 
     try {
-      const response = await fetch('/api/continue-watching')
-      if (response.ok) {
-        const data = await response.json()
-        const items = Array.isArray(data) ? data : []
-        set({ items, count: items.length, lastFetched: Date.now(), isLoading: false })
-        return
+      if (isSignedIn) {
+        const response = await fetch('/api/continue-watching')
+        if (response.ok) {
+          const data = await response.json()
+          const items = Array.isArray(data) ? data : []
+          set({ items, count: items.length, lastFetched: Date.now(), isLoading: false })
+          return
+        }
       }
       
       // Try localStorage fallback
@@ -197,7 +199,7 @@ export const useContinueWatchingStore = create<ContinueWatchingStore>((set, get)
     }
   },
 
-  upsert: async (item) => {
+  upsert: async (item, isSignedIn) => {
     // Optimistic update
     const currentItems = get().items
     const existingIndex = currentItems.findIndex(
@@ -239,7 +241,8 @@ export const useContinueWatchingStore = create<ContinueWatchingStore>((set, get)
     // Save to localStorage as fallback
     setLocalStorage('continueWatching', updatedItems)
 
-    // Try to sync with server
+    // Try to sync with server (skip for guests — localStorage is their store)
+    if (!isSignedIn) return
     try {
       const response = await fetch('/api/continue-watching', {
         method: 'POST',
@@ -259,6 +262,8 @@ export const useContinueWatchingStore = create<ContinueWatchingStore>((set, get)
               : i
           )
           set({ items: syncedItems })
+          // Keep localStorage mirror in sync with the server response
+          setLocalStorage('continueWatching', syncedItems)
         }
       }
     } catch (error) {
@@ -267,16 +272,20 @@ export const useContinueWatchingStore = create<ContinueWatchingStore>((set, get)
     }
   },
 
-  remove: async (contentId, contentType, seasonNumber, episodeNumber) => {
-    set((state) => {
-      const newItems = state.items.filter(i => 
-        !(i.content_id === contentId && 
-          i.content_type === contentType &&
-          (seasonNumber === undefined || i.season_number === seasonNumber) &&
-          (episodeNumber === undefined || i.episode_number === episodeNumber))
-      )
-      return { items: newItems, count: newItems.length }
-    })
+  remove: async (contentId, contentType, isSignedIn, seasonNumber, episodeNumber) => {
+    const newItems = get().items.filter(i => 
+      !(i.content_id === contentId && 
+        i.content_type === contentType &&
+        (seasonNumber === undefined || i.season_number === seasonNumber) &&
+        (episodeNumber === undefined || i.episode_number === episodeNumber))
+    )
+    set({ items: newItems, count: newItems.length })
+    // Persist to localStorage too — otherwise guests (who skip the server
+    // DELETE below) would see dismissed items reappear after a page reload.
+    setLocalStorage('continueWatching', newItems)
+
+    // Skip server sync for guests — localStorage is their store
+    if (!isSignedIn) return
 
     const params = new URLSearchParams({ content_id: String(contentId), content_type: contentType })
     if (seasonNumber !== undefined) params.set('season_number', String(seasonNumber))

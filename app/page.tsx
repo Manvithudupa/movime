@@ -65,7 +65,7 @@ function HomePageContent() {
   useEffect(() => {
     loadContent();
     fetchWatchlist(!!isSignedIn);
-    fetchContinueWatching();
+    fetchContinueWatching(!!isSignedIn);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn, fetchWatchlist, fetchContinueWatching]);
 
@@ -536,6 +536,7 @@ function HomePageContent() {
                           removeContinueWatching(
                             item.content_id, 
                             item.content_type, 
+                            !!isSignedIn,
                             item.season_number ?? undefined, 
                             item.episode_number ?? undefined
                           );

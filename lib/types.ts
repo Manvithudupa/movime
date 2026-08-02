@@ -1,3 +1,20 @@
+export interface CastMember {
+  id: number;
+  name: string;
+  original_name?: string;
+  character?: string;
+  profile_path: string | null;
+  order?: number;
+  known_for_department?: string;
+  popularity?: number;
+  gender?: number;
+}
+
+export interface Credits {
+  cast: CastMember[];
+  crew?: CastMember[];
+}
+
 export interface Movie {
   id: number;
   title: string;
@@ -10,6 +27,7 @@ export interface Movie {
   runtime: number;
   genres: Genre[];
   imdb_id: string;
+  credits?: Credits;
   videos: {
     results: Video[];
   };
@@ -36,6 +54,7 @@ export interface TVShow {
   number_of_episodes: number;
   genres: Genre[];
   seasons: Season[];
+  credits?: Credits;
   videos: {
     results: Video[];
   };

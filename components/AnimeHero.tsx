@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TMDB_API_KEY } from '@/lib/utils';
+import { fetchVideos } from '@/lib/utils';
 import type { ContentItem } from '@/lib/types';
 
 interface AnimeHeroProps {
@@ -90,10 +90,8 @@ export default function AnimeHero({
     }
     let cancelled = false;
     setTrailerKey(null);
-    fetch(
-      `https://api.themoviedb.org/3/tv/${anime.id}/videos?api_key=${TMDB_API_KEY}&language=en-US`
-    )
-      .then((r) => r.json())
+    // Cached request (memory + localStorage, 10-min TTL) — no raw TMDB call
+    fetchVideos(String(anime.id), 'tv')
       .then((data) => {
         if (cancelled || indexRef.current !== currentIndex) return;
         const vids = data.results || [];
