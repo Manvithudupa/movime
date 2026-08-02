@@ -23,12 +23,25 @@ CREATE TABLE IF NOT EXISTS public.continue_watching (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- For movies: unique on (user_id, content_id, content_type)
--- For TV: unique on (user_id, content_id, content_type, season_number, episode_number)
+-- One continue-watching entry per show/movie: unique on (user_id, content_id, content_type).
+-- When a user starts a different episode of the same series, the existing row is
+-- updated with the new season/episode instead of creating a duplicate entry.
 
--- Unique index to prevent duplicates (handles NULL season/episode for movies)
+-- Drop the old per-episode unique index (created by the previous schema).
+DROP INDEX IF EXISTS idx_continue_watching_unique;
+
+-- Dedupe rows created by the old per-episode behavior, keeping only the most
+-- recently updated row per show/movie (the old index allowed one row per episode).
+DELETE FROM public.continue_watching a
+USING public.continue_watching b
+WHERE a.user_id = b.user_id
+  AND a.content_id = b.content_id
+  AND a.content_type = b.content_type
+  AND a.updated_at < b.updated_at;
+
+-- Enforce one row per show/movie (handles NULL season/episode for movies)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_continue_watching_unique
-  ON public.continue_watching(user_id, content_id, content_type, COALESCE(season_number, -1), COALESCE(episode_number, -1));
+  ON public.continue_watching(user_id, content_id, content_type);
 
 -- 2. Enable Row Level Security
 ALTER TABLE public.continue_watching ENABLE ROW LEVEL SECURITY;

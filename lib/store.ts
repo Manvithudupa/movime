@@ -200,19 +200,29 @@ export const useContinueWatchingStore = create<ContinueWatchingStore>((set, get)
   },
 
   upsert: async (item, isSignedIn) => {
-    // Optimistic update
+    // Optimistic update — one entry per show/movie. Match by content id + type
+    // only so switching to another episode updates the same continue-watching
+    // card instead of creating a new one.
     const currentItems = get().items
     const existingIndex = currentItems.findIndex(
       i => i.content_id === item.content_id && 
-           i.content_type === item.content_type &&
-           i.season_number === (item.season_number || null) &&
-           i.episode_number === (item.episode_number || null)
+           i.content_type === item.content_type
     )
 
     let updatedItems: ContinueWatchingItem[]
     if (existingIndex >= 0) {
-      updatedItems = [...currentItems]
-      updatedItems[existingIndex] = { ...updatedItems[existingIndex], ...item, updated_at: new Date().toISOString() } as ContinueWatchingItem
+      // Update the existing entry and drop any other stale entries for the same
+      // show/movie (legacy duplicates from the old per-episode behavior). The
+      // sort below re-orders by recency anyway, so position doesn't matter.
+      const existingItem = currentItems[existingIndex]
+      updatedItems = currentItems.filter(
+        (i) => !(i.content_id === item.content_id && i.content_type === item.content_type)
+      )
+      updatedItems.unshift({
+        ...existingItem,
+        ...item,
+        updated_at: new Date().toISOString(),
+      } as ContinueWatchingItem)
     } else {
       const newItem: ContinueWatchingItem = {
         id: `local-${Date.now()}`,
@@ -252,12 +262,10 @@ export const useContinueWatchingStore = create<ContinueWatchingStore>((set, get)
       if (response.ok) {
         const result = await response.json()
         if (result.item) {
-          // Replace optimistic entry with server response — match by season/episode too for TV shows
+          // Replace optimistic entry with server response — one entry per show/movie
           const syncedItems = get().items.map(i => 
             i.content_id === result.item.content_id && 
-            i.content_type === result.item.content_type &&
-            i.season_number === (result.item.season_number || null) &&
-            i.episode_number === (result.item.episode_number || null)
+            i.content_type === result.item.content_type
               ? { ...result.item, id: result.item.id }
               : i
           )

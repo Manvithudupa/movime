@@ -73,40 +73,48 @@ export async function POST(request: NextRequest) {
       : 0
 
     // Try to find existing record first (manual upsert pattern).
-    // NOTE: PostgREST `.eq('col', null)` matches nothing — NULL season/episode
-    // (movies) must use `.is('col', null)` instead. Otherwise every POST would
-    // insert a duplicate row rather than updating the existing one.
-    let existingQuery = supabase
+    // There is ONE continue-watching entry per show/movie, so match on
+    // (user_id, content_id, content_type) only — NOT season/episode. When the
+    // user starts a different episode of the same series, the existing row is
+    // updated with the new season/episode instead of creating a new entry.
+    // `.order(...).limit(1)` picks the most recent row in case old duplicate
+    // rows (one per episode) still exist in the database.
+    const { data: existingRows } = await supabase
       .from('continue_watching')
       .select('id')
       .eq('user_id', user.id)
       .eq('content_id', numericContentId)
       .eq('content_type', content_type)
+      .order('updated_at', { ascending: false })
+      .limit(1)
 
-    if (content_type === 'tv') {
-      const seasonValue = season_number || null
-      const episodeValue = episode_number || null
-      if (seasonValue == null) existingQuery = existingQuery.is('season_number', null)
-      else existingQuery = existingQuery.eq('season_number', seasonValue)
-      if (episodeValue == null) existingQuery = existingQuery.is('episode_number', null)
-      else existingQuery = existingQuery.eq('episode_number', episodeValue)
-    } else {
-      existingQuery = existingQuery.is('season_number', null).is('episode_number', null)
-    }
-
-    const { data: existing } = await existingQuery.maybeSingle()
+    const existing = existingRows?.[0]
 
     let result;
     let error;
 
     if (existing) {
-      // Update existing record
+      // Best-effort cleanup: remove any other stale rows for the same show/movie
+      // (legacy duplicates from the old per-episode behavior) so updating the
+      // most recent row can never collide with them.
+      await supabase
+        .from('continue_watching')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('content_id', numericContentId)
+        .eq('content_type', content_type)
+        .neq('id', existing.id)
+
+      // Update existing record (season/episode included so the entry always
+      // reflects the episode currently being watched)
       const { data, error: updateError } = await supabase
         .from('continue_watching')
         .update({
           title,
           poster_path: poster_path || null,
           backdrop_path: backdrop_path || null,
+          season_number: content_type === 'tv' ? (season_number || null) : null,
+          episode_number: content_type === 'tv' ? (episode_number || null) : null,
           episode_title: content_type === 'tv' ? (episode_title || null) : null,
           progress_seconds: progress_seconds || 0,
           duration_seconds: duration_seconds || 0,
