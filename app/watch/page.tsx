@@ -359,20 +359,117 @@ function WatchPageContent() {
         {contentType === 'tv' && seasonData?.episodes && seasonData.episodes.length > 0 && (
           <div>
             <h2 className="text-lg font-semibold mb-3">Episodes - Season {selectedSeason}</h2>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {seasonData.episodes.map((ep: any) => (
+            <div className="episodes-slider group relative">
+              <div className="overflow-x-auto scrollbar-hide">
+                <div className="flex gap-4 pb-4" style={{ width: 'max-content' }}>
+                  {seasonData.episodes.map((ep: any) => {
+                    const isActive = selectedEpisode === ep.episode_number;
+                    return (
+                      <div
+                        key={ep.episode_number}
+                        onClick={() => setSelectedEpisode(ep.episode_number)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setSelectedEpisode(ep.episode_number);
+                          }
+                        }}
+                        className={`group/card flex-shrink-0 w-56 sm:w-64 rounded-xl overflow-hidden text-left cursor-pointer border transition-all duration-300 focus-visible:outline-none focus-visible:border-white focus-visible:ring-2 focus-visible:ring-white/40 ${
+                          isActive
+                            ? 'border-white bg-white/10'
+                            : 'border-white/10 bg-white/[0.03] hover:border-white/30 hover:bg-white/[0.06]'
+                        }`}
+                      >
+                        <div className="relative aspect-video bg-black">
+                          {ep.still_path ? (
+                            <Image
+                              src={`${TMDB_IMAGE_BASE_URL}${ep.still_path}`}
+                              alt={ep.name || `Episode ${ep.episode_number}`}
+                              fill
+                              className="object-cover group-hover/card:scale-105 transition-transform duration-300"
+                              sizes="256px"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full text-gray-500">
+                              <svg className="w-8 sm:w-10 h-8 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                          )}
+
+                          {isActive && (
+                            <div className="absolute top-2 left-2 z-10 bg-white text-black text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                              Now Playing
+                            </div>
+                          )}
+                          <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm rounded-lg px-2 py-1 text-xs font-semibold">
+                            E{ep.episode_number}
+                          </div>
+
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                            <div className="bg-white rounded-full p-2.5 transform scale-75 group-hover/card:scale-100 transition-transform duration-300">
+                              <svg className="w-6 h-6 text-black ml-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M8 5v10l7-5z" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-3">
+                          <h3 className="font-semibold text-sm line-clamp-1">
+                            {ep.name || `Episode ${ep.episode_number}`}
+                          </h3>
+                          <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
+                            {ep.air_date && (
+                              <span>{new Date(ep.air_date).getFullYear()}</span>
+                            )}
+                            {ep.runtime && (
+                              <span>{ep.runtime} min</span>
+                            )}
+                            {ep.vote_average > 0 && (
+                              <span>★ {ep.vote_average.toFixed(1)}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="absolute top-1/2 -left-4 transform -translate-y-1/2 scroll-button">
                 <button
-                  key={ep.episode_number}
-                  onClick={() => setSelectedEpisode(ep.episode_number)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    selectedEpisode === ep.episode_number
-                      ? 'bg-white text-black'
-                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                  }`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const container = e.currentTarget.parentElement?.parentElement?.querySelector('.overflow-x-auto');
+                    container?.scrollBy({ left: -400, behavior: 'smooth' });
+                  }}
+                  aria-label="Previous episodes"
+                  className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
                 >
-                  {ep.episode_number}
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </button>
-              ))}
+              </div>
+
+              <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 scroll-button">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const container = e.currentTarget.parentElement?.parentElement?.querySelector('.overflow-x-auto');
+                    container?.scrollBy({ left: 400, behavior: 'smooth' });
+                  }}
+                  aria-label="Next episodes"
+                  className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
             </div>
             {seasonData.season_number > 0 && (
               <div className="flex flex-wrap gap-2">
