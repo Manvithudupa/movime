@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import { useWatchlistStore } from '@/lib/store'
+import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store'
 
 interface AnimeCharacterData {
   id: number
@@ -232,8 +232,9 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     setUser(null)
     setProfile(null)
     removeCachedData(CACHE_KEY_USER)
-    // Clear watchlist store
+    // Clear watchlist and continue watching stores
     useWatchlistStore.getState().clear()
+    useContinueWatchingStore.getState().clear()
     // Clear all cached profiles
     if (typeof window !== 'undefined') {
       const keys = Object.keys(window.localStorage);

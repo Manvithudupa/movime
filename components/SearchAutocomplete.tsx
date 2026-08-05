@@ -180,10 +180,18 @@ export default function SearchAutocomplete({
                       </button>
                     </div>
                     {recentSearches.slice(0, 5).map((term) => (
-                      <button
+                      <div
                         key={`recent-${term}`}
+                        role="button"
+                        tabIndex={0}
                         onClick={() => handleSelect(term)}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors rounded-xl text-gray-300 hover:bg-white/5 hover:text-white group"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleSelect(term);
+                          }
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors rounded-xl text-gray-300 hover:bg-white/5 hover:text-white group cursor-pointer"
                       >
                         <svg className="w-4 h-4 flex-shrink-0 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -198,7 +206,7 @@ export default function SearchAutocomplete({
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 )}

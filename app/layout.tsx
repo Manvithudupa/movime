@@ -9,6 +9,7 @@ import Script from 'next/script'
 import AnnouncementPopup from '@/components/AnnouncementPopup'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://movime.vercel.app'),
   title: 'Movime',
   description:
     'Click, watch, enjoy. Movime breaks down the paywall, ensuring that quality content is accessible to everyone.',

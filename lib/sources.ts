@@ -83,7 +83,7 @@ export const availableSources = [
         playerType: 'embed',
         urls: {
             movie: 'https://www.2embed.cc/embed/{id}',
-            tv: 'https://www.2embed.cc/embedtv/{id}&s={season}&e={episode}'
+            tv: 'https://www.2embed.cc/embedtv/{id}?s={season}&e={episode}'
         }
     },
     {

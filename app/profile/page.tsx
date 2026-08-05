@@ -12,7 +12,7 @@ import { getViewPath } from '@/lib/routes'
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store'
 
 export default function ProfilePage() {
-  const { profile: authProfile, isLoading: authLoading, isSignedIn, refreshProfile } = useAuth()
+  const { user: authUser, profile: authProfile, isLoading: authLoading, isSignedIn, refreshProfile, signOut } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -33,6 +33,11 @@ export default function ProfilePage() {
   const fetchContinueWatching = useContinueWatchingStore((s) => s.fetch)
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!authLoading && !isSignedIn) {
@@ -177,6 +182,49 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error('Failed to remove character:', error)
+    }
+  }
+
+  // Accounts created with email/password must re-enter their password before
+  // deletion. OAuth-only accounts (e.g. Google) have no password to verify.
+  const hasPassword = !!authUser?.identities?.some((i) => i.provider === 'email')
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false)
+    setDeleteConfirmText('')
+    setDeletePassword('')
+    setDeleteError(null)
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      const response = await fetch('/api/user/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: hasPassword ? deletePassword : undefined }),
+      })
+      if (response.ok) {
+        // Best-effort sign out — the session is already invalid after the account
+        // was deleted, so never block the redirect on it.
+        try {
+          await signOut()
+        } catch (signOutError) {
+          console.error('Sign out after account deletion failed:', signOutError)
+        }
+        router.push('/')
+        router.refresh()
+        return
+      } else {
+        const err = await response.json().catch(() => ({}))
+        setDeleteError(err.error || 'Failed to delete account. Please try again.')
+        setDeleting(false)
+      }
+    } catch (error) {
+      console.error('Failed to delete account:', error)
+      setDeleteError('Network error. Please try again.')
+      setDeleting(false)
     }
   }
 
@@ -565,7 +613,129 @@ export default function ProfilePage() {
             ))}
           </div>
         </motion.div>
+
+        {/* Danger Zone */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="bg-red-950/20 border border-red-500/20 rounded-xl p-6"
+        >
+          <h3 className="text-base font-semibold mb-3 flex items-center gap-2 text-red-400">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+            Danger Zone
+          </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-sm text-gray-300 font-medium">Delete Account</p>
+              <p className="text-gray-500 text-sm mt-1">
+                Permanently delete your account and all associated data — profile, watchlist, continue watching, and more. This cannot be undone.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="px-5 py-2.5 bg-red-600/15 hover:bg-red-600/30 text-red-400 hover:text-red-300 border border-red-500/30 rounded-lg font-semibold text-sm transition-all whitespace-nowrap"
+            >
+              Delete Account
+            </button>
+          </div>
+        </motion.div>
       </div>
+
+      {/* Delete Account Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            onClick={closeDeleteModal}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-zinc-900 border border-red-500/30 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl"
+            >
+              <div className="flex items-start gap-4 mb-5">
+                <div className="flex-shrink-0 w-11 h-11 rounded-full bg-red-500/15 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">Delete your account?</h3>
+                  <p className="text-gray-400 text-sm mt-1">
+                    This will permanently delete your profile, watchlist, continue watching progress, and all account data. This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              <label className="block text-sm text-gray-300 mb-1.5">
+                Type <span className="font-semibold text-white">{profile.email}</span> to confirm
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                autoFocus
+                className="w-full px-3.5 py-2.5 bg-black border border-white/20 rounded-lg focus:border-red-500 focus:outline-none text-white placeholder-gray-500 transition-colors"
+                placeholder="Enter your email to confirm"
+              />
+
+              {hasPassword && (
+                <div className="mt-4">
+                  <label className="block text-sm text-gray-300 mb-1.5">Password</label>
+                  <input
+                    type="password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-black border border-white/20 rounded-lg focus:border-red-500 focus:outline-none text-white placeholder-gray-500 transition-colors"
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                  />
+                  <p className="text-xs text-gray-500 mt-1.5">
+                    Re-enter your password to confirm this action.
+                  </p>
+                </div>
+              )}
+
+              {deleteError && (
+                <p className="mt-3 text-sm text-red-400">{deleteError}</p>
+              )}
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={closeDeleteModal}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-all disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting || deleteConfirmText.trim() !== (profile.email || '').trim() || (hasPassword && !deletePassword)}
+                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {deleting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete Account'
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* AniList Character Picker Modal */}
       {showCharacterPicker && (

@@ -173,7 +173,7 @@ export default function TermsOfService() {
                 <ul className="list-disc list-inside text-gray-300 space-y-2">
                   <li>You are responsible for safeguarding the password and all activities under your account</li>
                   <li>We reserve the right to terminate accounts that violate these terms</li>
-                  <li>You may delete your account at any time through the settings page</li>
+                  <li>You may delete your account at any time through the profile page</li>
                   <li>We may retain certain information as required by law or for legitimate business purposes</li>
                 </ul>
               </div>
