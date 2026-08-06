@@ -60,7 +60,10 @@ export default function SearchAutocomplete({
     const timer = setTimeout(async () => {
       try {
         const data = await searchContent(query)
-        const results = (data.results || []).slice(0, 6)
+        // Only suggest watchable titles — multi-search can also return people
+        const results = (data.results || [])
+          .filter((item: any) => item.media_type === 'movie' || item.media_type === 'tv')
+          .slice(0, 6)
         const suggestions: AutocompleteSuggestion[] = results.map((item: any) => ({
           type: 'live' as const,
           label: item.title || item.name || '',

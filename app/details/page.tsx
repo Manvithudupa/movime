@@ -10,7 +10,9 @@ import {
   TMDB_IMAGE_BASE_URL,
   formatRuntime,
   filterAdultContent,
-  blockedMovieIds
+  blockedMovieIds,
+  getLocalStorage,
+  setLocalStorage
 } from '@/lib/utils';
 import type { Movie, TVShow, Season, Episode, Video, CastMember } from '@/lib/types';
 import { useAuth } from '@/components/AuthProvider';
@@ -166,10 +168,10 @@ function DetailsPageContent() {
 
     if (exists) {
       removeItemFromStore(itemId);
-      const saved = JSON.parse(localStorage.getItem('watchLater') || '[]');
-      localStorage.setItem('watchLater', JSON.stringify(
+      const saved = getLocalStorage<any[]>('watchLater', []);
+      setLocalStorage('watchLater',
         saved.filter((w: any) => w.id !== itemId && w.content_id !== itemId)
-      ));
+      );
     } else {
       addItemToStore({
         id: itemId,
@@ -181,9 +183,9 @@ function DetailsPageContent() {
         added_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
-      const saved = JSON.parse(localStorage.getItem('watchLater') || '[]');
+      const saved = getLocalStorage<any[]>('watchLater', []);
       saved.push({ id: itemId, type: contentType, title: 'title' in content ? content.title : content.name, poster: content.poster_path, addedAt: new Date().toISOString() });
-      localStorage.setItem('watchLater', JSON.stringify(saved));
+      setLocalStorage('watchLater', saved);
     }
   };
 

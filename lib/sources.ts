@@ -1,3 +1,7 @@
+// Verified working embed providers (checked August 2026).
+// Dead/offline providers (RiveStream, AutoEmbed, VidLink, 2Embed, 123Embed,
+// VidEasy, VidFast, VidSrcPM, VidSrcDEV, VidStreamPro) were removed because
+// their domains no longer respond.
 export const availableSources = [
     {
         id: 'CinemaOS',
@@ -33,38 +37,6 @@ export const availableSources = [
         }
     },
     {
-        id: 'rive',
-        name: 'RiveStream',
-        isFrench: false,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://rivestream.ru/embed?type=movie&id={id}',
-            tv: 'https://rivestream.ru/embed?type=tv&id={id}&season={season}&episode={episode}'
-        }
-    },
-    {
-        id: 'AutoEmbed',
-        name: 'AutoEmbed',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://autoembed.co/movie/tmdb/{id}',
-            tv: 'https://autoembed.co/tv/tmdb/{id}-{season}-{episode}'
-        }
-    },
-    {
-        id: 'vidlink',
-        name: 'VidLink',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidlink.pro/movie/{id}',
-            tv: 'https://vidlink.pro/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
         id: 'vidsrcsu',
         name: 'VidSrcSU',
         isFrench: false,
@@ -76,50 +48,6 @@ export const availableSources = [
         }
     },
     {
-        id: '2embed',
-        name: '2Embed',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://www.2embed.cc/embed/{id}',
-            tv: 'https://www.2embed.cc/embedtv/{id}?s={season}&e={episode}'
-        }
-    },
-    {
-        id: '123embed',
-        name: '123Embed',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://play2.123embed.net/movie/{id}',
-            tv: 'https://play2.123embed.net/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'videasy',
-        name: 'VidEasy (4K)',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://player.videasy.to/movie/{id}?color=8834ec',
-            tv: 'https://player.videasy.to/tv/{id}/{season}/{episode}?color=8834ec'
-        }
-    },
-    {
-        id: 'vidfast',
-        name: 'VidFast (4K)',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidfast.vc/movie/{id}',
-            tv: 'https://vidfast.vc/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
         id: 'vidsrcsbs',
         name: 'VidSrcSBS',
         isFrench: false,
@@ -128,17 +56,6 @@ export const availableSources = [
         urls: {
             movie: 'https://vidsrc.sbs/embed/movie/{id}',
             tv: 'https://vidsrc.sbs/embed/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'vidsrcpm',
-        name: 'VidSrcPM',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidsrc.pm/embed/movie/{id}',
-            tv: 'https://vidsrc.pm/embed/tv/{id}/{season}/{episode}'
         }
     },
     {
@@ -164,17 +81,6 @@ export const availableSources = [
         }
     },
     {
-        id: 'vidsrcdev',
-        name: 'VidSrcDEV',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidsrc.dev/embed/movie/{id}',
-            tv: 'https://vidsrc.dev/embed/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
         id: 'flicky',
         name: 'Flicky',
         isFrench: false,
@@ -183,17 +89,6 @@ export const availableSources = [
         urls: {
             movie: 'https://flicky.host/embed/movie/{id}',
             tv: 'https://flicky.host/embed/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'vidstreampro',
-        name: 'VidStreamPro',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidstream.pro/embed/movie/{id}',
-            tv: 'https://vidstream.pro/embed/tv/{id}/{season}/{episode}'
         }
     },
     {

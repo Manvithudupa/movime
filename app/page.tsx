@@ -363,9 +363,13 @@ function HomePageContent() {
         term => searchTerms.includes(term)
       );
       
+      // Multi-search can return people/companies — only keep watchable titles
+      // so cards link to valid /details and /watch pages.
       const filteredResults = filterAdultContent(
         results.results?.filter(
-          (item: any) => !blockedMovieIds.includes(item.id.toString())
+          (item: any) =>
+            !blockedMovieIds.includes(item.id.toString()) &&
+            (item.media_type === 'movie' || item.media_type === 'tv')
         ) || [],
         isAdultSearch
       ) as ContentItem[];

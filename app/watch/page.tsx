@@ -10,6 +10,7 @@ import {
   fetchContentDetails, 
   fetchSeasonDetails, 
   getVideoUrl, 
+  getLocalStorage,
   TMDB_IMAGE_BASE_URL
 } from '@/lib/utils';
 import { availableSources } from '@/lib/sources';
@@ -27,6 +28,15 @@ function WatchPageContent() {
   const [content, setContent] = useState<Movie | TVShow | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentSource, setCurrentSource] = useState(availableSources[0]);
+
+  // Apply the user's preferred source from Settings once mounted. Reading
+  // localStorage during the useState initializer would mismatch the server
+  // render (SSR has no localStorage) and trigger a React hydration error.
+  useEffect(() => {
+    const preferred = getLocalStorage<string>('preferredSource', '');
+    const match = availableSources.find((s) => s.id === preferred);
+    if (match) setCurrentSource(match);
+  }, []);
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
   const [selectedEpisode, setSelectedEpisode] = useState<number>(1);
   const [seasonData, setSeasonData] = useState<Season | null>(null);
@@ -311,6 +321,7 @@ function WatchPageContent() {
         contentType={contentType}
         content={content}
         contentTitle={contentTitle}
+        seasonData={seasonData}
         selectedSeason={selectedSeason}
         selectedEpisode={selectedEpisode}
         isSignedIn={isSignedIn}
@@ -538,6 +549,7 @@ function SaveProgress({
   contentType, 
   content, 
   contentTitle, 
+  seasonData, 
   selectedSeason, 
   selectedEpisode, 
   isSignedIn, 
@@ -547,6 +559,7 @@ function SaveProgress({
   contentType: string; 
   content: Record<string, any>; 
   contentTitle: string; 
+  seasonData: Season | null; 
   selectedSeason: number; 
   selectedEpisode: number; 
   isSignedIn: boolean; 
@@ -574,19 +587,17 @@ function SaveProgress({
       watchData.season_number = selectedSeason;
       watchData.episode_number = selectedEpisode;
       
-      // Try to get episode title from season data if available
-      const season = (content as any).seasons?.find((s: any) => s.season_number === selectedSeason);
-      if (season?.episodes) {
-        const ep = season.episodes.find((e: any) => e.episode_number === selectedEpisode);
-        if (ep?.name) {
-          watchData.episode_title = ep.name;
-        }
+      // Grab the episode title from the loaded season data (the TMDB details
+      // payload's seasons array only carries episode counts, not episodes).
+      const episode = seasonData?.episodes?.find((e: any) => e.episode_number === selectedEpisode);
+      if (episode?.name) {
+        watchData.episode_title = episode.name;
       }
     }
     
     upsertContinueWatching(watchData, isSignedIn);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contentId, contentType, selectedSeason, selectedEpisode, content, contentTitle, isSignedIn, upsertContinueWatching]);
+  }, [contentId, contentType, selectedSeason, selectedEpisode, seasonData, content, contentTitle, isSignedIn, upsertContinueWatching]);
   
   return null;
 }

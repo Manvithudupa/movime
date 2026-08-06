@@ -8,7 +8,7 @@ import { getLocalStorage, setLocalStorage } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
 import { getViewPath } from '@/lib/routes';
-import { useWatchlistStore } from '@/lib/store';
+import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -27,7 +27,14 @@ export default function SettingsPage() {
   }, [isSignedIn, fetchWatchlist]);
 
   const loadSettings = () => {
-    setPreferredSource(getLocalStorage('preferredSource', availableSources[0]?.id || ''));
+    // Ignore a saved preferred source that no longer exists (e.g. it was
+    // removed because the provider went offline).
+    const savedSource = getLocalStorage('preferredSource', availableSources[0]?.id || '');
+    setPreferredSource(
+      availableSources.some((s) => s.id === savedSource)
+        ? savedSource
+        : availableSources[0]?.id || ''
+    );
     setDefaultQuality(getLocalStorage('defaultQuality', '720p'));
     setAutoPlay(getLocalStorage('autoPlay', true));
   };
@@ -64,6 +71,10 @@ export default function SettingsPage() {
   const clearAllData = () => {
     if (confirm('Are you sure you want to clear all stored data? This will reset all settings and clear your watch later list.')) {
       localStorage.clear();
+      // Also reset the in-memory stores so counts/items vanish immediately
+      // instead of lingering until the next page reload.
+      useWatchlistStore.getState().clear();
+      useContinueWatchingStore.getState().clear();
       loadSettings();
       alert('All data cleared successfully!');
     }

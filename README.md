@@ -25,7 +25,7 @@
 
 ## ✨ Features
 
-- **🎥 Multi-Source Streaming** — Watch content from 19 embed providers with automatic source switching
+- **🎥 Multi-Source Streaming** — Watch content from 9 verified embed providers with automatic source switching
 - **📺 TV Shows & Seasons** — Browse episodes with season selectors and episode detail cards
 - **🐱 Anime Integration** — Dedicated anime section with AniList+TMDB cross-referencing for accurate season/episode mapping
 - **🏠 Anime Hero Banner** — Dedicated anime hero carousel with trailers, genre chips, and watchlist controls
@@ -105,7 +105,7 @@
 
 ### Streaming Providers (iframe embed)
 
-The platform aggregates from **19 embed providers**: CinemaOS, VidNest, MappleTV, RiveStream, AutoEmbed, VidLink, VidSrcSU, 2Embed, 123Embed, VidEasy (4K), VidFast (4K), VidSrcSBS, VidSrcPM, VidSrcME, VidSrcNL, VidSrcDEV, Flicky, VidStreamPro, and VidZee.
+The platform aggregates from **9 verified embed providers** (each checked to be live): CinemaOS, VidNest, MappleTV, VidSrcSU, VidSrcSBS, VidSrcME, VidSrcNL, Flicky, and VidZee.
 
 ---
 
@@ -130,7 +130,7 @@ flowchart LR
     ANI[(AniList GraphQL)]
     SUP[(Supabase<br/>Auth + Postgres)]
     RES[(Resend Email)]
-    EMB[19 Embed Providers<br/>iframe players]
+    EMB[9 Embed Providers<br/>iframe players]
 
     UI -->|fetch content| CACHE
     CACHE --> TMDB
@@ -151,7 +151,7 @@ flowchart LR
 
 2. **Anime mapping** — `fetchContentDetails` detects anime (genre/keyword/JP origin) and cross-references **AniList + TMDB** in `lib/animeMapper.ts` to produce accurate season/episode breakdowns, falling back to plain TMDB data when mapping fails.
 
-3. **Watching** — The `/watch` page builds an embed URL from the selected source in `lib/sources.ts` (19 providers) and renders it in a sandboxed iframe. If a source fails, `handleSourceFailure` automatically falls back to the next provider. Progress is saved to the Continue Watching store.
+3. **Watching** — The `/watch` page builds an embed URL from the selected source in `lib/sources.ts` (9 verified providers — dead providers are removed) and renders it in a sandboxed iframe. If a source fails, `handleSourceFailure` automatically falls back to the next provider. Progress is saved to the Continue Watching store.
 
 4. **User data** — Zustand stores (`lib/store.ts`) hold watchlist and continue-watching state optimistically, then sync to Supabase via `/api/watchlist` and `/api/continue-watching`. Profiles live in `AuthProvider` and are updated via `/api/user/profile`. Guests use localStorage; signed-in users sync across devices.
 
@@ -283,7 +283,7 @@ movime/
 │   ├── animeMapper.ts   # AniList + TMDB anime season mapping
 │   ├── resend.ts        # Lazy Resend client
 │   ├── routes.ts        # View -> route mapping
-│   ├── sources.ts       # 19 available embed streaming sources
+│   ├── sources.ts       # 9 available embed streaming sources
 │   ├── store.ts         # Zustand stores (watchlist, continue watching)
 │   ├── supabase/
 │   │   ├── client.ts    # Supabase browser client

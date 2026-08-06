@@ -165,30 +165,18 @@ This document catalogs every technology, tool, library, and skill used in the Mo
 
 ## 🔌 Streaming Sources (lib/sources.ts)
 
-**21 embed providers** for movies and TV shows:
+**9 verified embed providers** for movies and TV shows (each live-checked; dead providers such as RiveStream, AutoEmbed, VidLink, 2Embed, 123Embed, VidEasy, VidFast, VidSrcPM, VidSrcDEV, and VidStreamPro were removed):
 
 | Source | Domain | Type | Sandbox |
 |--------|--------|------|---------|
 | CinemaOS | cinemaos.tech | Movie/TV | Requires NoSandbox |
 | VidNest | vidnest.fun | Movie/TV | Requires NoSandbox |
 | MappleTV | mapple.rip | Movie/TV | Requires NoSandbox |
-| RiveStream | rivestream.ru | Movie/TV | None |
-| AutoEmbed | autoembed.co | Movie/TV | Requires NoSandbox |
-| VidLink | vidlink.pro | Movie/TV | Requires NoSandbox |
 | VidSrcSU | vidsrc.su | Movie/TV | Requires NoSandbox |
-| 2Embed | www.2embed.cc | Movie/TV | Requires NoSandbox |
-| 123Embed | play2.123embed.net | Movie/TV | Requires NoSandbox |
-| VidEasy (4K) | player.videasy.to | Movie/TV | Requires NoSandbox |
-| VidFast (4K) | vidfast.vc | Movie/TV | Requires NoSandbox |
 | VidSrcSBS | vidsrc.sbs | Movie/TV | Requires NoSandbox |
-| VidSrcRIP | vidsrc.rip | Movie/TV | Requires NoSandbox |
-| VidSrcPM | vidsrc.pm | Movie/TV | Requires NoSandbox |
 | VidSrcME | vidsrcme.ru | Movie/TV | Requires NoSandbox |
 | VidSrcNL | vidsrc.nl | Movie/TV | Requires NoSandbox |
-| VidSrcDEV | vidsrc.dev | Movie/TV | Requires NoSandbox |
 | Flicky | flicky.host | Movie/TV | Requires NoSandbox |
-| VidStreaming | vidstreaming.io | Movie/TV | Requires NoSandbox |
-| VidStreamPro | vidstream.pro | Movie/TV | Requires NoSandbox |
 | VidZee | player.vidzee.wtf | Movie/TV | Requires NoSandbox |
 
 ### Anime Streaming Providers (server-side)

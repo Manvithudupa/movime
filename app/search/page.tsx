@@ -73,8 +73,13 @@ function SearchPageContent() {
       const data = await searchContent(q);
       const qLower = q.toLowerCase();
       const allowAdult = ['adult','sex','erotic','xxx','porn','explicit','nude'].some(t=>qLower.includes(t));
+      // Multi-search can return people/companies — only keep watchable titles
+      // so cards link to valid /details and /watch pages.
       let filtered = filterAdultContent(
-        data.results?.filter((item:any)=>!blockedMovieIds.includes(item.id.toString())) || [],
+        data.results?.filter((item:any)=>(
+          !blockedMovieIds.includes(item.id.toString()) &&
+          (item.media_type === 'movie' || item.media_type === 'tv')
+        )) || [],
         allowAdult
       ) as ContentItem[];
 
