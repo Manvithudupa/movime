@@ -3,21 +3,7 @@
 // VidEasy, VidFast, VidSrcPM, VidSrcDEV, VidStreamPro) were removed because
 // their domains no longer respond.
 export const availableSources = [
-    // ── Server-based (HLS) ────────────────────────────────────────────────
-    {
-        id: 'flixhq',
-        name: 'FlixHQ (HLS)',
-        isFrench: false,
-        requiresNoSandbox: false,
-        isServerBased: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'flixhq://movie/{id}',
-            tv: 'flixhq://tv/{id}/{season}/{episode}'
-        }
-    },
-
-    // ── Embed providers ───────────────────────────────────────────────────
+        // ── Embed providers ───────────────────────────────────────────────────
     {
         id: 'CinemaOS',
         name: 'CinemaOS',
