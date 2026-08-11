@@ -657,8 +657,11 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
 
 // Utility functions
 export const formatRuntime = (minutes: number) => {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
+  if (!minutes || Number.isNaN(minutes) || minutes <= 0) return '';
+  // Round the total first so fractional runtimes can't overflow into "0h 60m".
+  const total = Math.round(minutes);
+  const hours = Math.floor(total / 60);
+  const mins = total % 60;
   return `${hours}h ${mins}m`;
 };
 

@@ -9,6 +9,7 @@ import {
   formatRuntime
 } from '@/lib/utils';
 import type { ContentItem, Movie } from '@/lib/types';
+import { SkeletonHero } from '@/components/SkeletonHero';
 
 interface HeroSectionProps {
   onWatchNow?: (movie: ContentItem) => void;
@@ -86,7 +87,9 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
   }, [featuredMovies.length, isPaused]);
 
   const formatReleaseYear = (releaseDate: string) => {
-    return new Date(releaseDate).getFullYear();
+    if (!releaseDate) return '';
+    const year = new Date(releaseDate).getFullYear();
+    return Number.isNaN(year) ? '' : year;
   };
 
   const truncateOverview = (text: string, maxLength: number = 200) => {
@@ -178,76 +181,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
   };
 
   if (loading) {
-    return (
-      <div
-        aria-hidden="true"
-        className="relative h-auto min-h-screen md:min-h-screen bg-black overflow-hidden"
-        style={{ minHeight: 'calc(100vh - 4rem)', isolation: 'isolate' }}
-      >
-        {/* Animated shimmer backdrop — stands in for the movie backdrop while loading */}
-        <div className="absolute inset-0 skeleton-shimmer" />
-
-        {/* Gradient overlays — identical to the loaded hero so the swap is seamless */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/2 md:h-60 bg-gradient-to-t from-black via-black/60 to-transparent" />
-
-        {/* Desktop skeleton — mirrors the hero's left-aligned content */}
-        <div className="hidden md:flex relative z-20 px-4 sm:px-6 lg:px-8 pl-16 sm:pl-24 lg:pl-32 h-full items-start pt-48 sm:pt-44 md:pt-56 lg:pt-64 pb-32 sm:pb-36 lg:pb-48">
-          <div className="max-w-xl sm:max-w-2xl w-full">
-            {/* Title */}
-            <div className="h-10 sm:h-12 md:h-14 w-72 sm:w-96 lg:w-[28rem] rounded-lg skeleton-shimmer mb-3 sm:mb-4" />
-            {/* Meta chips (year / cert / runtime / genre) */}
-            <div className="flex flex-wrap items-center gap-3 mb-4 md:mb-6">
-              <div className="h-4 w-14 rounded skeleton-shimmer" />
-              <div className="h-5 w-10 rounded-sm skeleton-shimmer" />
-              <div className="h-4 w-20 rounded skeleton-shimmer" />
-              <div className="h-4 w-16 rounded skeleton-shimmer" />
-            </div>
-            {/* Description lines */}
-            <div className="space-y-2 mb-5 md:mb-7">
-              <div className="h-4 w-full max-w-lg rounded skeleton-shimmer" />
-              <div className="h-4 w-4/5 max-w-md rounded skeleton-shimmer" />
-              <div className="h-4 w-3/5 max-w-sm rounded skeleton-shimmer" />
-            </div>
-            {/* Buttons */}
-            <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 sm:gap-3 md:gap-4">
-              <div className="h-11 w-32 rounded-lg skeleton-shimmer" />
-              <div className="h-11 w-36 rounded-lg skeleton-shimmer" />
-              <div className="h-11 w-32 rounded-lg skeleton-shimmer" />
-            </div>
-            {/* Trailer button */}
-            <div className="flex items-center gap-3 mt-6">
-              <div className="w-12 h-12 rounded-full skeleton-shimmer" />
-              <div className="h-4 w-28 rounded skeleton-shimmer" />
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile skeleton — bottom-anchored like the loaded mobile hero */}
-        <div className="md:hidden absolute inset-0 z-20 flex flex-col px-4 pb-8">
-          <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-gradient-to-t from-black via-black/80 via-60% to-transparent pointer-events-none" />
-          <div className="flex-1" />
-          <div className="relative z-10 flex flex-col space-y-3">
-            {/* Title */}
-            <div className="h-8 w-64 rounded-lg skeleton-shimmer" />
-            {/* Meta chips */}
-            <div className="flex items-center gap-3">
-              <div className="h-4 w-12 rounded skeleton-shimmer" />
-              <div className="h-5 w-8 rounded skeleton-shimmer" />
-              <div className="h-4 w-12 rounded skeleton-shimmer" />
-            </div>
-            {/* Description lines */}
-            <div className="h-3 w-full max-w-xs rounded skeleton-shimmer" />
-            <div className="h-3 w-3/4 max-w-[240px] rounded skeleton-shimmer" />
-            {/* Buttons */}
-            <div className="flex items-center gap-2.5 pt-1">
-              <div className="h-11 flex-1 rounded-lg skeleton-shimmer" />
-              <div className="h-11 w-11 rounded-full skeleton-shimmer" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <SkeletonHero />;
   }
 
   if (!currentMovie) {
@@ -267,7 +201,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
 
   return (
     <motion.div 
-      className="relative h-auto min-h-screen md:min-h-screen bg-black"
+      className="relative h-auto min-h-screen md:min-h-screen bg-black overflow-hidden"
       style={{ minHeight: 'calc(100vh - 4rem)', isolation: 'isolate' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -280,7 +214,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
         {featuredMovies.map((movie, index) => (
           <div
             key={movie.id}
-            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentMovieIndex ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentMovieIndex ? 'opacity-100 kenburns' : 'opacity-0'}`}
           >
             <Image
               src={`https://image.tmdb.org/t/p/original${isMobile ? movie.poster_path : movie.backdrop_path}`}
@@ -346,13 +280,23 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-              <span>{formatReleaseYear(currentMovie.release_date)}</span>
+              {formatReleaseYear(currentMovie.release_date) && (
+                <span>{formatReleaseYear(currentMovie.release_date)}</span>
+              )}
               {getCertification(currentMovie) && (
                 <span className="bg-white/10 text-white font-semibold px-2 py-1 rounded-sm text-[10px] sm:text-[11px] leading-none">
                   {getCertification(currentMovie)}
                 </span>
               )}
               {getRuntime(currentMovie) && <span>{getRuntime(currentMovie)}</span>}
+              {currentMovie.vote_average > 0 && (
+                <div className="flex items-center gap-1">
+                  <svg className="w-3 h-3 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <span className="text-white text-xs font-medium">{currentMovie.vote_average.toFixed(1)}</span>
+                </div>
+              )}
               {getPrimaryGenre(currentMovie) && <span>{getPrimaryGenre(currentMovie)}</span>}
               </motion.div>
               <motion.p 
@@ -371,7 +315,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
               >
                 <motion.button
                   onClick={handleWatchNow}
-                  className="flex items-center justify-center gap-2 px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm tracking-wide text-black bg-white hover:bg-gray-100 transition-all duration-300 shadow-lg focus:outline-none focus:ring-2 focus:ring-white/60 w-full sm:w-auto"
+                  className="flex items-center justify-center gap-2 px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm tracking-wide text-black bg-white hover:bg-gray-100 transition-colors duration-300 shadow-lg focus:outline-none focus:ring-2 focus:ring-white/60 w-full sm:w-auto"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   transition={{ duration: 0.2 }}
@@ -464,15 +408,17 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <div className="flex items-center gap-2">
-                <svg className="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span className="text-white text-xs font-medium">{formatReleaseYear(currentMovie.release_date)}</span>
-              </div>
+              {formatReleaseYear(currentMovie.release_date) && (
+                <div className="flex items-center gap-2">
+                  <svg className="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-white text-xs font-medium">{formatReleaseYear(currentMovie.release_date)}</span>
+                </div>
+              )}
               
               {getCertification(currentMovie) && (
-                <div className="bg-white/10 backdrop-blur-sm px-1.5 py-0.1 rounded shadow-lg">
+                <div className="bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded shadow-lg">
                   <span className="text-white font-bold text-[10px]">{getCertification(currentMovie)}</span>
                 </div>
               )}
@@ -574,7 +520,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
           <>
             <motion.button
                 onClick={() => goToSlide(currentMovieIndex === 0 ? featuredMovies.length - 1 : currentMovieIndex - 1)}
-                className="hidden lg:flex absolute left-4 top-1/2 -translate-y-1/2 items-center justify-center w-12 h-12 bg-black/60 hover:bg-black/80 text-white rounded-full shadow-lg transition duration-300 hover:scale-110 backdrop-blur-md z-30"
+                className="hidden lg:flex absolute left-4 top-1/2 -translate-y-1/2 items-center justify-center w-12 h-12 bg-black/60 hover:bg-black/80 text-white rounded-full shadow-lg transition-colors duration-300 backdrop-blur-md z-30"
                 aria-label="Previous movie"
                 initial={hasInitiallyLoaded ? false : { opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -595,7 +541,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
 
             <motion.button
                 onClick={() => goToSlide(currentMovieIndex === featuredMovies.length - 1 ? 0 : currentMovieIndex + 1)}
-                className="hidden lg:flex absolute right-4 top-1/2 -translate-y-1/2 items-center justify-center w-12 h-12 bg-black/60 hover:bg-black/80 text-white rounded-full shadow-lg transition duration-300 hover:scale-110 backdrop-blur-md z-30"
+                className="hidden lg:flex absolute right-4 top-1/2 -translate-y-1/2 items-center justify-center w-12 h-12 bg-black/60 hover:bg-black/80 text-white rounded-full shadow-lg transition-colors duration-300 backdrop-blur-md z-30"
                 aria-label="Next movie"
                 initial={hasInitiallyLoaded ? false : { opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}

@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { searchContent, TMDB_IMAGE_BASE_URL, filterAdultContent, blockedMovieIds, fetchContentDetails } from '@/lib/utils';
 import type { ContentItem } from '@/lib/types';
 import { useWatchlistStore } from '@/lib/store';
+import { SkeletonSearch } from '@/components/SkeletonSearch';
 
 const ContentCard = ({ item }: { item: Record<string, any> }) => {
   const title = item.title || item.name || '';
@@ -31,10 +32,6 @@ const ContentCard = ({ item }: { item: Record<string, any> }) => {
     </Link>
   );
 };
-
-const SkeletonCard = () => (
-  <div className="relative rounded-lg overflow-hidden bg-white/5 animate-pulse aspect-[2/3]" />
-);
 
 export default function SearchPage() {
   return (
@@ -281,9 +278,7 @@ function SearchPageContent() {
         )}
 
         {loading && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5 md:gap-6">
-            {Array.from({length:10}).map((_,i)=>(<SkeletonCard key={i}/>))}
-          </div>
+          <SkeletonSearch />
         )}
 
         {!loading && query.length > 0 && results.length === 0 && (

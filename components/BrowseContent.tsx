@@ -19,7 +19,8 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AnimeHero from '@/components/AnimeHero';
 import ContentCard from '@/components/ContentCard';
-import { SkeletonSection } from '@/components/SkeletonCard';
+import { SkeletonGrid } from '@/components/SkeletonCard';
+import { SkeletonHero } from '@/components/SkeletonHero';
 
 export type BrowseCategory = 'movies' | 'tv' | 'anime';
 
@@ -217,7 +218,8 @@ export default function BrowseContent({
   }, [watchLater]);
 
   const hasHero = showAnimeHero && items.length > 0 && !loading;
-  const mainClassName = hasHero ? 'pb-8 pt-2' : 'pt-24 pb-8';
+  const showHeroSkeleton = showAnimeHero && loading;
+  const mainClassName = hasHero || showHeroSkeleton ? 'pb-8 pt-2' : 'pt-24 pb-8';
 
   return (
     <motion.div
@@ -238,6 +240,7 @@ export default function BrowseContent({
       />
 
       {/* Anime Hero Banner - only on the anime page */}
+      {showHeroSkeleton && <SkeletonHero />}
       {hasHero && (
         <AnimeHero
           animeContent={items}
@@ -264,11 +267,9 @@ export default function BrowseContent({
           </div>
 
           {loading ? (
-            <div className="space-y-8">
-              <SkeletonSection />
-              <SkeletonSection />
-              <SkeletonSection />
-            </div>
+            // The real layout here is a responsive grid of ContentCards (5/7 ratio),
+            // so show a matching grid skeleton instead of horizontal sections.
+            <SkeletonGrid count={18} ratio="aspect-[5/7]" />
           ) : (
             <>
               {/* Content grid */}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,16 +9,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 const STORAGE_KEY = 'movime_announcement_seen_v2';
 
 export default function AnnouncementPopup() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
+  // Don't show the welcome popup on auth pages — its "Create Account" CTA is
+  // redundant while the user is already in the middle of signing in/up.
+  const onAuthPage = pathname.startsWith('/auth');
+
   useEffect(() => {
+    if (onAuthPage) return;
+
     const seen = localStorage.getItem(STORAGE_KEY);
     if (!seen) {
       // Small delay so the page loads first, then popup appears
       const timer = setTimeout(() => setIsOpen(true), 800);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [onAuthPage]);
+
+  // If the user navigates to an auth page while the popup is open, close it.
+  useEffect(() => {
+    if (onAuthPage) setIsOpen(false);
+  }, [onAuthPage]);
 
   const handleDismiss = () => {
     localStorage.setItem(STORAGE_KEY, 'true');

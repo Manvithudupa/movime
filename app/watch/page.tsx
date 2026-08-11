@@ -20,6 +20,8 @@ import ShareButton from '@/components/ShareButton';
 import { useAuth } from '@/components/AuthProvider';
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
 import Footer from '@/components/Footer';
+import { SkeletonWatch } from '@/components/SkeletonWatch';
+import { SkeletonPageLayout } from '@/components/SkeletonPageLayout';
 
 function WatchPageContent() {
   const searchParams = useSearchParams();
@@ -162,7 +164,21 @@ function WatchPageContent() {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-black" />;
+  if (loading) {
+    return (
+      <SkeletonPageLayout
+        currentView="watch"
+        showSearch={showSearch}
+        searchQuery={searchQuery}
+        watchLaterCount={watchLaterCount}
+        onViewChange={(view) => router.push(getViewPath(view))}
+        onSearchToggle={() => setShowSearch(!showSearch)}
+        onSearchChange={(q) => setSearchQuery(q)}
+      >
+        <SkeletonWatch isTV={contentType === 'tv'} />
+      </SkeletonPageLayout>
+    );
+  }
 
   if (!content) {
     return (
@@ -367,9 +383,38 @@ function WatchPageContent() {
         </div>
 
         {/* Episode Selector for TV */}
-        {contentType === 'tv' && seasonData?.episodes && seasonData.episodes.length > 0 && (
+        {contentType === 'tv' && (
           <div>
-            <h2 className="text-lg font-semibold mb-3">Episodes - Season {selectedSeason}</h2>
+            {/* Season tabs are kept outside the episodes block so users can always
+                switch seasons, even when the currently selected season has no episodes. */}
+            {(() => {
+              const seasonCount =
+                (content as any).seasons?.filter((s: any) => s.season_number > 0).length ||
+                (content as any).number_of_seasons ||
+                1;
+              if (seasonCount <= 1) return null;
+              return (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {Array.from({ length: seasonCount }, (_, i) => i + 1).map(seasonNum => (
+                    <button
+                      key={seasonNum}
+                      onClick={() => setSelectedSeason(seasonNum)}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                        selectedSeason === seasonNum
+                          ? 'bg-white text-black'
+                          : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                      }`}
+                    >
+                      S{seasonNum}
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
+
+            {seasonData?.episodes && seasonData.episodes.length > 0 && (
+              <>
+                <h2 className="text-lg font-semibold mb-3">Episodes - Season {selectedSeason}</h2>
             <div className="episodes-slider group relative">
               <div className="overflow-x-auto scrollbar-hide">
                 <div className="flex gap-4 pb-4" style={{ width: 'max-content' }}>
@@ -482,22 +527,7 @@ function WatchPageContent() {
                 </button>
               </div>
             </div>
-            {seasonData.season_number > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {Array.from({ length: (content as any).number_of_seasons || 1 }, (_, i) => i + 1).map(seasonNum => (
-                  <button
-                    key={seasonNum}
-                    onClick={() => setSelectedSeason(seasonNum)}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                      selectedSeason === seasonNum
-                        ? 'bg-white text-black'
-                        : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                    }`}
-                  >
-                    S{seasonNum}
-                  </button>
-                ))}
-              </div>
+              </>
             )}
           </div>
         )}

@@ -64,6 +64,11 @@ CREATE POLICY "Users can insert own watch later"
   ON public.watch_later FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+-- Users can update their own watch later items
+CREATE POLICY "Users can update own watch later"
+  ON public.watch_later FOR UPDATE
+  USING (auth.uid() = user_id);
+
 -- Users can delete items from their own watch later
 CREATE POLICY "Users can delete own watch later"
   ON public.watch_later FOR DELETE

@@ -151,7 +151,7 @@ export default function Navbar({
                     key={view}
                     onClick={() => handleViewChange(view)}
                     aria-current={active ? 'page' : undefined}
-                    className={`relative px-0 py-0 text-sm font-medium tracking-wide transition-all duration-150 group focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 rounded-sm ${
+                    className={`relative px-0 py-0 text-sm font-medium tracking-wide transition-colors duration-150 group focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 rounded-sm ${
                       active ? 'text-white' : 'text-white/70 hover:text-white'
                     }`}
                     initial={{ opacity: 0, y: -20 }}
@@ -175,7 +175,7 @@ export default function Navbar({
               })}
               <Link
                 href="/watchlist"
-                className={`relative text-sm font-medium tracking-wide transition-all duration-150 group ${
+                className={`relative text-sm font-medium tracking-wide transition-colors duration-150 group ${
                   currentView === 'watchlist' ? 'text-white' : 'text-white/70 hover:text-white'
                 }`}
               >
@@ -202,16 +202,19 @@ export default function Navbar({
           >
             <div className="w-5 h-5 flex flex-col items-center justify-center gap-1">
               <motion.span 
-                className="block w-5 h-[2px] bg-white rounded-full origin-center transition-all duration-200"
+                className="block w-5 h-[2px] bg-white rounded-full origin-center"
                 animate={isMobileMenuOpen ? { rotate: 45, y: 4.5 } : { rotate: 0, y: 0 }}
+                transition={{ duration: 0.2 }}
               />
               <motion.span 
-                className="block w-5 h-[2px] bg-white rounded-full transition-all duration-200"
+                className="block w-5 h-[2px] bg-white rounded-full"
                 animate={isMobileMenuOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
+                transition={{ duration: 0.2 }}
               />
               <motion.span 
-                className="block w-5 h-[2px] bg-white rounded-full origin-center transition-all duration-200"
+                className="block w-5 h-[2px] bg-white rounded-full origin-center"
                 animate={isMobileMenuOpen ? { rotate: -45, y: -4.5 } : { rotate: 0, y: 0 }}
+                transition={{ duration: 0.2 }}
               />
             </div>
           </button>

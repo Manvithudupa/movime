@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import AuthProvider from '@/components/AuthProvider'
+import MotionProvider from '@/components/MotionProvider'
 import LoadingBar from '@/components/LoadingBar'
 import { Toaster } from '@/components/Toaster'
 import { Analytics } from '@vercel/analytics/next'
@@ -49,7 +50,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#A17FC0" />
+        <meta name="theme-color" content="#000000" />
 
         {/* PWA manifest and icons */}
         <link rel="manifest" href="/manifest.json" />
@@ -98,8 +99,10 @@ export default function RootLayout({
         <Toaster />
 
         <AuthProvider>
-          {children}
-          <AnnouncementPopup />
+          <MotionProvider>
+            {children}
+            <AnnouncementPopup />
+          </MotionProvider>
         </AuthProvider>
 
         <Analytics />

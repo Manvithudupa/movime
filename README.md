@@ -38,6 +38,9 @@
 - **🔞 Content Filtering** — Adult content and blocked content filtering for a safe experience
 - **📈 Trending & Categories** — Dedicated Movies, TV Shows, and Anime pages plus Hollywood, Bollywood, Netflix Originals, and Amazon Prime sections
 - **📧 Contact Form** — Server-side email delivery via Resend
+- **♿ Accessibility** — Respects `prefers-reduced-motion` (CSS + Framer Motion), global keyboard `:focus-visible` rings, and screen-reader-friendly loading indicators
+- **✨ Polished Animations** — Cinematic Ken Burns zoom on the hero carousel, GPU-friendly card hovers, hover scroll arrows on content rows, and a non-flashing route loading bar
+- **💀 Skeleton Loading** — Shimmer skeletons on every page (home, movies/TV/anime, details, watch, search, profile, settings, watchlist) so layout shifts are eliminated
 - **🚀 Optimized Performance** — API response caching, in-flight request deduplication, and localStorage persistence for fast loads
 
 ---
@@ -272,12 +275,21 @@ movime/
 │   ├── ContentSection.tsx         # Horizontal scrollable content row
 │   ├── Footer.tsx                 # App footer with disclaimer
 │   ├── HeroSection.tsx            # Hero carousel (featured movies)
-│   ├── LoadingBar.tsx             # Route loading indicator
+│   ├── LoadingBar.tsx             # Route loading indicator (grace delay, no flash)
+│   ├── MotionProvider.tsx         # Framer Motion config (reducedMotion="user")
 │   ├── Navbar.tsx                 # Navigation bar with user menu
 │   ├── ProxyImage.tsx             # Image proxy wrapper (privacy/caching)
 │   ├── SearchAutocomplete.tsx     # Live search suggestions
 │   ├── ShareButton.tsx            # Share content
-│   ├── SkeletonCard.tsx           # Loading skeleton placeholders
+│   ├── SkeletonCard.tsx           # Skeleton section/grid primitives
+│   ├── SkeletonDetails.tsx        # Details page skeleton
+│   ├── SkeletonHero.tsx           # Hero carousel skeleton
+│   ├── SkeletonPageLayout.tsx     # Shared page shell skeleton
+│   ├── SkeletonProfile.tsx        # Profile page skeleton
+│   ├── SkeletonSearch.tsx         # Search page skeleton
+│   ├── SkeletonSettings.tsx       # Settings page skeleton
+│   ├── SkeletonWatch.tsx          # Watch page skeleton
+│   ├── SkeletonWatchlist.tsx      # Watchlist page skeleton
 │   └── Toaster.tsx                # Toast notifications (sonner)
 ├── lib/
 │   ├── animeMapper.ts   # AniList + TMDB anime season mapping

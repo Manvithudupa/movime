@@ -199,7 +199,7 @@ export default function ContactPage() {
                     Can I contribute to the project?
                   </summary>
                   <div className="px-4 pb-4 text-gray-400">
-                    We'd love to hear your ideas! Send us feature requests or suggestions through the contact form and we'll consider them.
+                    We&apos;d love to hear your ideas! Send us feature requests or suggestions through the contact form and we&apos;ll consider them.
                   </div>
                 </details>
               </div>
@@ -293,7 +293,7 @@ export default function ContactPage() {
                     onChange={handleInputChange}
                     required
                     rows={6}
-                    className="w-full px-4 py-3 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white placeholder-gray-400 resize-vertical"
+                    className="w-full px-4 py-3 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white placeholder-gray-400 resize-y"
                     placeholder="Please provide detailed information about your inquiry..."
                   />
                 </div>

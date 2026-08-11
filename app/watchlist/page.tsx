@@ -11,6 +11,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { TMDB_IMAGE_BASE_URL, getLocalStorage, setLocalStorage } from '@/lib/utils'
 import { useWatchlistStore } from '@/lib/store'
+import { SkeletonWatchlist } from '@/components/SkeletonWatchlist'
 
 const STATUS_OPTIONS = [
   { value: 'watching', label: 'Watching', icon: '▶' },
@@ -213,17 +214,9 @@ export default function WatchlistPage() {
           </div>
         </motion.div>
 
-        {/* Loading */}
+        {/* Loading — skeleton header + grid so stale counts (0 items) don't flash */}
         {loading && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="aspect-[2/3] bg-white/5 rounded-lg mb-2" />
-                <div className="h-4 bg-white/5 rounded w-3/4 mb-1" />
-                <div className="h-3 bg-white/5 rounded w-1/2" />
-              </div>
-            ))}
-          </div>
+          <SkeletonWatchlist />
         )}
 
         {/* Empty state */}

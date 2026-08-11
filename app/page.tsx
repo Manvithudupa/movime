@@ -26,7 +26,7 @@ import HeroSection from '@/components/HeroSection';
 import Navbar from '@/components/Navbar';
 import ContentSection from '@/components/ContentSection';
 import Footer from '@/components/Footer';
-import { SkeletonSection } from '@/components/SkeletonCard';
+import { SkeletonSection, SkeletonGrid, SkeletonContinueWatching } from '@/components/SkeletonCard';
 import ContentCard from '@/components/ContentCard';
 
 function HomePageContent() {
@@ -56,6 +56,7 @@ function HomePageContent() {
   const addItemToStore = useWatchlistStore((s) => s.add);
   const removeItemFromStore = useWatchlistStore((s) => s.remove);
   const continueWatching = useContinueWatchingStore((s) => s.items);
+  const continueWatchingLoading = useContinueWatchingStore((s) => s.isLoading);
   const fetchContinueWatching = useContinueWatchingStore((s) => s.fetch);
   const removeContinueWatching = useContinueWatchingStore((s) => s.remove);
   
@@ -469,7 +470,9 @@ function HomePageContent() {
       )}
 
       {/* Continue Watching Section - between hero/spotlight and trending content */}
-      {currentView === 'home' && continueWatching.length > 0 && (
+      {currentView === 'home' && (continueWatchingLoading ? (
+        <SkeletonContinueWatching />
+      ) : continueWatching.length > 0 ? (
         <div className="pt-8 sm:pt-10">
           <div className="px-4 sm:px-6 lg:px-8 max-w-screen-2xl mx-auto">
             <div className="mb-4">
@@ -573,7 +576,7 @@ function HomePageContent() {
             </div>
           </div>
         </div>
-      )}
+      ) : null)}
 
       {/* Main content */}
       <main className={mainClassName}>
@@ -596,11 +599,17 @@ function HomePageContent() {
           
           {/* Content */}
           {loading ? (
-            <div className="space-y-8">
-              <SkeletonSection />
-              <SkeletonSection />
-              <SkeletonSection />
-            </div>
+            currentView === 'home' ? (
+              // Home shows horizontal ContentSection rows — keep section skeletons.
+              <div className="space-y-8">
+                <SkeletonSection />
+                <SkeletonSection />
+                <SkeletonSection />
+              </div>
+            ) : (
+              // Category views render a ContentCard grid (5/7 ratio) — match it.
+              <SkeletonGrid count={18} ratio="aspect-[5/7]" />
+            )
           ) : currentView === 'home' ? (
             <div className="space-y-8">
 

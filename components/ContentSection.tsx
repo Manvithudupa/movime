@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo } from 'react';
+import React, { memo, useRef, useCallback } from 'react';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -53,6 +53,8 @@ const ContentCard = memo(({
       style={{ willChange: "transform" }}
       onClick={handleCardClick}
       onKeyDown={(e) => {
+        // Don't swallow Enter/Space for the inner Watch / Details links
+        if ((e.target as HTMLElement).closest('a, button')) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           handleCardClick();
@@ -88,7 +90,7 @@ const ContentCard = memo(({
             e.preventDefault();
             onAddToWatchLater(item);
           }}
-          className="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-sm rounded-full p-2 transition-all duration-200 hover:bg-black/80 opacity-0 group-hover:opacity-100"
+          className="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-sm rounded-full p-2 transition-colors duration-200 hover:bg-black/80 opacity-0 group-hover:opacity-100"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
@@ -124,6 +126,7 @@ const ContentCard = memo(({
           <div className="flex items-center gap-1.5">
             <Link
               href={`/watch?id=${item.id}&type=${type}`}
+              onClick={(e) => e.stopPropagation()}
               className="inline-flex items-center px-2.5 py-1 bg-white text-black rounded-lg transition-colors text-xs font-medium"
             >
               <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -133,6 +136,7 @@ const ContentCard = memo(({
             </Link>
             <Link
               href={`/details?id=${item.id}&type=${type}`}
+              onClick={(e) => e.stopPropagation()}
               className="inline-flex items-center px-2.5 py-1 bg-white/10 backdrop-blur-sm text-white border border-white/30 rounded-lg transition-colors text-xs font-medium"
             >
               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -159,7 +163,22 @@ export default function ContentSection({
   onViewAll,
   isLoading = false,
 }: ContentSectionProps) {
-  
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollByCards = useCallback((direction: number) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    // Approximate one card + gap (card widths vary 8rem–12rem) — scroll ~3 cards
+    const cardWidth = 10 * 16; // ~160px average
+    const reducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollBy({
+      left: direction * cardWidth * 3,
+      behavior: reducedMotion ? 'auto' : 'smooth',
+    });
+  }, []);
+
   if (isLoading) return <SkeletonSection />;
 
   if (content.length === 0) return null;
@@ -199,8 +218,24 @@ export default function ContentSection({
         )}
       </div>
       
-      <div className="relative">
-        <div className="overflow-x-auto scrollbar-hide pb-4 px-4">
+      <div className="episodes-slider group relative">
+        {/* Left scroll arrow */}
+        <div className="absolute top-1/2 -left-4 transform -translate-y-1/2 z-20 scroll-button hidden md:block">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              scrollByCards(-1);
+            }}
+            aria-label="Scroll left"
+            className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        </div>
+
+        <div ref={scrollRef} className="overflow-x-auto scrollbar-hide pb-4 px-4">
           <div className="flex space-x-4 w-max">
             {content.slice(0, 15).map((item, index) => (
               <div 
@@ -216,8 +251,25 @@ export default function ContentSection({
             ))}
           </div>
         </div>
-        
+
+        {/* Right edge fade */}
         <div className="absolute top-0 right-0 h-full w-20 bg-gradient-to-l from-black to-transparent pointer-events-none" />
+
+        {/* Right scroll arrow */}
+        <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 z-20 scroll-button hidden md:block">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              scrollByCards(1);
+            }}
+            aria-label="Scroll right"
+            className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
       </div>
     </motion.section>
   );

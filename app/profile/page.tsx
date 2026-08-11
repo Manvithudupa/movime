@@ -8,6 +8,8 @@ import { useAuth, type Profile, type AnimeCharacterData } from '@/components/Aut
 import AniListCharacterPicker from '@/components/AniListCharacterPicker'
 import Avatar from '@/components/Avatar'
 import Navbar from '@/components/Navbar'
+import { SkeletonProfile } from '@/components/SkeletonProfile'
+import { SkeletonPageLayout } from '@/components/SkeletonPageLayout'
 import { getViewPath } from '@/lib/routes'
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store'
 
@@ -230,12 +232,17 @@ export default function ProfilePage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-          <div className="text-gray-400 text-sm">Loading profile...</div>
-        </div>
-      </div>
+      <SkeletonPageLayout
+        currentView="profile"
+        showSearch={showSearch}
+        searchQuery={searchQuery}
+        watchLaterCount={watchLaterCount}
+        onViewChange={handleViewChange}
+        onSearchToggle={handleSearchToggle}
+        onSearchChange={handleSearchChange}
+      >
+        <SkeletonProfile />
+      </SkeletonPageLayout>
     )
   }
 

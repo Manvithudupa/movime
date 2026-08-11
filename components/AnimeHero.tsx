@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchVideos } from '@/lib/utils';
 import type { ContentItem } from '@/lib/types';
+import { SkeletonHero } from '@/components/SkeletonHero';
 
 interface AnimeHeroProps {
   animeContent: ContentItem[];
@@ -109,7 +110,7 @@ export default function AnimeHero({
     };
   }, [currentIndex, animeContent]);
 
-  if (animeContent.length === 0) return null;
+  if (animeContent.length === 0) return <SkeletonHero />;
 
   const goToSlide = (index: number) => {
     if (index !== currentIndex) setCurrentIndex(index);
@@ -191,7 +192,7 @@ export default function AnimeHero({
           <div
             key={anime.id}
             className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-              index === currentIndex ? 'opacity-100' : 'opacity-0'
+              index === currentIndex ? 'opacity-100 kenburns' : 'opacity-0'
             }`}
           >
             <Image

@@ -142,8 +142,11 @@ function ResetPasswordContent() {
     )
   }
 
-  // CASE 2: User has no session and no recovery flag - invalid/expired link
-  if (!user) {
+  // CASE 2: User has no session and no recovery flag - invalid/expired link.
+  // The success state takes priority: after a successful reset the page signs
+  // the user out (user becomes null), and we must keep showing the success
+  // screen during the redirect instead of flashing this error.
+  if (!user && !success) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
         <div className="w-full max-w-md">

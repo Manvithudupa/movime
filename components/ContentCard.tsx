@@ -39,6 +39,8 @@ const ContentCard = memo(({
       style={{ willChange: 'transform' }}
       onClick={handleCardClick}
       onKeyDown={(e) => {
+        // Don't swallow Enter/Space for the inner WATCH / Details links
+        if ((e.target as HTMLElement).closest('a, button')) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           handleCardClick();
@@ -122,6 +124,7 @@ const ContentCard = memo(({
             <div className="flex items-center gap-2 mt-3">
               <Link
                 href={`/watch?id=${item.id}&type=${type}`}
+                onClick={(e) => e.stopPropagation()}
                 className="flex-1 bg-white hover:bg-gray-100 text-black py-1.5 rounded-md text-xs font-bold transition-colors flex items-center justify-center gap-1"
               >
                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -131,6 +134,7 @@ const ContentCard = memo(({
               </Link>
               <Link
                 href={`/details?id=${item.id}&type=${type}`}
+                onClick={(e) => e.stopPropagation()}
                 className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white p-1.5 rounded-md transition-colors"
                 title="View Details"
               >

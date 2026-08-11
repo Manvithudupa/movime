@@ -7,6 +7,8 @@ import { availableSources } from '@/lib/sources';
 import { getLocalStorage, setLocalStorage } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
+import { SkeletonSettings } from '@/components/SkeletonSettings';
+import { SkeletonPageLayout } from '@/components/SkeletonPageLayout';
 import { getViewPath } from '@/lib/routes';
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
 
@@ -16,6 +18,7 @@ export default function SettingsPage() {
   const [preferredSource, setPreferredSource] = useState('');
   const [defaultQuality, setDefaultQuality] = useState('720p');
   const [autoPlay, setAutoPlay] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const watchLaterCount = useWatchlistStore((s) => s.count);
@@ -37,6 +40,7 @@ export default function SettingsPage() {
     );
     setDefaultQuality(getLocalStorage('defaultQuality', '720p'));
     setAutoPlay(getLocalStorage('autoPlay', true));
+    setLoading(false);
   };
 
 
@@ -95,6 +99,22 @@ export default function SettingsPage() {
       router.push(`/search?q=${encodeURIComponent(query)}`);
     }
   };
+
+  if (loading) {
+    return (
+      <SkeletonPageLayout
+        currentView="settings"
+        showSearch={showSearch}
+        searchQuery={searchQuery}
+        watchLaterCount={watchLaterCount}
+        onViewChange={handleViewChange}
+        onSearchToggle={handleSearchToggle}
+        onSearchChange={handleSearchChange}
+      >
+        <SkeletonSettings />
+      </SkeletonPageLayout>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">

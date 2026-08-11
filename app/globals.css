@@ -68,14 +68,6 @@ body::-webkit-scrollbar {
 
 /* Touch device overrides */
 @media (hover: none) and (pointer: coarse) {
-  /* Remove hover transforms on touch, use active instead */
-  .card-hover:hover {
-    transform: none !important;
-  }
-  .card-hover:active {
-    transform: scale(0.98);
-  }
-  
   /* Show card overlay always on touch (no hover state) */
   .card-overlay {
     opacity: 1 !important;
@@ -222,14 +214,21 @@ body::-webkit-scrollbar {
   padding-right: 5rem !important;
 }
 
-/* Card hover effects */
+/* Card hover effects
+
+   NOTE: The lift/scale is driven by framer-motion (whileHover) in the card
+   components. This CSS deliberately does NOT transition `transform` on the
+   card itself — a CSS `transition: all` on an element that framer-motion is
+   animating inline causes the framer animation to lag (the CSS transition
+   fights the per-frame inline updates). Only non-transform properties live
+   here; the img gets a cheap GPU-friendly scale instead of a blur filter.
+*/
 .card-hover {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
 
 .card-hover:hover {
-  transform: translateY(-8px) scale(1.02);
   box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
@@ -239,7 +238,7 @@ body::-webkit-scrollbar {
 
 .card-overlay {
   opacity: 0;
-  transition: all 0.4s ease;
+  transition: opacity 0.4s ease;
   background: linear-gradient(
     to top,
     rgba(0, 0, 0, 0.9) 0%,
@@ -249,12 +248,45 @@ body::-webkit-scrollbar {
 }
 
 .card-hover:hover img {
-  filter: blur(2px) brightness(0.9);
-  transition: all 0.4s ease;
+  transform: scale(1.04);
 }
 
 .card-hover img {
-  transition: all 0.4s ease;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Keyboard focus visibility (replaces browser-default outlines). Scoped to
+   interactive elements so inputs/buttons that already style their own focus
+   ring (e.g. focus:ring) don't end up with a doubled outline. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Slow cinematic zoom on the active hero backdrop (Ken Burns). Duration is
+   tuned to roughly match the hero autoplay interval (7s) so the zoom completes
+   before the slide changes and never visibly snaps back on reactivation. */
+@keyframes kenburns {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.07); }
+}
+
+.kenburns {
+  animation: kenburns 7s ease-out forwards;
+  will-change: transform;
 }
 
 /* Modal animations */
@@ -345,6 +377,28 @@ iframe[src*="popup"],
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
+}
+
+/* Respect users who prefer reduced motion — freeze shimmer/animations */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .animate-loading-bar {
+    animation: none;
+  }
+  .floating-button {
+    animation: none;
+  }
+
+  /* Nuke motion on everything else (framer-motion is covered by MotionConfig) */
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Episode slider container */

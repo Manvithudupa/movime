@@ -4,8 +4,8 @@
   "description": "Movime - Streaming Platform",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b0013",
-  "theme_color": "#8A2BE2",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "orientation": "portrait",
   "icons": [
     {

@@ -19,6 +19,8 @@ import { useAuth } from '@/components/AuthProvider';
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
 import Navbar from '@/components/Navbar';
 import ShareButton from '@/components/ShareButton';
+import { SkeletonDetails } from '@/components/SkeletonDetails';
+import { SkeletonPageLayout } from '@/components/SkeletonPageLayout';
 
 function DetailsPageContent() {
   const searchParams = useSearchParams();
@@ -36,6 +38,7 @@ function DetailsPageContent() {
   const fetchWatchlist = useWatchlistStore((s) => s.fetch);
   const addItemToStore = useWatchlistStore((s) => s.add);
   const removeItemFromStore = useWatchlistStore((s) => s.remove);
+  const updateStatusInStore = useWatchlistStore((s) => s.updateStatus);
   const continueWatching = useContinueWatchingStore((s) => s.items);
   const fetchContinueWatching = useContinueWatchingStore((s) => s.fetch);
 
@@ -153,6 +156,35 @@ function DetailsPageContent() {
       } catch (error) {
         console.error('Error updating watchlist:', error);
         toggleWatchLaterLocal();
+      }
+    } else if (status) {
+      // Guest with an explicit status: add or update the item in the local
+      // store + localStorage instead of hitting the (auth-required) API.
+      const exists = watchLater.some((w: any) =>
+        w.content_id === itemId || w.id === itemId
+      );
+      if (exists) {
+        updateStatusInStore(itemId, status);
+        const saved = getLocalStorage<any[]>('watchLater', []);
+        setLocalStorage('watchLater',
+          saved.map((w: any) =>
+            w.id === itemId || w.content_id === itemId ? { ...w, status } : w
+          )
+        );
+      } else {
+        addItemToStore({
+          id: itemId,
+          content_id: itemId,
+          content_type: contentType as 'movie' | 'tv',
+          title: 'title' in content ? content.title : content.name,
+          poster_path: content.poster_path,
+          status,
+          added_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+        const saved = getLocalStorage<any[]>('watchLater', []);
+        saved.push({ id: itemId, type: contentType, title: 'title' in content ? content.title : content.name, poster: content.poster_path, status, addedAt: new Date().toISOString() });
+        setLocalStorage('watchLater', saved);
       }
     } else {
       toggleWatchLaterLocal();
@@ -308,20 +340,29 @@ function DetailsPageContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white">
-        <Navbar
-          currentView="details"
-          showSearch={false}
-          searchQuery={''}
-          watchLaterCount={watchLaterCount}
-          onViewChange={() => {}}
-          onSearchToggle={() => { router.push('/search'); }}
-          onSearchChange={() => {}}
-        />
-        <div className="pt-24 flex items-center justify-center min-h-screen">
-          <p className="text-gray-400 text-sm tracking-wide">Loading…</p>
+      <SkeletonPageLayout
+        currentView="details"
+        showSearch={false}
+        searchQuery={''}
+        watchLaterCount={watchLaterCount}
+        onViewChange={() => {}}
+        onSearchToggle={() => { router.push('/search'); }}
+        onSearchChange={() => {}}
+      >
+        {/* Back to Home Button — same fixed position as the loaded page */}
+        <div className="fixed top-16 sm:top-24 left-2 sm:left-4 z-50">
+          <Link
+            href="/"
+            className="flex items-center space-x-1.5 sm:space-x-2 bg-black/90 hover:bg-black backdrop-blur-sm text-white px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 border border-white/30 hover:border-white/50 shadow-2xl hover:shadow-3xl group"
+          >
+            <svg className="w-4 sm:w-5 h-4 sm:h-5 group-hover:-translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span className="font-medium text-xs sm:text-sm">Back to Home</span>
+          </Link>
         </div>
-      </div>
+        <SkeletonDetails />
+      </SkeletonPageLayout>
     );
   }
 
@@ -550,9 +591,9 @@ function DetailsPageContent() {
                       {Object.entries(statusLabels).map(([key, val]) => (
                         <button
                           key={key}
-                          onClick={async () => {
-                            try {
-                              const res = await fetch('/api/watchlist', {
+                          onClick={() => {
+                            if (isSignedIn) {
+                              fetch('/api/watchlist', {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -560,12 +601,24 @@ function DetailsPageContent() {
                                   content_type: contentType,
                                   status: key,
                                 }),
-                              });
-                              if (res.ok) {
-                                fetchWatchlist(!!isSignedIn);
-                              }
-                            } catch (error) {
-                              console.error('Failed to update status:', error);
+                              })
+                                .then((res) => {
+                                  if (res.ok) fetchWatchlist(true);
+                                })
+                                .catch((error) => {
+                                  console.error('Failed to update status:', error);
+                                });
+                            } else {
+                              // Guests: update local store + localStorage directly
+                              updateStatusInStore(content!.id, key);
+                              const saved = getLocalStorage<any[]>('watchLater', []);
+                              setLocalStorage('watchLater',
+                                saved.map((w: any) =>
+                                  w.id === content!.id || w.content_id === content!.id
+                                    ? { ...w, status: key }
+                                    : w
+                                )
+                              );
                             }
                             setShowStatusPicker(false);
                           }}

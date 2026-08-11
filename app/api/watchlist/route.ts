@@ -4,6 +4,41 @@ import { createClient } from '@/lib/supabase/server'
 const VALID_STATUSES = ['completed', 'watching', 'plan_to_watch', 'dropped'] as const
 type WatchStatus = typeof VALID_STATUSES[number]
 
+// Older deployments of schema.sql shipped without an UPDATE policy on
+// watch_later, which makes RLS silently block UPDATE statements (they match
+// 0 rows) and causes status changes to report "Item not found". This helper
+// rebuilds an existing row via DELETE + INSERT — both of which have RLS
+// policies — as a fallback, so status updates keep working until the UPDATE
+// policy is added to the database.
+async function rebuildWatchlistItem(
+  supabase: any,
+  existing: any,
+  overrides: { status: string; title?: string; poster_path?: string | null }
+) {
+  const { error: deleteError } = await supabase
+    .from('watch_later')
+    .delete()
+    .eq('id', existing.id)
+
+  if (deleteError) return { data: null, error: deleteError }
+
+  const { data, error } = await supabase
+    .from('watch_later')
+    .insert({
+      user_id: existing.user_id,
+      content_id: existing.content_id,
+      content_type: existing.content_type,
+      title: overrides.title !== undefined ? overrides.title : existing.title,
+      poster_path: overrides.poster_path !== undefined ? overrides.poster_path : existing.poster_path,
+      status: overrides.status,
+      added_at: existing.added_at,
+    })
+    .select()
+    .single()
+
+  return { data, error }
+}
+
 // GET /api/watchlist - Fetch user's watchlist
 export async function GET() {
   try {
@@ -113,14 +148,33 @@ export async function POST(request: NextRequest) {
         .select()
         .single()
 
+      // If the UPDATE was blocked (databases created before the watch_later
+      // RLS UPDATE policy was added), the UPDATE silently affects 0 rows and
+      // .single() reports PGRST116. Rebuild the row via DELETE + INSERT so
+      // the status change still works; any other error is returned as-is.
+      let item = updated
       if (error) {
-        console.error('Watchlist update error:', error)
-        return NextResponse.json({ error: `Failed to update status: ${error.message}` }, { status: 500 })
+        if (error.code === 'PGRST116') {
+          console.error('Watchlist update blocked, rebuilding row:', error)
+          const rebuilt = await rebuildWatchlistItem(supabase, existing, {
+            status: finalStatus,
+            title,
+            poster_path,
+          })
+          if (rebuilt.error) {
+            console.error('Watchlist update error:', error)
+            return NextResponse.json({ error: `Failed to update status: ${error.message}` }, { status: 500 })
+          }
+          item = rebuilt.data
+        } else {
+          console.error('Watchlist update error:', error)
+          return NextResponse.json({ error: `Failed to update status: ${error.message}` }, { status: 500 })
+        }
       }
 
       return NextResponse.json({ 
         added: true, 
-        item: updated, 
+        item, 
         statusChanged: true, 
         message: `Status updated to ${finalStatus}` 
       })
@@ -199,7 +253,33 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (!updated) {
-      return NextResponse.json({ error: 'Item not found in watchlist' }, { status: 404 })
+      // An UPDATE can silently match 0 rows when the database is missing the
+      // RLS UPDATE policy for watch_later. Verify the item actually exists
+      // before reporting "not found", and rebuild it if it does.
+      const { data: existing, error: checkError } = await supabase
+        .from('watch_later')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('content_id', numericContentId)
+        .eq('content_type', content_type)
+        .maybeSingle()
+
+      if (checkError) {
+        console.error('Watchlist status check error:', checkError)
+        return NextResponse.json({ error: `Failed to update status: ${checkError.message}` }, { status: 500 })
+      }
+
+      if (!existing) {
+        return NextResponse.json({ error: 'Item not found in watchlist' }, { status: 404 })
+      }
+
+      const rebuilt = await rebuildWatchlistItem(supabase, existing, { status })
+      if (rebuilt.error) {
+        console.error('Watchlist status rebuild error:', rebuilt.error)
+        return NextResponse.json({ error: `Failed to update status: ${rebuilt.error.message}` }, { status: 500 })
+      }
+
+      return NextResponse.json({ item: rebuilt.data, message: `Status updated to ${status}` })
     }
 
     return NextResponse.json({ item: updated, message: `Status updated to ${status}` })
