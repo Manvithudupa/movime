@@ -36,6 +36,7 @@ export default function WatchlistPage() {
   const updateStatusInStore = useWatchlistStore((s) => s.updateStatus)
   const [message, setMessage] = useState<string | null>(null)
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
+  const [dropdownUp, setDropdownUp] = useState(false)
 
   // Derive display items directly from store - stays in sync across all pages automatically
   const items: (typeof storeItems[number] & { _source: 'api' | 'local'; status: WatchStatus })[] = useMemo(() => 
@@ -117,6 +118,50 @@ export default function WatchlistPage() {
     }
     setTimeout(() => setMessage(null), 2500)
   }
+
+  const toggleStatusDropdown = (e: React.MouseEvent<HTMLButtonElement>, itemId: string) => {
+    e.preventDefault()
+    if (openDropdownId === itemId) {
+      setOpenDropdownId(null)
+      return
+    }
+    // Smart placement: open upward when there isn't enough room below the
+    // button in the current viewport, so the menu never gets cut off.
+    const rect = e.currentTarget.getBoundingClientRect()
+    const estHeight = 5 * 32 + 2 // 4 status rows + remove row (~32px each) + divider
+    // Reserve room for the fixed bottom nav on phones so the menu doesn't land behind it.
+    const bottomBuffer = window.innerWidth < 640 ? 76 : 12
+    const spaceBelow = window.innerHeight - rect.bottom - bottomBuffer
+    const spaceAbove = rect.top - 12
+    setDropdownUp(estHeight > spaceBelow && spaceAbove >= estHeight)
+    setOpenDropdownId(itemId)
+  }
+
+  // Close the status menu on outside click/tap, Escape, or scroll/resize.
+  useEffect(() => {
+    if (!openDropdownId) return
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement
+      if (target.closest('[data-status-menu]') || target.closest('[data-status-trigger]')) return
+      setOpenDropdownId(null)
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenDropdownId(null)
+    }
+    const closeOnScrollOrResize = () => setOpenDropdownId(null)
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('touchstart', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('scroll', closeOnScrollOrResize, true)
+    window.addEventListener('resize', closeOnScrollOrResize)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('touchstart', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('scroll', closeOnScrollOrResize, true)
+      window.removeEventListener('resize', closeOnScrollOrResize)
+    }
+  }, [openDropdownId])
 
   const filteredItems = filter === 'all' ? items : items.filter(i => i.status === filter)
   const statusCounts = {
@@ -292,7 +337,11 @@ export default function WatchlistPage() {
                 </Link>
 
                 {/* Hover actions - outside overflow-hidden so status dropdown is not clipped */}
-                <div className="absolute inset-0 flex flex-col justify-end p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                <div className={`absolute inset-0 flex flex-col justify-end p-3 transition-opacity pointer-events-none z-10 ${
+                  openDropdownId === String(item.id)
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover:opacity-100'
+                }`}>
                   <div className="flex flex-col gap-1.5 pointer-events-auto">
                     <Link
                       href={`/watch?id=${item.content_id}&type=${item.content_type}`}
@@ -305,11 +354,9 @@ export default function WatchlistPage() {
                     </Link>
                     <div className="relative">
                       <button
-                        onClick={(e) => {
-                          e.preventDefault()
-                          setOpenDropdownId(openDropdownId === String(item.id) ? null : String(item.id))
-                        }}
-                        onBlur={() => setTimeout(() => setOpenDropdownId(null), 200)}
+                        data-status-trigger
+                        onClick={(e) => toggleStatusDropdown(e, String(item.id))}
+                        aria-expanded={openDropdownId === String(item.id)}
                         className="w-full px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-xs rounded-md hover:bg-white/30 transition-colors border border-white/20 flex items-center justify-center gap-1"
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -317,50 +364,58 @@ export default function WatchlistPage() {
                         </svg>
                         Status
                       </button>
-                      {openDropdownId === String(item.id) && (
-                        <div className="absolute bottom-full left-0 right-0 mb-1 z-50">
-                          <div className="bg-black border border-white/10 rounded-lg overflow-hidden shadow-2xl">
-                            {STATUS_OPTIONS.map(opt => (
+                      <AnimatePresence>
+                        {openDropdownId === String(item.id) && (
+                          <motion.div
+                            data-status-menu
+                            initial={{ opacity: 0, scale: 0.95, y: dropdownUp ? 4 : -4 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: dropdownUp ? 4 : -4 }}
+                            transition={{ duration: 0.15, ease: 'easeOut' }}
+                            style={{ transformOrigin: dropdownUp ? '50% 100%' : '50% 0%' }}
+                            className={`absolute left-0 right-0 z-50 ${dropdownUp ? 'bottom-full mb-1' : 'top-full mt-1'}`}
+                          >
+                            <div className="bg-black border border-white/10 rounded-lg overflow-hidden shadow-2xl">
+                              {STATUS_OPTIONS.map(opt => (
+                                <button
+                                  key={opt.value}
+                                  onClick={() => {
+                                    updateStatus(item, opt.value)
+                                    setOpenDropdownId(null)
+                                  }}
+                                  className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2 ${
+                                    item.status === opt.value
+                                      ? 'bg-white/20 text-white'
+                                      : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                                  }`}
+                                >
+                                  <span>{opt.icon}</span>
+                                  <span>{opt.label}</span>
+                                  {item.status === opt.value && (
+                                    <svg className="w-3 h-3 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  )}
+                                </button>
+                              ))}
+                              {/* Divider */}
+                              <div className="border-t border-white/10" />
                               <button
-                                key={opt.value}
-                                onMouseDown={(e) => {
-                                  e.preventDefault()
-                                  updateStatus(item, opt.value)
+                                onClick={() => {
+                                  removeItem(item)
                                   setOpenDropdownId(null)
                                 }}
-                                className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2 ${
-                                  item.status === opt.value
-                                    ? 'bg-white/20 text-white'
-                                    : 'text-gray-300 hover:bg-white/10 hover:text-white'
-                                }`}
+                                className="w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2 text-red-400 hover:bg-white/10 hover:text-red-300"
                               >
-                                <span>{opt.icon}</span>
-                                <span>{opt.label}</span>
-                                {item.status === opt.value && (
-                                  <svg className="w-3 h-3 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                )}
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Remove
                               </button>
-                            ))}
-                            {/* Divider */}
-                            <div className="border-t border-white/10" />
-                            <button
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                removeItem(item)
-                                setOpenDropdownId(null)
-                              }}
-                              className="w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2 text-red-400 hover:bg-white/10 hover:text-red-300"
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                              Remove
-                            </button>
-                          </div>
-                        </div>
-                      )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                     <button
                       onClick={(e) => {

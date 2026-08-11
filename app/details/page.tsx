@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, Suspense, useCallback } from 'react';
+import React, { useState, useEffect, Suspense, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   fetchContentDetails, 
   fetchSeasonDetails, 
@@ -31,6 +32,9 @@ function DetailsPageContent() {
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
   const [seasonData, setSeasonData] = useState<Season | null>(null);
   const [showStatusPicker, setShowStatusPicker] = useState(false);
+  const [openUp, setOpenUp] = useState(false);
+  const statusTriggerRef = useRef<HTMLButtonElement>(null);
+  const statusMenuRef = useRef<HTMLDivElement>(null);
   const [isTrailerMuted, setIsTrailerMuted] = useState(true);
 
   const watchLater = useWatchlistStore((s) => s.items);
@@ -220,6 +224,56 @@ function DetailsPageContent() {
       setLocalStorage('watchLater', saved);
     }
   };
+
+  const toggleStatusPicker = () => {
+    if (showStatusPicker) {
+      setShowStatusPicker(false);
+      return;
+    }
+    // Smart placement: open upward when there isn't enough room below the
+    // trigger in the current viewport, so the menu never gets cut off.
+    const btn = statusTriggerRef.current;
+    if (btn) {
+      const rect = btn.getBoundingClientRect();
+      const rows = 4 + (isInWatchLater() ? 1 : 0); // status rows + optional "Remove" row
+      const estHeight = rows * 44 + 2; // ~44px per row (py-3 + text-sm) + border
+      // Reserve room for the fixed bottom nav on phones so the menu doesn't land behind it.
+      const bottomBuffer = window.innerWidth < 640 ? 76 : 16;
+      const spaceBelow = window.innerHeight - rect.bottom - bottomBuffer;
+      const spaceAbove = rect.top - 16;
+      setOpenUp(estHeight > spaceBelow && spaceAbove >= estHeight);
+    }
+    setShowStatusPicker(true);
+  };
+
+  // Close the status menu when clicking/tapping outside, pressing Escape, or
+  // scrolling/resizing (the menu would otherwise become detached from the button).
+  useEffect(() => {
+    if (!showStatusPicker) return;
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (statusMenuRef.current?.contains(target) || statusTriggerRef.current?.contains(target)) {
+        return;
+      }
+      setShowStatusPicker(false);
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowStatusPicker(false);
+    };
+    const closeOnScrollOrResize = () => setShowStatusPicker(false);
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('scroll', closeOnScrollOrResize, true);
+    window.addEventListener('resize', closeOnScrollOrResize);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('scroll', closeOnScrollOrResize, true);
+      window.removeEventListener('resize', closeOnScrollOrResize);
+    };
+  }, [showStatusPicker]);
 
   const isInWatchLater = () => {
     if (!content) return false;
@@ -561,98 +615,107 @@ function DetailsPageContent() {
                 </button>
                 <div className="relative">
                   <button
-                    onClick={() => setShowStatusPicker(!showStatusPicker)}
+                    ref={statusTriggerRef}
+                    onClick={toggleStatusPicker}
+                    aria-expanded={showStatusPicker}
+                    aria-controls="watchlist-status-menu"
                     className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 rounded-sm font-semibold text-xs sm:text-sm tracking-wide transition-all border border-white/20 hover:border-white/40"
                   >
                     <svg className={`w-4 sm:w-5 h-4 sm:h-5 ${isInWatchLater() ? 'fill-current' : ''}`} fill={isInWatchLater() ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
                     {isInWatchLater() ? `${statusLabels[getCurrentStatus()]?.label || 'MY LIST'} ✓` : '+ MY LIST'}
                   </button>
 
-                  {showStatusPicker && !isInWatchLater() && (
-                    <div className="absolute top-full left-0 mt-2 w-48 bg-black border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
-                      {Object.entries(statusLabels).map(([key, val]) => (
-                        <button
-                          key={key}
-                          onClick={() => {
-                            addToWatchLater(key);
-                            setShowStatusPicker(false);
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-200 hover:bg-white/10 hover:text-white transition-colors text-left"
-                        >
-                          <span className={`w-2 h-2 rounded-full ${val.color}`}></span>
-                          {val.icon} {val.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {showStatusPicker && isInWatchLater() && (
-                    <div className="absolute top-full left-0 mt-2 w-48 bg-black border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
-                      {Object.entries(statusLabels).map(([key, val]) => (
-                        <button
-                          key={key}
-                          onClick={() => {
-                            if (isSignedIn) {
-                              fetch('/api/watchlist', {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                  content_id: content?.id,
-                                  content_type: contentType,
-                                  status: key,
-                                }),
-                              })
-                                .then((res) => {
-                                  if (res.ok) fetchWatchlist(true);
-                                })
-                                .catch((error) => {
-                                  console.error('Failed to update status:', error);
-                                });
-                            } else {
-                              // Guests: update local store + localStorage directly
-                              updateStatusInStore(content!.id, key);
-                              const saved = getLocalStorage<any[]>('watchLater', []);
-                              setLocalStorage('watchLater',
-                                saved.map((w: any) =>
-                                  w.id === content!.id || w.content_id === content!.id
-                                    ? { ...w, status: key }
-                                    : w
-                                )
-                              );
-                            }
-                            setShowStatusPicker(false);
-                          }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors text-left ${
-                            getCurrentStatus() === key
-                              ? 'bg-white/10 text-white'
-                              : 'text-gray-200 hover:bg-white/10 hover:text-white'
-                          }`}
-                        >
-                          <span className={`w-2 h-2 rounded-full ${val.color}`}></span>
-                          {val.icon} {val.label}
-                          {getCurrentStatus() === key && (
-                            <svg className="w-4 h-4 ml-auto text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </button>
-                      ))}
-                      <div className="border-t border-white/10">
-                        <button
-                          onClick={() => {
-                            addToWatchLater();
-                            setShowStatusPicker(false);
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors text-left"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          Remove from List
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  <AnimatePresence>
+                    {showStatusPicker && (
+                      <motion.div
+                        id="watchlist-status-menu"
+                        ref={statusMenuRef}
+                        initial={{ opacity: 0, scale: 0.95, y: openUp ? 6 : -6 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: openUp ? 6 : -6 }}
+                        transition={{ duration: 0.16, ease: 'easeOut' }}
+                        style={{ transformOrigin: openUp ? '50% 100%' : '50% 0%' }}
+                        className={`absolute left-0 w-48 bg-black border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden ${
+                          openUp ? 'bottom-full mb-2' : 'top-full mt-2'
+                        }`}
+                      >
+                        {Object.entries(statusLabels).map(([key, val]) => {
+                          const isCurrent = isInWatchLater() && getCurrentStatus() === key;
+                          return (
+                            <button
+                              key={key}
+                              onClick={() => {
+                                if (isInWatchLater()) {
+                                  if (isSignedIn) {
+                                    fetch('/api/watchlist', {
+                                      method: 'PATCH',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({
+                                        content_id: content?.id,
+                                        content_type: contentType,
+                                        status: key,
+                                      }),
+                                    })
+                                      .then((res) => {
+                                        if (res.ok) fetchWatchlist(true);
+                                      })
+                                      .catch((error) => {
+                                        console.error('Failed to update status:', error);
+                                      });
+                                  } else {
+                                    // Guests: update local store + localStorage directly
+                                    updateStatusInStore(content!.id, key);
+                                    const saved = getLocalStorage<any[]>('watchLater', []);
+                                    setLocalStorage('watchLater',
+                                      saved.map((w: any) =>
+                                        w.id === content!.id || w.content_id === content!.id
+                                          ? { ...w, status: key }
+                                          : w
+                                      )
+                                    );
+                                  }
+                                } else {
+                                  addToWatchLater(key);
+                                }
+                                setShowStatusPicker(false);
+                                statusTriggerRef.current?.focus();
+                              }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors text-left ${
+                                isCurrent
+                                  ? 'bg-white/10 text-white'
+                                  : 'text-gray-200 hover:bg-white/10 hover:text-white'
+                              }`}
+                            >
+                              <span className={`w-2 h-2 rounded-full ${val.color}`}></span>
+                              {val.icon} {val.label}
+                              {isCurrent && (
+                                <svg className="w-4 h-4 ml-auto text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </button>
+                          );
+                        })}
+                        {isInWatchLater() && (
+                          <div className="border-t border-white/10">
+                            <button
+                              onClick={() => {
+                                addToWatchLater();
+                                setShowStatusPicker(false);
+                                statusTriggerRef.current?.focus();
+                              }}
+                              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors text-left"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              Remove from List
+                            </button>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
                 
                 {/* Share button */}
