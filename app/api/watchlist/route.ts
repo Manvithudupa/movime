@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
 
 const VALID_STATUSES = ['completed', 'watching', 'plan_to_watch', 'dropped'] as const
 type WatchStatus = typeof VALID_STATUSES[number]
@@ -70,6 +71,9 @@ export async function GET() {
 // POST /api/watchlist - Add item to watchlist (or toggle if exists)
 export async function POST(request: NextRequest) {
   try {
+    const limited = rateLimit(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
+    if (!limited.success) return rateLimitResponse(limited)
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -219,6 +223,9 @@ export async function POST(request: NextRequest) {
 // PATCH /api/watchlist - Update item status
 export async function PATCH(request: NextRequest) {
   try {
+    const limited = rateLimit(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
+    if (!limited.success) return rateLimitResponse(limited)
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -292,6 +299,9 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/watchlist - Remove item from watchlist
 export async function DELETE(request: NextRequest) {
   try {
+    const limited = rateLimit(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
+    if (!limited.success) return rateLimitResponse(limited)
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 

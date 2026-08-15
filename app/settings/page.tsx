@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { availableSources } from '@/lib/sources';
-import { getLocalStorage, setLocalStorage } from '@/lib/utils';
+import { setLocalStorage } from '@/lib/utils';
+import { fetchSettings, saveSettings, type UserSettings } from '@/lib/settings';
 import { useAuth } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
 import { SkeletonSettings } from '@/components/SkeletonSettings';
@@ -24,32 +26,31 @@ export default function SettingsPage() {
   const watchLaterCount = useWatchlistStore((s) => s.count);
   const fetchWatchlist = useWatchlistStore((s) => s.fetch);
 
-  useEffect(() => {
-    loadSettings();
-    fetchWatchlist(!!isSignedIn);
-  }, [isSignedIn, fetchWatchlist]);
-
-  const loadSettings = () => {
+  const applySettings = (settings: UserSettings) => {
     // Ignore a saved preferred source that no longer exists (e.g. it was
     // removed because the provider went offline).
-    const savedSource = getLocalStorage('preferredSource', availableSources[0]?.id || '');
     setPreferredSource(
-      availableSources.some((s) => s.id === savedSource)
-        ? savedSource
+      availableSources.some((s) => s.id === settings.preferredSource)
+        ? settings.preferredSource
         : availableSources[0]?.id || ''
     );
-    setDefaultQuality(getLocalStorage('defaultQuality', '720p'));
-    setAutoPlay(getLocalStorage('autoPlay', true));
-    setLoading(false);
+    setDefaultQuality(settings.defaultQuality);
+    setAutoPlay(settings.autoPlay);
   };
 
+  useEffect(() => {
+    fetchWatchlist(!!isSignedIn);
+    // Load settings — the server copy (synced across devices) wins when signed
+    // in, otherwise localStorage.
+    fetchSettings(!!isSignedIn).then((settings) => {
+      applySettings(settings);
+      setLoading(false);
+    });
+  }, [isSignedIn, fetchWatchlist]);
 
-
-  const saveSettings = () => {
-    setLocalStorage('preferredSource', preferredSource);
-    setLocalStorage('defaultQuality', defaultQuality);
-    setLocalStorage('autoPlay', autoPlay);
-    alert('Settings saved successfully!');
+  const handleSaveSettings = async () => {
+    await saveSettings({ preferredSource, defaultQuality, autoPlay }, !!isSignedIn);
+    toast.success('Settings saved successfully!');
   };
 
   const clearWatchLater = async () => {
@@ -79,8 +80,9 @@ export default function SettingsPage() {
       // instead of lingering until the next page reload.
       useWatchlistStore.getState().clear();
       useContinueWatchingStore.getState().clear();
-      loadSettings();
-      alert('All data cleared successfully!');
+      // Reload from the server if signed in, else reset to defaults.
+      fetchSettings(!!isSignedIn).then(applySettings);
+      toast.success('All data cleared successfully!');
     }
   };
 
@@ -177,7 +179,7 @@ export default function SettingsPage() {
                     <option value="auto">Auto (Recommended)</option>
                   </select>
                   <p className="text-sm text-gray-400 mt-1">
-                    Preferred video quality when available
+                    Preferred quality — applied as a hint to embed sources that support it. Most embeds choose quality automatically.
                   </p>
                 </div>
 
@@ -198,7 +200,7 @@ export default function SettingsPage() {
               </div>
 
               <button
-                onClick={saveSettings}
+                onClick={handleSaveSettings}
                 className="w-full mt-6 px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-gray-100 transition-colors"
               >
                 Save Settings

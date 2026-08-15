@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getResendClient } from '@/lib/resend'
+import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
 
 const escapeHtml = (value: string) =>
   value.replace(/[&<>"']/g, (char) => ({
@@ -13,6 +14,10 @@ const escapeHtml = (value: string) =>
 // POST /api/contact - Send a contact form submission via Resend
 export async function POST(request: NextRequest) {
   try {
+    // Each email costs money (Resend quota) — keep the form heavily rate limited.
+    const limited = rateLimit(request, { limit: 5, windowMs: 10 * 60 * 1000, keyPrefix: 'contact' })
+    if (!limited.success) return rateLimitResponse(limited)
+
     const { name, email, subject, message, type } = await request.json()
 
     if (!name || !email || !subject || !message) {

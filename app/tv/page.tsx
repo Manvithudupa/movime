@@ -9,6 +9,7 @@ function TVShowsPageContent() {
       category="tv"
       title="📺 Popular TV Shows"
       subtitle="Binge-worthy series and shows"
+      showGenreChips
     />
   );
 }

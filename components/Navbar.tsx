@@ -190,6 +190,23 @@ export default function Navbar({
                   />
                 </span>
               </Link>
+              <Link
+                href="/genres"
+                className={`relative text-sm font-medium tracking-wide transition-colors duration-150 group ${
+                  currentView === 'genres' ? 'text-white' : 'text-white/70 hover:text-white'
+                }`}
+              >
+                <span className="relative inline-block">
+                  Genres
+                  <motion.span
+                    className="absolute left-0 right-0 -bottom-1 h-[2px] rounded-full origin-center bg-white/70"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: currentView === 'genres' ? 1 : 0 }}
+                    whileHover={{ scaleX: 1 }}
+                    transition={{ duration: 0.15 }}
+                  />
+                </span>
+              </Link>
             </nav>
           </div>
 
@@ -422,6 +439,28 @@ export default function Navbar({
                           {watchLaterCount}
                         </span>
                       )}
+                    </Link>
+                  </motion.div>
+
+                  {/* Genres Link */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.15, delay: 0.24 }}
+                  >
+                    <Link
+                      href="/genres"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-4 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                        currentView === 'genres'
+                          ? 'bg-white/10 text-white shadow-sm'
+                          : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                      }`}
+                    >
+                      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                      <span>Genres</span>
                     </Link>
                   </motion.div>
                 </nav>

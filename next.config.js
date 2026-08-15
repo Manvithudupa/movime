@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const { withSentryConfig } = require('@sentry/nextjs')
+
 const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
@@ -68,4 +70,10 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig;
+module.exports = withSentryConfig(nextConfig, {
+  // Source map uploads require a SENTRY_AUTH_TOKEN; keep them disabled so the
+  // build works even before a token is configured. Error capture still works.
+  sourcemaps: { disable: true },
+  silent: true,
+  telemetry: false,
+})

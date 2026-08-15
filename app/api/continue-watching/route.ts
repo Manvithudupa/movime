@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
 
 // GET /api/continue-watching - Fetch user's continue watching items
 export async function GET() {
@@ -33,6 +34,10 @@ export async function GET() {
 // POST /api/continue-watching - Upsert a continue watching entry
 export async function POST(request: NextRequest) {
   try {
+    // Progress saves happen every ~15s while watching — allow a comfortable margin.
+    const limited = rateLimit(request, { limit: 60, windowMs: 60 * 1000, keyPrefix: 'continue-watching' })
+    if (!limited.success) return rateLimitResponse(limited)
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -173,6 +178,9 @@ export async function POST(request: NextRequest) {
 // DELETE /api/continue-watching - Remove a continue watching entry
 export async function DELETE(request: NextRequest) {
   try {
+    const limited = rateLimit(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'continue-watching' })
+    if (!limited.success) return rateLimitResponse(limited)
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 

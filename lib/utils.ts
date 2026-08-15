@@ -269,6 +269,22 @@ export const fetchAnimeContent = async (page = 1) => {
   });
 };
 
+export const fetchByGenre = async (type: 'movie' | 'tv', genreId: number | string, page = 1) => {
+  const cacheKey = serializeCacheKey(['fetchByGenre', type, genreId, page]);
+
+  return cachedApiRequest(cacheKey, async () => {
+    try {
+      const response = await fetch(
+        `${TMDB_BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_genres=${genreId}&sort_by=popularity.desc`
+      );
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching genre content:', error);
+      return { results: [] };
+    }
+  });
+};
+
 export const searchContent = async (query: string, type = 'multi') => {
   const cacheKey = serializeCacheKey(['searchContent', query, type]);
 
@@ -665,7 +681,7 @@ export const formatRuntime = (minutes: number) => {
   return `${hours}h ${mins}m`;
 };
 
-export const getVideoUrl = (sourceId: string, contentId: string, type: 'movie' | 'tv', season?: number, episode?: number) => {
+export const getVideoUrl = (sourceId: string, contentId: string, type: 'movie' | 'tv', season?: number, episode?: number, quality?: string) => {
   const source = availableSources.find((s: any) => s.id === sourceId);
   
   if (!source) return '';
@@ -680,6 +696,15 @@ export const getVideoUrl = (sourceId: string, contentId: string, type: 'movie' |
     const episodeValue = typeof episode === 'number' && !Number.isNaN(episode) ? episode.toString() : '1';
     url = url.replace('{season}', seasonValue);
     url = url.replace('{episode}', episodeValue);
+  }
+  
+  // Quality hint from the user's Settings. Only appended to embed URLs that
+  // already carry a query string — those providers demonstrably tolerate extra
+  // params — while bare-path embeds are left untouched so the setting can never
+  // produce a broken embed URL.
+  if (quality && quality !== 'auto' && url.includes('?')) {
+    const separator = url.includes('?') ? '&' : '?';
+    url = `${url}${separator}quality=${encodeURIComponent(quality)}`;
   }
   
   return url;

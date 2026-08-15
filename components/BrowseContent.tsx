@@ -1,18 +1,21 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
   fetchMovies,
   fetchTVShows,
   fetchAnimeContent,
+  fetchByGenre,
+  fetchGenres,
   getLocalStorage,
   setLocalStorage,
   blockedMovieIds,
   filterAdultContent
 } from '@/lib/utils';
-import type { ContentItem } from '@/lib/types';
+import type { ContentItem, Genre } from '@/lib/types';
 import { useAuth } from '@/components/AuthProvider';
 import { useWatchlistStore } from '@/lib/store';
 import Navbar from '@/components/Navbar';
@@ -29,6 +32,12 @@ interface BrowseContentProps {
   title: string;
   subtitle?: string;
   showAnimeHero?: boolean;
+  /** When set, browses a specific TMDB genre instead of the category default. */
+  genreId?: number;
+  /** Media type to use with genreId (movies vs TV shows). */
+  genreType?: 'movie' | 'tv';
+  /** Shows a row of genre chips (links to the dedicated genre pages). */
+  showGenreChips?: boolean;
 }
 
 const CATEGORY_CONFIG: Record<BrowseCategory, {
@@ -44,7 +53,10 @@ export default function BrowseContent({
   category,
   title,
   subtitle,
-  showAnimeHero = false
+  showAnimeHero = false,
+  genreId,
+  genreType,
+  showGenreChips = false
 }: BrowseContentProps) {
   const router = useRouter();
   const { isSignedIn } = useAuth();
@@ -52,6 +64,7 @@ export default function BrowseContent({
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [genres, setGenres] = useState<Genre[]>([]);
   const isLoadingMoreRef = useRef(false);
 
   const watchLater = useWatchlistStore((s) => s.items);
@@ -59,7 +72,38 @@ export default function BrowseContent({
   const addItemToStore = useWatchlistStore((s) => s.add);
   const removeItemFromStore = useWatchlistStore((s) => s.remove);
 
-  const config = CATEGORY_CONFIG[category];
+  // Genre browsing mode: a specific TMDB genre with an explicit media type.
+  const isGenreBrowse = genreId !== undefined && genreType !== undefined;
+
+  const config = useMemo(() => {
+    if (isGenreBrowse) {
+      return {
+        fetch: (page: number) => fetchByGenre(genreType!, genreId!, page),
+        filterBlocked: genreType === 'movie',
+      };
+    }
+    return CATEGORY_CONFIG[category];
+  }, [isGenreBrowse, genreType, genreId, category]);
+
+  // Genre list for the chip row (used by both the genre pages and the
+  // Movies/TV pages' quick genre filter).
+  const genreFetchType = isGenreBrowse ? genreType : (category === 'movies' ? 'movie' : 'tv');
+
+  useEffect(() => {
+    if (!showGenreChips && !isGenreBrowse) return;
+    let cancelled = false;
+    fetchGenres(genreFetchType as 'movie' | 'tv').then((data) => {
+      if (!cancelled && data?.genres) setGenres(data.genres);
+    });
+    return () => { cancelled = true; };
+  }, [showGenreChips, isGenreBrowse, genreFetchType]);
+
+  // Title for genre browsing, e.g. "Action Movies". Falls back gracefully
+  // until the genre list loads.
+  const genreName = genres.find((g) => g.id === genreId)?.name || '';
+  const displayTitle = isGenreBrowse
+    ? `${genreName || 'Genre'} ${genreType === 'tv' ? 'TV Shows' : 'Movies'}`
+    : title;
 
   const filterResults = useCallback((results: any[] = []) => {
     const filtered = config.filterBlocked
@@ -90,10 +134,10 @@ export default function BrowseContent({
     };
   }, [category, isSignedIn, fetchWatchlist, config, filterResults]);
 
-  // Scroll to top when switching between pages
+  // Scroll to top when switching between pages or genres
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [category]);
+  }, [category, genreId]);
 
   const loadMore = async () => {
     if (loading || loadingMore || isLoadingMoreRef.current) return;
@@ -260,11 +304,53 @@ export default function BrowseContent({
         <div className="px-4 sm:px-6 lg:px-8">
           {/* Section title */}
           <div className="mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white">{title}</h2>
-            {subtitle && (
+            <h2 className="text-2xl sm:text-3xl font-bold text-white">{displayTitle}</h2>
+            {subtitle && !isGenreBrowse && (
               <p className="text-gray-300 text-sm mt-1">{subtitle}</p>
             )}
           </div>
+
+          {/* Movies / TV toggle — genre browsing only */}
+          {isGenreBrowse && (
+            <div className="flex items-center gap-2 mb-6">
+              {(['movie', 'tv'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => router.push(`/genre/${genreId}?type=${t}`)}
+                  aria-pressed={genreType === t}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                    genreType === t
+                      ? 'bg-white text-black border-white'
+                      : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  {t === 'movie' ? '🎬 Movies' : '📺 TV Shows'}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Genre chips — links to the dedicated genre pages */}
+          {genres.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {genres.map((g) => {
+                const active = isGenreBrowse && g.id === genreId;
+                return (
+                  <Link
+                    key={g.id}
+                    href={`/genre/${g.id}?type=${genreFetchType}`}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      active
+                        ? 'bg-white text-black border-white'
+                        : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    {g.name}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
 
           {loading ? (
             // The real layout here is a responsive grid of ContentCards (5/7 ratio),

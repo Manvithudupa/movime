@@ -161,19 +161,10 @@ export default function AnnouncementPopup() {
                     </p>
                   </div>
 
-                  {/* Apology message */}
-                  <div className="bg-white/[0.02] rounded-xl p-5 border border-white/[0.04]">
-                    <p className="text-gray-400 text-center text-sm leading-relaxed">
-                      We sincerely apologize. Due to a database migration, we had to clear all
-                      previous user data. We understand this is inconvenient, and we are truly sorry
-                      for the disruption.
-                    </p>
-                  </div>
-
                   {/* CTA section */}
                   <div className="text-center space-y-3">
                     <p className="text-gray-200 font-medium">
-                      We encourage you to register and create a new account.
+                      Create a free account to sync your watchlist across devices.
                     </p>
                     <p className="text-gray-500 text-sm">
                       Many more exciting features are on the way.

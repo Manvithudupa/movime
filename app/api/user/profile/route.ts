@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
 
 export async function GET() {
   try {
@@ -38,6 +39,9 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
+    const limited = rateLimit(request, { limit: 20, windowMs: 60 * 1000, keyPrefix: 'profile' })
+    if (!limited.success) return rateLimitResponse(limited)
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 

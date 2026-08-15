@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/Supabase-FF6600?style=flat-square&logo=supabase" alt="Supabase" />
   <img src="https://img.shields.io/badge/PWA-ready-5A0FC8?style=flat-square&logo=pwa" alt="PWA" />
   <img src="https://img.shields.io/badge/license-educational-lightgrey?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/github/actions/workflow/status/Manvith911/movime/ci.yml?branch=main&style=flat-square&label=CI" alt="CI" />
 </p>
 
 ---
@@ -31,12 +32,14 @@
 - **🏠 Anime Hero Banner** — Dedicated anime hero carousel with trailers, genre chips, and watchlist controls
 - **🔍 Smart Search** — Full-text search with relevance scoring, live autocomplete, recent searches, trending suggestions, sorting (popularity/rating/year/title), and adult content filtering
 - **🔖 Watch Later** — Save content with status tracking (Watching, Completed, Plan to Watch, Dropped), synced across devices via Supabase
+- **⚙️ Cross-Device Settings** — Preferred source, default quality, and auto-play preferences sync across devices via Supabase (guests still use localStorage)
 - **⏯️ Continue Watching** — Auto-resume playback from where you left off with progress persistence
 - **👤 User Accounts** — Supabase-powered authentication with profile management (avatar, bio, anime character picker)
 - **📱 Progressive Web App** — Installable on mobile and desktop with offline service worker
 - **🔄 Source Fallback** — Automatic source switching if a provider fails
 - **🔞 Content Filtering** — Adult content and blocked content filtering for a safe experience
 - **📈 Trending & Categories** — Dedicated Movies, TV Shows, and Anime pages plus Hollywood, Bollywood, Netflix Originals, and Amazon Prime sections
+- **🏷️ Genre Browsing** — Dedicated genre pages (`/genre/[id]?type=movie|tv`) with a Movies/TV toggle and genre chips, plus a `/genres` index and quick genre chips on the Movies and TV pages
 - **📧 Contact Form** — Server-side email delivery via Resend
 - **♿ Accessibility** — Respects `prefers-reduced-motion` (CSS + Framer Motion), global keyboard `:focus-visible` rings, and screen-reader-friendly loading indicators
 - **✨ Polished Animations** — Cinematic Ken Burns zoom on the hero carousel, GPU-friendly card hovers, hover scroll arrows on content rows, and a non-flashing route loading bar
@@ -53,6 +56,8 @@
 | `/movies` | Dedicated Movies page with infinite scroll |
 | `/tv` | Dedicated TV Shows page with infinite scroll |
 | `/anime` | Dedicated Anime page with anime hero banner and infinite scroll |
+| `/genre/[genreId]` | Genre page (e.g. `/genre/28?type=movie`) with Movies/TV toggle, genre chips, and infinite scroll |
+| `/genres` | Browse-by-genre index linking to every movie and TV genre page |
 | `/details?id=&type=` | Content detail page with poster, info, watchlist management, season/episode browser, recommendations |
 | `/watch?id=&type=` | Watch page with iframe-based video player and source selector sidebar |
 | `/search` | Dedicated search page with sorting (relevance, popularity, rating, year, title) |
@@ -84,6 +89,7 @@
 | `/api/watchlist` | DELETE | Remove item from watchlist |
 | `/api/continue-watching` | GET/POST/DELETE | Fetch, upsert, or remove continue-watching progress |
 | `/api/user/profile` | GET/PUT | Fetch or update user profile |
+| `/api/user/settings` | GET/PUT | Fetch or save cross-device playback settings (preferred source, quality, auto-play) |
 | `/api/anilist/character?q=` | GET | Search AniList anime characters |
 | `/api/contact` | POST | Send contact form submissions via Resend |
 
@@ -102,6 +108,8 @@
 | **TMDB API** | Movie/TV/anime metadata, images, recommendations |
 | **AniList API** | Anime character search, season breakdown, episode mapping |
 | **Resend** | Transactional email for the contact form |
+| **Sentry** | Error monitoring (client + server) — optional, enabled via `NEXT_PUBLIC_SENTRY_DSN` |
+| **Vitest** | Unit tests for lib logic, stores, and rate limiting |
 | **sonner** | Toast notifications |
 | **next-pwa** | Progressive Web App support |
 | **Vercel Analytics** | Usage analytics and speed insights |
@@ -168,7 +176,7 @@ flowchart LR
 
 ### Prerequisites
 
-- Node.js 18+ and npm/bun
+- Node.js 24 (LTS) or newer and npm/bun (the test suite's jsdom 30 requires Node 22.22+ or 24.15+)
 - Supabase project (for authentication and database)
 - TMDB API key ([get one free](https://www.themoviedb.org/settings/api))
 - Resend API key for the contact form ([get one free](https://resend.com/api-keys))
@@ -209,6 +217,9 @@ RESEND_EMAIL_FROM=Movime <onboarding@resend.dev>
 
 # Optional: image proxy for privacy/caching of TMDB images
 NEXT_PUBLIC_IMAGE_PROXY=https://images.weserv.nl/?url=
+
+# Optional: Sentry error monitoring (skip to disable)
+NEXT_PUBLIC_SENTRY_DSN=https://example@sentry.example/1
 ```
 
 ### Supabase Setup
@@ -216,8 +227,9 @@ NEXT_PUBLIC_IMAGE_PROXY=https://images.weserv.nl/?url=
 1. Create a Supabase project at [supabase.com](https://supabase.com)
 2. Run the SQL schema from `lib/supabase/schema.sql` (profiles, watch_later) in the Supabase SQL Editor
 3. Run `lib/supabase/continue_watching.sql` for the continue-watching table
-4. Enable email/password auth in Authentication → Providers
-5. Copy your project URL and anon key to `.env.local`
+4. Run `lib/supabase/user_settings.sql` for cross-device settings sync
+5. Enable email/password auth in Authentication → Providers
+6. Copy your project URL and anon key to `.env.local`
 
 ### Development
 
@@ -225,6 +237,28 @@ NEXT_PUBLIC_IMAGE_PROXY=https://images.weserv.nl/?url=
 # Start dev server
 npm run dev
 ```
+
+### Testing
+
+```bash
+# Typecheck (strict TypeScript)
+npm run typecheck
+
+# Lint
+npm run lint
+
+# Run the unit test suite once
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# E2E smoke test (mocked TMDB fixtures; requires the server running)
+npm run build
+npm run test:e2e
+```
+
+Every push and pull request is also checked automatically by the GitHub Actions workflow in `.github/workflows/ci.yml` — typecheck, lint, unit tests, production build, and the e2e smoke test.
 
 ### Build for Production
 

@@ -9,35 +9,47 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import Script from 'next/script'
 import AnnouncementPopup from '@/components/AnnouncementPopup'
 
+const SITE_URL = 'https://movime.vercel.app'
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://movime.vercel.app'),
-  title: 'Movime',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'Movime - Watch Movies, TV Shows & Anime Free',
+    template: '%s',
+  },
   description:
     'Click, watch, enjoy. Movime breaks down the paywall, ensuring that quality content is accessible to everyone.',
   keywords:
     'free movies, free streaming, watch movies online, free tv shows, streaming service, watch movies free, online streaming, movime stream, free movies online, free series online',
+  applicationName: 'Movime',
   openGraph: {
-    title: 'Movime - Watch Movies & TV Shows',
+    type: 'website',
+    siteName: 'Movime',
+    title: 'Movime - Watch Movies, TV Shows & Anime Free',
     description:
       'Click, watch, enjoy. Movime breaks down the paywall, ensuring that quality content is accessible to everyone.',
-    url: 'https://movime.vercel.app',
+    url: SITE_URL,
     images: [
       {
-        url: '/logo.png',
+        url: `${SITE_URL}/logo.png`,
         width: 300,
         height: 300,
+        alt: 'Movime',
       },
     ],
   },
   twitter: {
-    card: 'summary',
-    title: 'Movime - Watch Movies & TV Shows',
+    card: 'summary_large_image',
+    title: 'Movime - Watch Movies, TV Shows & Anime Free',
     description:
       'Click, watch, enjoy. Movime breaks down the paywall, ensuring that quality content is accessible to everyone.',
-    images: ['/logo.png'],
+    images: [`${SITE_URL}/logo.png`],
   },
   icons: {
     icon: '/logo.png',
+  },
+  alternates: {
+    canonical: SITE_URL,
   },
 }
 
