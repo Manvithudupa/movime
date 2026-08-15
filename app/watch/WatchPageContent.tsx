@@ -24,6 +24,16 @@ import Footer from '@/components/Footer';
 import { SkeletonWatch } from '@/components/SkeletonWatch';
 import { SkeletonPageLayout } from '@/components/SkeletonPageLayout';
 
+// SECURITY: every third-party embed is sandboxed. The sandbox allows what a
+// video player needs (scripts, its own storage/cookies, forms, popups,
+// fullscreen) but deliberately omits allow-top-navigation and
+// allow-popups-to-escape-sandbox — so a compromised or malicious source cannot
+// redirect users off-site to phishing/malware. Sources used to be rendered
+// with NO sandbox at all when requiresNoSandbox was set; that hole is closed.
+// (allow-scripts + allow-same-origin is safe here because every embed is
+// cross-origin — a same-origin frame could strip its own sandbox, these cannot.)
+const EMBED_SANDBOX = 'allow-scripts allow-same-origin allow-forms allow-presentation allow-popups'
+
 function WatchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -307,7 +317,7 @@ function WatchPageContent() {
                   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="no-referrer-when-downgrade"
                   loading="lazy"
-                  sandbox={currentSource.requiresNoSandbox ? undefined : "allow-scripts allow-same-origin allow-presentation allow-forms"}
+                  sandbox={EMBED_SANDBOX}
                   title="Player"
                   style={{ border: 'none', background: '#000' }}
                 />

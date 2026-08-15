@@ -28,10 +28,21 @@ const buckets = new Map<string, { count: number; resetAt: number }>()
 const MAX_BUCKETS = 10_000
 
 function getClientIp(request: NextRequest): string {
+  // SECURITY: the old code took the first value of x-forwarded-for
+  // unconditionally. On Vercel that's safe — the platform overwrites the header
+  // and never forwards client-supplied IPs (anti-spoofing by design). But on a
+  // self-hosted deployment behind a reverse proxy that APPENDS to the header,
+  // the first entry is attacker-controlled and lets anyone rotate fake IPs to
+  // bypass every limit. Outside Vercel we therefore take the right-most entry,
+  // the hop appended by the proxy closest to us and the least
+  // attacker-controllable value. (If the app is exposed directly with no proxy
+  // at all, any header value is spoofable — run it behind a trusted proxy.)
   const forwarded = request.headers.get('x-forwarded-for')
   if (forwarded) {
-    const first = forwarded.split(',')[0]?.trim()
-    if (first) return first
+    const parts = forwarded.split(',').map((part) => part.trim()).filter(Boolean)
+    if (parts.length > 0) {
+      return process.env.VERCEL === '1' ? parts[0] : parts[parts.length - 1]
+    }
   }
   const realIp = request.headers.get('x-real-ip')
   if (realIp) return realIp

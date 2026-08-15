@@ -38,10 +38,17 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.watch_later ENABLE ROW LEVEL SECURITY;
 
 -- 4. RLS Policies for profiles
--- Anyone can view profiles (for future social features)
-CREATE POLICY "Profiles are viewable by everyone"
+-- SECURITY: profiles must NOT be world-readable. The public anon key is
+-- embedded in the client bundle, so an open SELECT policy lets anyone dump
+-- every user's email + profile data straight from the Supabase REST API.
+-- Users can only read their own profile. If a public profile feature is
+-- added later, expose only non-sensitive fields through a dedicated view or
+-- a narrow column-level policy instead of opening the whole table.
+-- (For existing databases, run fix_profiles_rls.sql to swap this policy.)
+DROP POLICY IF EXISTS "Profiles are viewable by everyone" ON public.profiles;
+CREATE POLICY "Users can view own profile"
   ON public.profiles FOR SELECT
-  USING (true);
+  USING (auth.uid() = id);
 
 -- Users can insert their own profile (auto-created on signup)
 CREATE POLICY "Users can insert own profile"

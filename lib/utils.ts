@@ -1,8 +1,13 @@
 import { availableSources } from './sources';
 
 // TMDB API configuration
-export const TMDB_API_KEY =
-  process.env.NEXT_PUBLIC_TMDB_API_KEY || '1070730380f5fee0d87cf0382670b255';
+// SECURITY: a live API key used to be hardcoded here as a fallback and sat in
+// git history since the initial commit. That key must be treated as
+// compromised — revoke it in the TMDB dashboard. The key is only read from
+// the environment now; without NEXT_PUBLIC_TMDB_API_KEY configured, content
+// requests fail gracefully (callers catch and return empty results) instead of
+// silently using a leaked credential.
+export const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || '';
 export const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 export const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
