@@ -7,8 +7,8 @@ import Navbar from '@/components/Navbar';
 import SearchAutocomplete from '@/components/SearchAutocomplete';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
-import { searchContent, TMDB_IMAGE_BASE_URL, filterAdultContent, blockedMovieIds, fetchContentDetails } from '@/lib/utils';
-import type { ContentItem } from '@/lib/types';
+import { searchContent, fetchByGenre, fetchGenres, TMDB_IMAGE_BASE_URL, filterAdultContent, blockedMovieIds, fetchContentDetails } from '@/lib/utils';
+import type { ContentItem, Genre } from '@/lib/types';
 import { useWatchlistStore } from '@/lib/store';
 import { SkeletonSearch } from '@/components/SkeletonSearch';
 
@@ -54,6 +54,20 @@ function SearchPageContent() {
   const watchLaterCount = useWatchlistStore((s) => s.count);
   const [sortBy, setSortBy] = useState<'relevance' | 'popularity' | 'rating' | 'year' | 'title'>('relevance');
   const [showSortMenu, setShowSortMenu] = useState(false);
+
+  // Genre browsing — driven by ?genre= and ?type= URL params so old
+  // /genre/[id] links (redirected here) and deep links keep working.
+  const [genreId, setGenreId] = useState<number | null>(() => {
+    const g = searchParams.get('genre');
+    return g ? parseInt(g, 10) || null : null;
+  });
+  const [genreType, setGenreType] = useState<'movie' | 'tv'>(() => (searchParams.get('type') === 'tv' ? 'tv' : 'movie'));
+  const [genresMovie, setGenresMovie] = useState<Genre[]>([]);
+  const [genresTv, setGenresTv] = useState<Genre[]>([]);
+  const [genreItems, setGenreItems] = useState<ContentItem[]>([]);
+  const [genrePage, setGenrePage] = useState(1);
+  const [genreLoading, setGenreLoading] = useState(false);
+  const [genreLoadingMore, setGenreLoadingMore] = useState(false);
 
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -170,6 +184,101 @@ function SearchPageContent() {
     return ()=>clearTimeout(h);
   }, [query, performSearch]);
 
+  // Keep genre state in sync with the URL (chip clicks, toggle, redirects,
+  // and browser back/forward all go through the URL).
+  useEffect(() => {
+    const g = searchParams.get('genre');
+    setGenreId(g ? parseInt(g, 10) || null : null);
+    setGenreType(searchParams.get('type') === 'tv' ? 'tv' : 'movie');
+  }, [searchParams]);
+
+  // Load the genre lists once (used for chips and the browse-by-genre landing).
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([fetchGenres('movie'), fetchGenres('tv')]).then(([m, t]) => {
+      if (cancelled) return;
+      setGenresMovie(m.genres || []);
+      setGenresTv(t.genres || []);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  const filterGenreResults = useCallback((results: any[] = []) => {
+    const filtered = genreType === 'movie'
+      ? results.filter((item: any) => !blockedMovieIds.includes(item.id.toString()))
+      : results;
+    return filterAdultContent(filtered, false) as ContentItem[];
+  }, [genreType]);
+
+  // Fetch the active genre's content (TMDB discover, popularity-sorted).
+  useEffect(() => {
+    if (genreId == null) {
+      setGenreItems([]);
+      setGenrePage(1);
+      return;
+    }
+    setSortBy('popularity');
+    let cancelled = false;
+    const load = async () => {
+      setGenreLoading(true);
+      try {
+        const data = await fetchByGenre(genreType, genreId, 1);
+        if (cancelled) return;
+        setGenreItems(filterGenreResults(data.results));
+        setGenrePage(1);
+      } catch (error) {
+        console.error('Error loading genre content:', error);
+      } finally {
+        if (!cancelled) setGenreLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [genreId, genreType, filterGenreResults]);
+
+  const loadMoreGenres = useCallback(async () => {
+    if (genreId == null || genreLoading || genreLoadingMore) return;
+    setGenreLoadingMore(true);
+    try {
+      const nextPage = genrePage + 1;
+      const data = await fetchByGenre(genreType, genreId, nextPage);
+      setGenreItems((prev) => [...prev, ...filterGenreResults(data.results)]);
+      setGenrePage(nextPage);
+    } catch (error) {
+      console.error('Error loading more genre content:', error);
+    } finally {
+      setGenreLoadingMore(false);
+    }
+  }, [genreId, genreType, genrePage, genreLoading, genreLoadingMore, filterGenreResults]);
+
+  // Infinite scroll for genre browsing.
+  useEffect(() => {
+    if (genreId == null) return;
+    const onScroll = () => {
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 800) {
+        loadMoreGenres();
+      }
+    };
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [genreId, loadMoreGenres]);
+
+  const selectGenre = (id: number, type: 'movie' | 'tv') => {
+    setQuery('');
+    router.push(`/search?genre=${id}&type=${type}`);
+  };
+
+  // Typing a query leaves genre mode (search results take over).
+  const onQueryChange = (v: string) => {
+    setQuery(v);
+    if (v && genreId != null) {
+      router.replace('/search', { scroll: false });
+    }
+  };
+
+  const genreList = useMemo(() => (genreType === 'tv' ? genresTv : genresMovie), [genreType, genresTv, genresMovie]);
+  const genreName = useMemo(() => genreList.find((g) => g.id === genreId)?.name || '', [genreList, genreId]);
+
   const sortedResults = useMemo(()=>{
     const list = [...results];
     switch (sortBy) {
@@ -185,7 +294,22 @@ function SearchPageContent() {
     }
   }, [results, sortBy]);
 
+  const genreSorted = useMemo(() => {
+    const list = [...genreItems];
+    switch (sortBy) {
+      case 'popularity': return list.sort((a:any,b:any)=>(b.popularity||0)-(a.popularity||0));
+      case 'rating': return list.sort((a:any,b:any)=>(b.vote_average||0)-(a.vote_average||0));
+      case 'year': return list.sort((a:any,b:any)=>{
+        const ay = parseInt((a.release_date||a.first_air_date||'').slice(0,4))||0;
+        const by = parseInt((b.release_date||b.first_air_date||'').slice(0,4))||0;
+        return by - ay;
+      });
+      case 'title': return list.sort((a:any,b:any)=> (a.title||a.name||'').localeCompare(b.title||b.name||''));
+      default: return list;
+    }
+  }, [genreItems, sortBy]);
 
+  const showingGenre = genreId != null;
 
   return (
   <div className="min-h-screen bg-black text-white">
@@ -196,15 +320,15 @@ function SearchPageContent() {
         watchLaterCount={watchLaterCount}
         onViewChange={(view) => router.push(getViewPath(view))}
         onSearchToggle={() => {}}
-        onSearchChange={setQuery}
+        onSearchChange={onQueryChange}
       />
 
       <main className="pt-28 pb-20 px-4 max-w-6xl mx-auto w-full">
-        <div className="flex flex-col items-center text-center mb-12">
-          {query.length === 0 ? (
+        <div className="flex flex-col items-center text-center mb-6">
+          {query.length === 0 && !showingGenre ? (
             <>
               <h1 className="text-2xl sm:text-4xl font-bold mb-4 text-white">Find something to watch</h1>
-              <p className="text-sm text-gray-400 mb-6">Search movies, TV shows, anime and more.</p>
+              <p className="text-sm text-gray-400 mb-6">Search movies, TV shows, anime and more — or browse by genre below.</p>
             </>
           ) : (
             <h1 className="sr-only">Search</h1>
@@ -216,7 +340,7 @@ function SearchPageContent() {
             <input
               ref={inputRef}
               value={query}
-              onChange={(e)=>setQuery(e.target.value)}
+              onChange={(e)=>onQueryChange(e.target.value)}
               onFocus={()=>setIsFocused(true)}
               placeholder="Have something in mind? (try: any genre / name)"
               className="w-full pl-12 pr-4 py-4 rounded-full movime-search-input outline-none text-sm text-white placeholder-white/40 transition-all"
@@ -227,6 +351,7 @@ function SearchPageContent() {
               query={query}
               onSelect={(suggestion) => {
                 setQuery(suggestion);
+                if (genreId != null) router.replace('/search', { scroll: false });
                 setIsFocused(false);
                 inputRef.current?.blur();
                 performSearch(suggestion);
@@ -236,13 +361,63 @@ function SearchPageContent() {
               inputRef={inputRef}
             />
           </div>
+
+          {/* Browse-by-genre landing — replaces the old /genres page */}
+          {query.length === 0 && !showingGenre && (
+            <div className="w-full max-w-4xl mx-auto mt-10 text-left">
+              <h2 className="text-xl sm:text-2xl font-bold mb-1">Browse by Genre</h2>
+              <p className="text-gray-400 text-sm mb-8">Discover movies and TV shows by genre.</p>
+              <GenreSection title="🎬 Movies" genres={genresMovie} type="movie" onSelect={selectGenre} />
+              <GenreSection title="📺 TV Shows" genres={genresTv} type="tv" onSelect={selectGenre} />
+            </div>
+          )}
+
+          {/* Genre browse toolbar: Movies/TV toggle + genre chips */}
+          {showingGenre && (
+            <div className="w-full max-w-4xl mx-auto mt-8 text-left">
+              <div className="flex items-center gap-2 mb-5">
+                {(['movie', 'tv'] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => router.push(`/search?genre=${genreId}&type=${t}`)}
+                    aria-pressed={genreType === t}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                      genreType === t
+                        ? 'bg-white text-black border-white'
+                        : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    {t === 'movie' ? '🎬 Movies' : '📺 TV Shows'}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {genreList.map((g) => (
+                  <button
+                    key={g.id}
+                    onClick={() => selectGenre(g.id, genreType)}
+                    aria-pressed={g.id === genreId}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      g.id === genreId
+                        ? 'bg-white text-black border-white'
+                        : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    {g.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {query.length > 0 && (
+        {(query.length > 0 || showingGenre) && (
           <div className="mb-10">
             <div className="flex items-center justify-center gap-4 sm:gap-6 mb-6 sm:mb-8">
               <span className="h-px w-16 sm:w-32 bg-gradient-to-r from-white/20 to-transparent" />
-              <h2 className="text-xl sm:text-3xl font-semibold tracking-wide text-white">Search results</h2>
+              <h2 className="text-xl sm:text-3xl font-semibold tracking-wide text-white">
+                {showingGenre ? `${genreName || 'Genre'} ${genreType === 'tv' ? 'TV Shows' : 'Movies'}` : 'Search results'}
+              </h2>
               <span className="h-px w-16 sm:w-32 bg-gradient-to-l from-white/20 to-transparent" />
             </div>
             <div className="flex justify-center">
@@ -277,20 +452,51 @@ function SearchPageContent() {
           </div>
         )}
 
-        {loading && (
+        {(loading || genreLoading) && (
           <SkeletonSearch />
         )}
 
-        {!loading && query.length > 0 && results.length === 0 && (
+        {!loading && !genreLoading && query.length > 0 && results.length === 0 && (
           <p className="text-center text-gray-500">No results for &quot;{query}&quot;</p>
         )}
 
-        {!loading && results.length > 0 && (
+        {!loading && !genreLoading && showingGenre && genreItems.length === 0 && (
+          <p className="text-center text-gray-500">No titles found in this genre.</p>
+        )}
+
+        {((!loading && results.length > 0) || (!genreLoading && genreItems.length > 0)) && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5 md:gap-6">
-            {sortedResults.map(item => <ContentCard key={`${item.id}-${item.media_type || 'x'}`} item={item} />)}
+            {(showingGenre ? genreSorted : sortedResults).map(item => <ContentCard key={`${item.id}-${item.media_type || 'x'}`} item={item} />)}
+          </div>
+        )}
+
+        {showingGenre && genreLoadingMore && (
+          <div className="flex justify-center py-8">
+            <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
           </div>
         )}
       </main>
     </div>
+  );
+}
+
+function GenreSection({ title, genres, type, onSelect }: { title: string; genres: Genre[]; type: 'movie' | 'tv'; onSelect: (id: number, type: 'movie' | 'tv') => void }) {
+  if (genres.length === 0) return null;
+
+  return (
+    <section className="mb-8">
+      <h3 className="text-base font-semibold mb-3">{title}</h3>
+      <div className="flex flex-wrap gap-2">
+        {genres.map((g) => (
+          <button
+            key={g.id}
+            onClick={() => onSelect(g.id, type)}
+            className="px-4 py-2 rounded-full text-sm font-medium border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+          >
+            {g.name}
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }

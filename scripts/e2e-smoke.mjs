@@ -21,6 +21,8 @@ const ROUTES = [
   '/genres',
   '/genre/28?type=movie',
   '/genre/18?type=tv',
+  '/search?genre=28&type=movie',
+  '/search?genre=18&type=tv',
   '/details?id=603&type=movie',
   '/details?id=1399&type=tv',
   '/watch?id=603&type=movie',

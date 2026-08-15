@@ -44,7 +44,6 @@ interface Profile {
   location: string | null
   website: string | null
   anime_character: AnimeCharacterData | null
-  preferences: any
   created_at: string
   updated_at: string
 }

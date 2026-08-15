@@ -77,7 +77,6 @@ export interface User {
   location: string | null;
   website: string | null;
   watchLater: WatchLaterItem[];
-  preferences: Record<string, unknown>;
   createdAt: string;
 }
 

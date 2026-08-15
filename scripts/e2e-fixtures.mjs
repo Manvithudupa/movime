@@ -112,9 +112,12 @@ const ROUTES = [
   { route: '/anime', check: ['Anime Collection'], expect: ['Anime Collection'] },
   { route: '/search?q=gladiator', check: ['Gladiator'], expect: ['Gladiator'] },
   { route: '/search?q=game%20of%20thrones', check: ['Game of Thrones'], expect: ['Game of Thrones'] },
+  // /genres still works — it 301s to /search, which shows the browse-by-genre landing.
   { route: '/genres', check: ['Browse by Genre', 'Action', 'Comedy'], expect: ['Browse by Genre'] },
   { route: '/genre/28?type=movie', check: ['Action Movies', 'Gladiator'], expect: ['Action Movies'] },
   { route: '/genre/18?type=tv', check: ['Drama TV Shows'], expect: ['Drama TV Shows'] },
+  { route: '/search?genre=28&type=movie', check: ['Action Movies', 'Gladiator'], expect: ['Action Movies'] },
+  { route: '/search?genre=18&type=tv', check: ['Drama TV Shows'], expect: ['Drama TV Shows'] },
   { route: '/details?id=603&type=movie', check: ['Gladiator', 'Russell Crowe', 'PLAY', 'MY LIST'], expect: ['Gladiator'] },
   { route: '/details?id=1399&type=tv', check: ['Game of Thrones', 'Emilia Clarke', 'Episodes'], expect: ['Game of Thrones'] },
   { route: '/watch?id=603&type=movie', check: ['Gladiator', 'Sources'], expect: ['Sources'] },

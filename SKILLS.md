@@ -244,7 +244,7 @@ This document catalogs every technology, tool, library, and skill used in the Mo
 
 ### Database Schema (supabase)
 
-- **`profiles`** — Extends `auth.users` with name, email, avatar, bio, gender, location, website, anime_character, preferences
+- **`profiles`** — Extends `auth.users` with name, email, avatar, bio, gender, location, website, anime_character, settings
 - **`watch_later`** — User watchlist with content_id, content_type (movie/tv), title, poster_path, status (watching/completed/plan_to_watch/dropped)
 - **RLS Policies** — Per-row access control for profiles and watchlist
 - **Auto-profile trigger** — `handle_new_user()` function creates profile on signup

@@ -19,6 +19,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Genre browsing now lives on the search page — keep old /genres and
+  // /genre/[id] links (bookmarks, external sites, sitemap caches) working.
+  if (request.nextUrl.pathname === '/genres') {
+    return NextResponse.redirect(new URL('/search', request.url), 301)
+  }
+  if (request.nextUrl.pathname.startsWith('/genre/')) {
+    const genreId = request.nextUrl.pathname.split('/')[2]
+    if (genreId) {
+      // Cloning keeps the ?type= query param from the old URL.
+      const url = request.nextUrl.clone()
+      url.pathname = '/search'
+      url.searchParams.set('genre', genreId)
+      return NextResponse.redirect(url, 301)
+    }
+  }
+
   return await updateSession(request)
 }
 

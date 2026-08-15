@@ -39,7 +39,7 @@
 - **🔄 Source Fallback** — Automatic source switching if a provider fails
 - **🔞 Content Filtering** — Adult content and blocked content filtering for a safe experience
 - **📈 Trending & Categories** — Dedicated Movies, TV Shows, and Anime pages plus Hollywood, Bollywood, Netflix Originals, and Amazon Prime sections
-- **🏷️ Genre Browsing** — Dedicated genre pages (`/genre/[id]?type=movie|tv`) with a Movies/TV toggle and genre chips, plus a `/genres` index and quick genre chips on the Movies and TV pages
+- **🏷️ Genre Browsing** — Genre filters built into the search page (`/search?genre=[id]&type=movie|tv`): a browse-by-genre landing when search is empty, a Movies/TV toggle, genre chips, and infinite scroll — plus quick genre chips on the Movies and TV pages
 - **📧 Contact Form** — Server-side email delivery via Resend
 - **♿ Accessibility** — Respects `prefers-reduced-motion` (CSS + Framer Motion), global keyboard `:focus-visible` rings, and screen-reader-friendly loading indicators
 - **✨ Polished Animations** — Cinematic Ken Burns zoom on the hero carousel, GPU-friendly card hovers, hover scroll arrows on content rows, and a non-flashing route loading bar
@@ -56,11 +56,9 @@
 | `/movies` | Dedicated Movies page with infinite scroll |
 | `/tv` | Dedicated TV Shows page with infinite scroll |
 | `/anime` | Dedicated Anime page with anime hero banner and infinite scroll |
-| `/genre/[genreId]` | Genre page (e.g. `/genre/28?type=movie`) with Movies/TV toggle, genre chips, and infinite scroll |
-| `/genres` | Browse-by-genre index linking to every movie and TV genre page |
 | `/details?id=&type=` | Content detail page with poster, info, watchlist management, season/episode browser, recommendations |
 | `/watch?id=&type=` | Watch page with iframe-based video player and source selector sidebar |
-| `/search` | Dedicated search page with sorting (relevance, popularity, rating, year, title) |
+| `/search` | Search with genre browsing (genre chips, Movies/TV toggle), sorting (relevance, popularity, rating, year, title), and infinite scroll. Legacy `/genres` and `/genre/[id]` URLs redirect here |
 | `/settings` | User preferences (preferred source, default quality, auto-play, data management) |
 | `/profile` | User profile management with anime character picker (requires authentication) |
 | `/watchlist` | Full watchlist page with status filtering (Watching, Completed, Plan to Watch, Dropped) |
@@ -291,13 +289,10 @@ movime/
 │   ├── auth/            # Login, signup, forgot/reset password, callback
 │   ├── contact/         # Contact page
 │   ├── details/         # Content detail page (DetailsPageContent.tsx)
-│   ├── genre/
-│   │   └── [genreId]/   # Genre page with Movies/TV toggle + infinite scroll
-│   ├── genres/          # Browse-by-genre index
 │   ├── movies/          # Movies page with infinite scroll
 │   ├── privacy/         # Privacy policy
 │   ├── profile/         # User profile page with anime character picker
-│   ├── search/          # Search page with sort/filter
+│   ├── search/          # Search + genre browsing page (chips, Movies/TV toggle)
 │   ├── settings/        # User settings page
 │   ├── terms/           # Terms of service
 │   ├── tv/              # TV Shows page with infinite scroll
@@ -400,6 +395,7 @@ movime/
 - Type any movie/TV show/anime name
 - Search results are relevance-sorted
 - Use the sort menu to sort by popularity, rating, year, or title
+- Click a genre chip (or a section on the empty search page's browse-by-genre landing) to browse everything in that genre, with a Movies/TV toggle and infinite scroll
 - Content is filtered for appropriate audiences by default
 
 ### Anime Viewing

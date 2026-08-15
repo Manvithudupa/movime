@@ -330,7 +330,7 @@ export default function BrowseContent({
             </div>
           )}
 
-          {/* Genre chips — links to the dedicated genre pages */}
+          {/* Genre chips — links to genre browsing on the search page */}
           {genres.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-6">
               {genres.map((g) => {
@@ -338,7 +338,7 @@ export default function BrowseContent({
                 return (
                   <Link
                     key={g.id}
-                    href={`/genre/${g.id}?type=${genreFetchType}`}
+                    href={`/search?genre=${g.id}&type=${genreFetchType}`}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                       active
                         ? 'bg-white text-black border-white'
