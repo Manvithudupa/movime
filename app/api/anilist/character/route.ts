@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
+import { rateLimitGlobal, rateLimitResponse } from '@/lib/rateLimit'
 
 const ANILIST_API_URL = 'https://graphql.anilist.co'
 
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
   // This route is unauthenticated and proxies to the AniList GraphQL API, so it
   // must be rate limited like every other endpoint — otherwise it's a free
   // relay for hammering AniList.
-  const limited = rateLimit(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'anilist-character' })
+  const limited = await rateLimitGlobal(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'anilist-character' })
   if (!limited.success) return rateLimitResponse(limited)
 
   const { searchParams } = new URL(request.url)

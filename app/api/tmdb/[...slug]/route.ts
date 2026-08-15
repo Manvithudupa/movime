@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
+import { rateLimitGlobal, rateLimitResponse } from '@/lib/rateLimit'
 
 // Server-side proxy for the TMDB API.
 //
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   // enough for normal browsing — the client caches every URL for 10 minutes
   // and the proxy caches upstream responses for 10 minutes too, so a real
   // user issues far fewer than one request per second per URL.
-  const limited = rateLimit(request, { limit: 240, windowMs: 60 * 1000, keyPrefix: 'tmdb-proxy' })
+  const limited = await rateLimitGlobal(request, { limit: 240, windowMs: 60 * 1000, keyPrefix: 'tmdb-proxy' })
   if (!limited.success) return rateLimitResponse(limited)
 
   const { pathname, searchParams } = new URL(request.url)

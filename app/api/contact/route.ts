@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getResendClient } from '@/lib/resend'
-import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
+import { rateLimitGlobal, rateLimitResponse } from '@/lib/rateLimit'
 import { isSameOrigin } from '@/lib/requestGuard'
 
 const escapeHtml = (value: string) =>
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Each email costs money (Resend quota) — keep the form heavily rate limited.
-    const limited = rateLimit(request, { limit: 5, windowMs: 10 * 60 * 1000, keyPrefix: 'contact' })
+    const limited = await rateLimitGlobal(request, { limit: 5, windowMs: 10 * 60 * 1000, keyPrefix: 'contact' })
     if (!limited.success) return rateLimitResponse(limited)
 
     const body = await request.json().catch(() => ({}))

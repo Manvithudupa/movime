@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
+import { rateLimitGlobal, rateLimitResponse } from '@/lib/rateLimit'
 import { isSameOrigin } from '@/lib/requestGuard'
 import { isAllowedImageHost } from '@/components/ProxyImage'
 
@@ -48,7 +48,7 @@ const isValidAnimeCharacter = (v: unknown): boolean => {
 
 export async function GET(request: NextRequest) {
   try {
-    const limited = rateLimit(request, { limit: 120, windowMs: 60 * 1000, keyPrefix: 'profile' })
+    const limited = await rateLimitGlobal(request, { limit: 120, windowMs: 60 * 1000, keyPrefix: 'profile' })
     if (!limited.success) return rateLimitResponse(limited)
 
     const supabase = await createClient()
@@ -90,7 +90,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const limited = rateLimit(request, { limit: 20, windowMs: 60 * 1000, keyPrefix: 'profile' })
+    const limited = await rateLimitGlobal(request, { limit: 20, windowMs: 60 * 1000, keyPrefix: 'profile' })
     if (!limited.success) return rateLimitResponse(limited)
 
     const supabase = await createClient()

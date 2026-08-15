@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { NextRequest } from 'next/server'
-import { rateLimit } from '../rateLimit'
+import { rateLimit, rateLimitGlobal } from '../rateLimit'
 
 function makeRequest(ip = '1.2.3.4') {
   return new NextRequest('http://localhost/api/test', {
@@ -54,5 +54,38 @@ describe('rateLimit', () => {
     const req = makeRequest()
     rateLimit(req, { limit: 1, windowMs: 60_000, keyPrefix: 'contact' })
     expect(rateLimit(req, { limit: 1, windowMs: 60_000, keyPrefix: 'watchlist' }).success).toBe(true)
+  })
+
+  it('stays bounded and functional under a flood of unique IPs', () => {
+    // Hammer the limiter with far more unique IPs than the 5_000-bucket cap.
+    // The eviction must keep it working: new IPs still get a full window and
+    // still get blocked once they exceed their limit.
+    for (let i = 0; i < 6_000; i++) {
+      rateLimit(makeRequest(`10.${i % 255}.${Math.floor(i / 255)}.1`), {
+        limit: 3,
+        windowMs: 60_000,
+        keyPrefix: 'flood',
+      })
+    }
+    const fresh = makeRequest('9.9.9.9')
+    expect(rateLimit(fresh, { limit: 1, windowMs: 60_000, keyPrefix: 'flood' }).success).toBe(true)
+    expect(rateLimit(fresh, { limit: 1, windowMs: 60_000, keyPrefix: 'flood' }).success).toBe(false)
+  })
+
+  it('rateLimitGlobal falls back to the in-memory limiter without Redis configured', async () => {
+    // Ensure no Redis env is visible, so the async limiter must use the
+    // in-memory path (the CI/local test environment never sets these).
+    delete process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+
+    const req = makeRequest()
+    for (let i = 0; i < 2; i++) {
+      expect(
+        (await rateLimitGlobal(req, { limit: 2, windowMs: 60_000, keyPrefix: 'global-fallback' })).success
+      ).toBe(true)
+    }
+    const blocked = await rateLimitGlobal(req, { limit: 2, windowMs: 60_000, keyPrefix: 'global-fallback' })
+    expect(blocked.success).toBe(false)
+    expect(blocked.retryAfterSeconds).toBeGreaterThan(0)
   })
 })

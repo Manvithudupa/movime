@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Redis } from '@upstash/redis'
 
-// In-memory sliding-window rate limiter for API routes.
+// Rate limiter for API routes.
 //
-// NOTE: On serverless platforms (e.g. Vercel) each function instance keeps its
-// own in-memory state, so limits are enforced per instance rather than globally
-// across all instances. This still stops casual abuse — like spamming the
-// contact form to burn through the Resend quota — and requires no external
-// service. For strict global limits, replace this with a shared store such as
-// Upstash Redis.
+// Two layers:
+//  1. `rateLimit` — an in-memory sliding-window limiter. On serverless
+//     platforms (e.g. Vercel) each function instance keeps its own state, so
+//     limits are enforced per instance. This still stops casual abuse (spam
+//     bots, quota burners) and needs no external service.
+//  2. `rateLimitGlobal` — the same limits enforced across ALL instances via
+//     Upstash Redis, when UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN
+//     are configured. Without those env vars it transparently falls back to
+//     the in-memory limiter (and also falls back if Redis errors at runtime),
+//     so enabling it is purely additive and never breaks the site.
 
 interface RateLimitOptions {
   limit: number
@@ -24,8 +29,13 @@ interface RateLimitResult {
 // Bucket per "prefix:ip". Entries expire naturally and are pruned lazily.
 const buckets = new Map<string, { count: number; resetAt: number }>()
 
-// Keep the map bounded even if an attacker rotates IPs through a proxy.
-const MAX_BUCKETS = 10_000
+// Cap the map so a flood of unique (spoofed) IPs can never grow memory
+// without bound. 5_000 entries is a few hundred KB at most.
+const MAX_BUCKETS = 5_000
+
+// Fraction of the soonest-expiring buckets evicted when the map is at
+// capacity with no expired entries to reclaim.
+const EVICT_FRACTION = 0.2
 
 function getClientIp(request: NextRequest): string {
   // SECURITY: the old code took the first value of x-forwarded-for
@@ -49,16 +59,34 @@ function getClientIp(request: NextRequest): string {
   return 'unknown'
 }
 
+/**
+ * Memory-DoS defense: keep the bucket map bounded. Drops expired buckets, and
+ * if the map is still at capacity (an attacker rotating IPs faster than
+ * windows expire), evicts the buckets closest to expiry. Limits are soft —
+ * evicted IPs simply start a fresh window, which is the correct trade-off
+ * against letting an attacker hold the map at full size forever.
+ */
+function pruneBuckets(now: number) {
+  if (buckets.size < MAX_BUCKETS) return
+
+  for (const [key, bucket] of buckets) {
+    if (bucket.resetAt <= now) buckets.delete(key)
+  }
+
+  if (buckets.size >= MAX_BUCKETS) {
+    const sorted = [...buckets.entries()].sort((a, b) => a[1].resetAt - b[1].resetAt)
+    const toEvict = Math.max(1, Math.floor(MAX_BUCKETS * EVICT_FRACTION))
+    for (let i = 0; i < toEvict && i < sorted.length; i++) {
+      buckets.delete(sorted[i][0])
+    }
+  }
+}
+
 export function rateLimit(request: NextRequest, options: RateLimitOptions): RateLimitResult {
   const now = Date.now()
   const key = `${options.keyPrefix}:${getClientIp(request)}`
 
-  // Lazy prune so the map never grows unboundedly.
-  if (buckets.size >= MAX_BUCKETS) {
-    for (const [k, b] of buckets) {
-      if (b.resetAt <= now) buckets.delete(k)
-    }
-  }
+  pruneBuckets(now)
 
   const bucket = buckets.get(key)
 
@@ -78,6 +106,56 @@ export function rateLimit(request: NextRequest, options: RateLimitOptions): Rate
 
   bucket.count += 1
   return { success: true, remaining: options.limit - bucket.count, retryAfterSeconds: 0 }
+}
+
+// --- Optional global (cross-instance) limiting via Upstash Redis ------------
+
+// undefined = not initialized yet, null = not configured
+let redisClient: Redis | null | undefined
+
+function getRedisClient(): Redis | null {
+  if (redisClient !== undefined) return redisClient
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) {
+    redisClient = null
+    return null
+  }
+  redisClient = new Redis({ url, token })
+  return redisClient
+}
+
+/**
+ * Rate limit that is enforced across all serverless instances when Upstash
+ * Redis is configured, and falls back to the in-memory limiter otherwise
+ * (or if Redis is temporarily unreachable). Fixed-window per IP; identical
+ * semantics to `rateLimit` from a caller's perspective.
+ */
+export async function rateLimitGlobal(
+  request: NextRequest,
+  options: RateLimitOptions
+): Promise<RateLimitResult> {
+  const redis = getRedisClient()
+  if (!redis) return rateLimit(request, options)
+
+  const key = `${options.keyPrefix}:${getClientIp(request)}`
+  const windowSeconds = Math.max(1, Math.ceil(options.windowMs / 1000))
+
+  try {
+    const count = await redis.incr(key)
+    if (count === 1) {
+      // Fixed window: reset the counter when the window elapses.
+      await redis.expire(key, windowSeconds)
+    }
+    if (count > options.limit) {
+      const ttl = await redis.ttl(key)
+      return { success: false, remaining: 0, retryAfterSeconds: Math.max(ttl, 1) }
+    }
+    return { success: true, remaining: Math.max(options.limit - count, 0), retryAfterSeconds: 0 }
+  } catch (error) {
+    console.error('Rate limit Redis error, falling back to in-memory limiter:', error)
+    return rateLimit(request, options)
+  }
 }
 
 export function rateLimitResponse(result: RateLimitResult): NextResponse {

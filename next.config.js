@@ -43,8 +43,34 @@ const nextConfig = {
             value: 'SAMEORIGIN',
           },
           {
+            // SECURITY: stop browsers MIME-sniffing responses (blocks a class
+            // of XSS where an attacker's upload is served as text/html).
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+          },
+          {
+            // Only honored over HTTPS (Vercel is always HTTPS). Browsers
+            // ignore HSTS received over plain HTTP, so local dev is unaffected.
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
+          },
+          {
+            // Hardening directives that cannot break the app: no <object>/<embed>
+            // content, no <base> tag, and every form posts same-origin. A full
+            // script-src/frame-src policy is intentionally NOT set here — Next.js
+            // inline scripts and the third-party embed players would require
+            // nonce support and per-provider frame-src entries that need live
+            // verification against the deployed site.
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self';",
+            value: "frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self';",
           },
         ],
       },

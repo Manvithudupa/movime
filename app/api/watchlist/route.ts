@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
+import { rateLimitGlobal, rateLimitResponse } from '@/lib/rateLimit'
 import { isSameOrigin } from '@/lib/requestGuard'
 
 const VALID_STATUSES = ['completed', 'watching', 'plan_to_watch', 'dropped'] as const
@@ -47,7 +47,7 @@ const MAX_POSTER = 1000
 // GET /api/watchlist - Fetch user's watchlist
 export async function GET(request: NextRequest) {
   try {
-    const limited = rateLimit(request, { limit: 120, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
+    const limited = await rateLimitGlobal(request, { limit: 120, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
     if (!limited.success) return rateLimitResponse(limited)
 
     const supabase = await createClient()
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const limited = rateLimit(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
+    const limited = await rateLimitGlobal(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
     if (!limited.success) return rateLimitResponse(limited)
 
     const supabase = await createClient()
@@ -249,7 +249,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const limited = rateLimit(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
+    const limited = await rateLimitGlobal(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
     if (!limited.success) return rateLimitResponse(limited)
 
     const supabase = await createClient()
@@ -334,7 +334,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const limited = rateLimit(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
+    const limited = await rateLimitGlobal(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
     if (!limited.success) return rateLimitResponse(limited)
 
     const supabase = await createClient()
