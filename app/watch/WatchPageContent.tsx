@@ -24,12 +24,18 @@ import Footer from '@/components/Footer';
 import { SkeletonWatch } from '@/components/SkeletonWatch';
 import { SkeletonPageLayout } from '@/components/SkeletonPageLayout';
 
-// SECURITY: every third-party embed is sandboxed. The sandbox allows what a
-// video player needs (scripts, its own storage/cookies, forms, popups,
+// SECURITY: third-party embeds are sandboxed by default. The sandbox allows
+// what a video player needs (scripts, its own storage/cookies, forms, popups,
 // fullscreen) but deliberately omits allow-top-navigation and
 // allow-popups-to-escape-sandbox — so a compromised or malicious source cannot
-// redirect users off-site to phishing/malware. Sources used to be rendered
-// with NO sandbox at all when requiresNoSandbox was set; that hole is closed.
+// redirect users off-site to phishing/malware.
+//
+// However, most providers (vidsrc, CinemaOS, etc.) detect iframe sandboxing
+// and refuse to play, showing "sandboxing detected" instead of video. Those
+// providers are flagged requiresNoSandbox: true in lib/sources.ts and are
+// rendered WITHOUT the sandbox attribute so they work at all — the unavoidable
+// tradeoff for sources that demand it. Only sources that play fine sandboxed
+// (e.g. Hexa) keep the sandbox.
 // (allow-scripts + allow-same-origin is safe here because every embed is
 // cross-origin — a same-origin frame could strip its own sandbox, these cannot.)
 const EMBED_SANDBOX = 'allow-scripts allow-same-origin allow-forms allow-presentation allow-popups'
@@ -319,7 +325,7 @@ function WatchPageContent() {
                   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="no-referrer"
                   loading="lazy"
-                  sandbox={EMBED_SANDBOX}
+                  sandbox={currentSource.requiresNoSandbox ? undefined : EMBED_SANDBOX}
                   title="Player"
                   style={{ border: 'none', background: '#000' }}
                 />
