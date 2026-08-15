@@ -273,30 +273,45 @@ npm start
 
 ```
 movime/
+├── .github/
+│   └── workflows/
+│       └── ci.yml       # GitHub Actions: typecheck, lint, tests, build, e2e
 ├── app/
-│   ├── about/          # About page
-│   ├── anime/          # Anime page
+│   ├── about/           # About page
+│   ├── anime/           # Anime page with hero banner
 │   ├── api/
-│   │   ├── anilist/    # AniList character search API
-│   │   ├── contact/    # Contact form email API (Resend)
-│   │   ├── continue-watching/  # Continue watching CRUD API
-│   │   ├── user/       # User profile API
-│   │   └── watchlist/  # Watchlist CRUD API
-│   ├── auth/           # Login, signup, forgot/reset password, callback
-│   ├── contact/        # Contact page
-│   ├── details/        # Content detail page with watchlist management
-│   ├── movies/         # Movies page
-│   ├── privacy/        # Privacy policy
-│   ├── profile/        # User profile page with anime character picker
-│   ├── search/         # Search page with sort/filter
-│   ├── settings/       # User settings page
-│   ├── terms/          # Terms of service
-│   ├── tv/             # TV Shows page
-│   ├── watch/          # Watch/player page
-│   ├── watchlist/      # Full watchlist management page
-│   ├── layout.tsx      # Root layout (AuthProvider, PWA, fonts, analytics)
-│   ├── page.tsx        # Homepage
-│   └── globals.css     # Global styles & animations
+│   │   ├── anilist/     # AniList character search API
+│   │   ├── contact/     # Contact form email API (Resend, rate-limited)
+│   │   ├── continue-watching/  # Continue watching CRUD API (rate-limited)
+│   │   ├── user/
+│   │   │   ├── delete/  # Account deletion API (rate-limited)
+│   │   │   ├── profile/ # User profile API (rate-limited)
+│   │   │   └── settings/ # Cross-device playback settings API (rate-limited)
+│   │   └── watchlist/   # Watchlist CRUD API (rate-limited)
+│   ├── auth/            # Login, signup, forgot/reset password, callback
+│   ├── contact/         # Contact page
+│   ├── details/         # Content detail page (DetailsPageContent.tsx)
+│   ├── genre/
+│   │   └── [genreId]/   # Genre page with Movies/TV toggle + infinite scroll
+│   ├── genres/          # Browse-by-genre index
+│   ├── movies/          # Movies page with infinite scroll
+│   ├── privacy/         # Privacy policy
+│   ├── profile/         # User profile page with anime character picker
+│   ├── search/          # Search page with sort/filter
+│   ├── settings/        # User settings page
+│   ├── terms/           # Terms of service
+│   ├── tv/              # TV Shows page with infinite scroll
+│   ├── watch/           # Watch/player page (WatchPageContent.tsx)
+│   ├── watchlist/       # Full watchlist management page
+│   ├── global-error.tsx # Global error boundary
+│   ├── globals.css      # Global styles & animations
+│   ├── layout.tsx       # Root layout (AuthProvider, PWA, fonts, analytics)
+│   ├── page.tsx         # Homepage
+│   ├── robots.ts        # Robots.txt
+│   └── sitemap.ts       # Sitemap.xml
+│
+│   # Every page route also has a layout.tsx with per-route SEO metadata
+│   # (e.g. app/movies/layout.tsx) — those folders are omitted above for brevity.
 ├── components/
 │   ├── AniListCharacterPicker.tsx  # Modal for picking anime character avatar
 │   ├── AnimeHero.tsx              # Anime carousel hero banner
@@ -326,9 +341,13 @@ movime/
 │   ├── SkeletonWatchlist.tsx      # Watchlist page skeleton
 │   └── Toaster.tsx                # Toast notifications (sonner)
 ├── lib/
+│   ├── __tests__/       # Unit tests (Vitest)
 │   ├── animeMapper.ts   # AniList + TMDB anime season mapping
+│   ├── contentMeta.ts   # Per-page SEO metadata helpers
+│   ├── rateLimit.ts     # API rate limiting
 │   ├── resend.ts        # Lazy Resend client
 │   ├── routes.ts        # View -> route mapping
+│   ├── settings.ts      # Playback settings (localStorage + server sync)
 │   ├── sources.ts       # 9 available embed streaming sources
 │   ├── store.ts         # Zustand stores (watchlist, continue watching)
 │   ├── supabase/
@@ -336,16 +355,25 @@ movime/
 │   │   ├── server.ts    # Supabase server client (cookies)
 │   │   ├── middleware.ts # Supabase session refresh middleware
 │   │   ├── schema.sql   # Database schema (profiles, watch_later)
-│   │   └── continue_watching.sql  # Continue watching table schema
+│   │   ├── continue_watching.sql  # Continue watching table schema
+│   │   └── user_settings.sql      # Playback settings table schema
 │   ├── types.ts         # TypeScript interfaces
 │   └── utils.ts         # API functions, caching, content filtering
 ├── public/              # Static assets, PWA manifest, icons
-├── scripts/             # Build scripts (icon generation)
+├── scripts/
+│   ├── generate-icons.js # PWA icon generation
+│   ├── e2e-fixtures.mjs  # E2E smoke test with mocked TMDB fixtures
+│   └── e2e-smoke.mjs     # E2E smoke test against live routes
 ├── middleware.ts        # Legacy redirects + Supabase session refresh
+├── instrumentation.ts       # Sentry server instrumentation
+├── instrumentation-client.ts # Sentry client instrumentation
+├── next.config.js       # Next.js + Sentry + PWA config
 ├── package.json
-├── next.config.js       # Next.js + PWA config
+├── sentry.edge.config.ts    # Sentry edge runtime config
+├── sentry.server.config.ts  # Sentry server config
 ├── tailwind.config.js   # Tailwind theme
-└── tsconfig.json        # TypeScript config
+├── tsconfig.json        # TypeScript config
+└── vitest.config.ts     # Vitest test config
 ```
 
 ---
