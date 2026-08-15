@@ -18,7 +18,9 @@ export async function getContentMetadata(
   const fallbackTitle = page === 'watch' ? 'Watch - Movime' : 'Details - Movime'
   if (!id) return { title: fallbackTitle }
 
-  const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY
+  // Server-side only, so the key is safe here. Prefer the server-only
+  // TMDB_API_KEY and fall back to the legacy public key for old deployments.
+  const apiKey = process.env.TMDB_API_KEY || process.env.NEXT_PUBLIC_TMDB_API_KEY
   if (!apiKey) return { title: fallbackTitle }
 
   const type = typeParam === 'tv' ? 'tv' : 'movie'

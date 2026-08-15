@@ -39,6 +39,11 @@ self.addEventListener('fetch', (event) => {
   // Only handle same-origin GET requests; never touch cross-origin embeds.
   if (url.origin !== self.location.origin) return;
 
+  // SECURITY: never cache API responses — they carry authenticated user data
+  // (watchlist, profile email, continue watching) that must not be persisted
+  // client-side or replayed across users on shared devices.
+  if (url.pathname.startsWith('/api/')) return;
+
   // Network-first with cache fallback (good for pages and API responses).
   event.respondWith(
     (async () => {

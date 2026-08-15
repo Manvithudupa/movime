@@ -314,8 +314,10 @@ function WatchPageContent() {
                   className="w-full h-full"
                   allowFullScreen
                   onError={handleSourceFailure}
+                  // SECURITY: never leak the full watch URL (or anything else)
+                  // to third-party embed providers via the Referer header.
                   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="no-referrer-when-downgrade"
+                  referrerPolicy="no-referrer"
                   loading="lazy"
                   sandbox={EMBED_SANDBOX}
                   title="Player"

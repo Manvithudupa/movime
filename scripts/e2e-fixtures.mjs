@@ -152,12 +152,17 @@ for (const { route, check, expect } of ROUTES) {
   await page.setRequestInterception(true)
   page.on('request', (req) => {
     const url = req.url()
-    if (url.includes('api.themoviedb.org')) {
+    // TMDB is fetched through the same-origin /api/tmdb proxy in the app, but
+    // the fixture matcher below parses TMDB-style paths, so mock both URL
+    // shapes (the proxy URL path is /api/tmdb/trending/movie/day, the direct
+    // one is /3/trending/movie/day).
+    if (url.includes('api.themoviedb.org') || url.includes('/api/tmdb/')) {
       req.respond({
         status: 200,
         contentType: 'application/json',
         // The browser enforces CORS on cross-origin fetch, so the mock must
-        // include the header the real TMDB API sends.
+        // include the header the real TMDB API sends. Harmless for the
+        // same-origin proxy path.
         headers: { 'Access-Control-Allow-Origin': '*' },
         body: JSON.stringify(tmdbFixture(url)),
       })

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
+import { isSameOrigin } from '@/lib/requestGuard'
 
 const VALID_STATUSES = ['completed', 'watching', 'plan_to_watch', 'dropped'] as const
 type WatchStatus = typeof VALID_STATUSES[number]
@@ -40,9 +41,15 @@ async function rebuildWatchlistItem(
   return { data, error }
 }
 
+const MAX_TITLE = 500
+const MAX_POSTER = 1000
+
 // GET /api/watchlist - Fetch user's watchlist
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const limited = rateLimit(request, { limit: 120, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
+    if (!limited.success) return rateLimitResponse(limited)
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -71,6 +78,10 @@ export async function GET() {
 // POST /api/watchlist - Add item to watchlist (or toggle if exists)
 export async function POST(request: NextRequest) {
   try {
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const limited = rateLimit(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
     if (!limited.success) return rateLimitResponse(limited)
 
@@ -81,7 +92,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized - Please sign in' }, { status: 401 })
     }
 
-    const body = await request.json()
+    const body = await request.json().catch(() => ({}))
     const { content_id, content_type, title, poster_path, status } = body
 
     if (!content_id || !content_type || !title) {
@@ -89,6 +100,17 @@ export async function POST(request: NextRequest) {
         error: 'Missing required fields',
         details: { has_id: !!content_id, has_type: !!content_type, has_title: !!title }
       }, { status: 400 })
+    }
+
+    // Validate types and sizes so junk can't be written into the database.
+    if (content_type !== 'movie' && content_type !== 'tv') {
+      return NextResponse.json({ error: 'Invalid content_type' }, { status: 400 })
+    }
+    if (typeof title !== 'string' || !title.trim() || title.length > MAX_TITLE) {
+      return NextResponse.json({ error: 'Invalid title' }, { status: 400 })
+    }
+    if (poster_path != null && (typeof poster_path !== 'string' || poster_path.length > MAX_POSTER)) {
+      return NextResponse.json({ error: 'Invalid poster_path' }, { status: 400 })
     }
 
     // Validate status if provided
@@ -223,6 +245,10 @@ export async function POST(request: NextRequest) {
 // PATCH /api/watchlist - Update item status
 export async function PATCH(request: NextRequest) {
   try {
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const limited = rateLimit(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
     if (!limited.success) return rateLimitResponse(limited)
 
@@ -233,10 +259,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { content_id, content_type, status } = await request.json()
+    const body = await request.json().catch(() => ({}))
+    const { content_id, content_type, status } = body
 
     if (!content_id || !content_type || !status) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    if (content_type !== 'movie' && content_type !== 'tv') {
+      return NextResponse.json({ error: 'Invalid content_type' }, { status: 400 })
     }
 
     if (!VALID_STATUSES.includes(status)) {
@@ -299,6 +330,10 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/watchlist - Remove item from watchlist
 export async function DELETE(request: NextRequest) {
   try {
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const limited = rateLimit(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'watchlist' })
     if (!limited.success) return rateLimitResponse(limited)
 

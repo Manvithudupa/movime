@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
+import { isSameOrigin } from '@/lib/requestGuard'
 
 // Only these keys are allowed into the settings JSONB column.
 const VALID_KEYS = ['preferredSource', 'defaultQuality', 'autoPlay'] as const
 
 // GET /api/user/settings - Fetch the signed-in user's playback settings
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const limited = rateLimit(request, { limit: 120, windowMs: 60 * 1000, keyPrefix: 'user-settings' })
+    if (!limited.success) return rateLimitResponse(limited)
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -36,6 +40,10 @@ export async function GET() {
 // PUT /api/user/settings - Save playback settings (merged with existing values)
 export async function PUT(request: NextRequest) {
   try {
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const limited = rateLimit(request, { limit: 20, windowMs: 60 * 1000, keyPrefix: 'user-settings' })
     if (!limited.success) return rateLimitResponse(limited)
 

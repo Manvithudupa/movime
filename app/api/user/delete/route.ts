@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
+import { isSameOrigin } from '@/lib/requestGuard'
 
 // DELETE /api/user/delete - Permanently delete the user's account and all data
 export async function DELETE(request: NextRequest) {
   try {
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     // Destructive and irreversible — very low limit.
     const limited = rateLimit(request, { limit: 5, windowMs: 60 * 60 * 1000, keyPrefix: 'user-delete' })
     if (!limited.success) return rateLimitResponse(limited)

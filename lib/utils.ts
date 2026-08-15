@@ -1,14 +1,11 @@
 import { availableSources } from './sources';
 
-// TMDB API configuration
-// SECURITY: a live API key used to be hardcoded here as a fallback and sat in
-// git history since the initial commit. That key must be treated as
-// compromised — revoke it in the TMDB dashboard. The key is only read from
-// the environment now; without NEXT_PUBLIC_TMDB_API_KEY configured, content
-// requests fail gracefully (callers catch and return empty results) instead of
-// silently using a leaked credential.
-export const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || '';
-export const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+// TMDB API configuration.
+// SECURITY: all TMDB requests go through the server-side proxy at /api/tmdb
+// so the API key never ships in the client bundle. The proxy injects the key
+// server-side (TMDB_API_KEY, falling back to NEXT_PUBLIC_TMDB_API_KEY) and
+// caches responses for 10 minutes.
+export const TMDB_PROXY_BASE = '/api/tmdb';
 export const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 const API_CACHE_TTL_MS = 10 * 60 * 1000;        // 10 min default
@@ -200,7 +197,7 @@ export const fetchMovies = async (page = 1) => {
   return cachedApiRequest(cacheKey, async () => {
     try {
       const response = await fetch(
-        `${TMDB_BASE_URL}/trending/movie/day?api_key=${TMDB_API_KEY}&page=${page}&language=en-US`
+        `${TMDB_PROXY_BASE}/trending/movie/day?page=${page}&language=en-US`
       );
       return await response.json();
     } catch (error) {
@@ -216,7 +213,7 @@ export const fetchTVShows = async (page = 1) => {
   return cachedApiRequest(cacheKey, async () => {
     try {
       const response = await fetch(
-        `${TMDB_BASE_URL}/tv/popular?api_key=${TMDB_API_KEY}&page=${page}&language=en-US`
+        `${TMDB_PROXY_BASE}/tv/popular?page=${page}&language=en-US`
       );
       return await response.json();
     } catch (error) {
@@ -232,7 +229,7 @@ export const fetchHollywoodMovies = async (page = 1) => {
   return cachedApiRequest(cacheKey, async () => {
     try {
       const response = await fetch(
-        `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&region=US&sort_by=popularity.desc&with_original_language=en`
+        `${TMDB_PROXY_BASE}/discover/movie?page=${page}&language=en-US&region=US&sort_by=popularity.desc&with_original_language=en`
       );
       return await response.json();
     } catch (error) {
@@ -248,7 +245,7 @@ export const fetchBollywoodMovies = async (page = 1) => {
   return cachedApiRequest(cacheKey, async () => {
     try {
       const response = await fetch(
-        `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=hi-IN&region=IN&sort_by=popularity.desc&with_original_language=hi`
+        `${TMDB_PROXY_BASE}/discover/movie?page=${page}&language=hi-IN&region=IN&sort_by=popularity.desc&with_original_language=hi`
       );
       return await response.json();
     } catch (error) {
@@ -264,7 +261,7 @@ export const fetchAnimeContent = async (page = 1) => {
   return cachedApiRequest(cacheKey, async () => {
     try {
       const response = await fetch(
-        `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_genres=16&with_origin_country=JP&sort_by=popularity.desc`
+        `${TMDB_PROXY_BASE}/discover/tv?page=${page}&language=en-US&with_genres=16&with_origin_country=JP&sort_by=popularity.desc`
       );
       return await response.json();
     } catch (error) {
@@ -280,7 +277,7 @@ export const fetchByGenre = async (type: 'movie' | 'tv', genreId: number | strin
   return cachedApiRequest(cacheKey, async () => {
     try {
       const response = await fetch(
-        `${TMDB_BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_genres=${genreId}&sort_by=popularity.desc`
+        `${TMDB_PROXY_BASE}/discover/${type}?page=${page}&language=en-US&with_genres=${genreId}&sort_by=popularity.desc`
       );
       return await response.json();
     } catch (error) {
@@ -296,7 +293,7 @@ export const searchContent = async (query: string, type = 'multi') => {
   return cachedApiRequest(cacheKey, async () => {
     try {
       const response = await fetch(
-        `${TMDB_BASE_URL}/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US`
+        `${TMDB_PROXY_BASE}/search/${type}?query=${encodeURIComponent(query)}&language=en-US`
       );
       return await response.json();
     } catch (error) {
@@ -312,8 +309,8 @@ export const fetchNetflixContent = async (page = 1) => {
   return cachedApiRequest(cacheKey, async () => {
     try {
       const [moviesResponse, tvResponse] = await Promise.all([
-        fetch(`${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_watch_providers=8&watch_region=US&sort_by=popularity.desc`),
-        fetch(`${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_watch_providers=8&watch_region=US&sort_by=popularity.desc`)
+        fetch(`${TMDB_PROXY_BASE}/discover/movie?page=${page}&language=en-US&with_watch_providers=8&watch_region=US&sort_by=popularity.desc`),
+        fetch(`${TMDB_PROXY_BASE}/discover/tv?page=${page}&language=en-US&with_watch_providers=8&watch_region=US&sort_by=popularity.desc`)
       ]);
       
       const [moviesData, tvData] = await Promise.all([
@@ -329,7 +326,7 @@ export const fetchNetflixContent = async (page = 1) => {
       if (combinedResults.length === 0) {
         console.log('No Netflix watch provider results, trying fallback...');
         const fallbackResponse = await fetch(
-          `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&sort_by=popularity.desc&with_companies=2452`
+          `${TMDB_PROXY_BASE}/discover/movie?page=${page}&language=en-US&sort_by=popularity.desc&with_companies=2452`
         );
         const fallbackData = await fallbackResponse.json();
         combinedResults = fallbackData.results || [];
@@ -352,7 +349,7 @@ export const fetchAmazonPrimeContent = async (page = 1) => {
       
       try {
         const response = await fetch(
-          `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&with_watch_providers=119&watch_region=US&sort_by=popularity.desc`
+          `${TMDB_PROXY_BASE}/discover/movie?page=${page}&language=en-US&with_watch_providers=119&watch_region=US&sort_by=popularity.desc`
         );
         const data = await response.json();
         if (data.results && data.results.length > 0) {
@@ -365,7 +362,7 @@ export const fetchAmazonPrimeContent = async (page = 1) => {
       if (results.length === 0) {
         try {
           const response = await fetch(
-            `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&sort_by=popularity.desc&with_companies=1024`
+            `${TMDB_PROXY_BASE}/discover/movie?page=${page}&language=en-US&sort_by=popularity.desc&with_companies=1024`
           );
           const data = await response.json();
           results = data.results || [];
@@ -377,7 +374,7 @@ export const fetchAmazonPrimeContent = async (page = 1) => {
       if (results.length === 0) {
         try {
           const response = await fetch(
-            `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&language=en-US&sort_by=popularity.desc&with_genres=28,18&vote_average.gte=7.0`
+            `${TMDB_PROXY_BASE}/discover/movie?page=${page}&language=en-US&sort_by=popularity.desc&with_genres=28,18&vote_average.gte=7.0`
           );
           const data = await response.json();
           results = data.results?.slice(0, 10) || [];
@@ -402,7 +399,7 @@ export const fetchContentDetails = async (id: string, type: 'movie' | 'tv') => {
     try {
       const extra = type === 'movie' ? 'release_dates' : 'content_ratings';
       const response = await fetch(
-        `${TMDB_BASE_URL}/${type}/${id}?api_key=${TMDB_API_KEY}&append_to_response=images,videos,credits,similar,keywords,${extra}&language=en-US&include_image_language=en,null`
+        `${TMDB_PROXY_BASE}/${type}/${id}?append_to_response=images,videos,credits,similar,keywords,${extra}&language=en-US&include_image_language=en,null`
       );
       const data = await response.json();
 
@@ -420,7 +417,7 @@ export const fetchContentDetails = async (id: string, type: 'movie' | 'tv') => {
             for (let seasonNum = 1; seasonNum <= 3; seasonNum++) {
               try {
                 const seasonResponse = await fetch(
-                  `${TMDB_BASE_URL}/tv/${id}/season/${seasonNum}?api_key=${TMDB_API_KEY}&language=en-US`
+                  `${TMDB_PROXY_BASE}/tv/${id}/season/${seasonNum}?language=en-US`
                 );
                 const seasonData = await seasonResponse.json();
                 
@@ -487,7 +484,7 @@ export const fetchVideos = async (id: string, type: 'movie' | 'tv') => {
   return cachedApiRequest(cacheKey, async () => {
     try {
       const response = await fetch(
-        `${TMDB_BASE_URL}/${type}/${id}/videos?api_key=${TMDB_API_KEY}&language=en-US`
+        `${TMDB_PROXY_BASE}/${type}/${id}/videos?language=en-US`
       );
       return await response.json();
     } catch (error) {
@@ -503,7 +500,7 @@ export const fetchGenres = async (type: 'movie' | 'tv') => {
   return cachedApiRequest(cacheKey, async () => {
     try {
       const response = await fetch(
-        `${TMDB_BASE_URL}/genre/${type}/list?api_key=${TMDB_API_KEY}&language=en-US`
+        `${TMDB_PROXY_BASE}/genre/${type}/list?language=en-US`
       );
       return await response.json();
     } catch (error) {
@@ -568,7 +565,7 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
           for (let tmdbSeason = 1; tmdbSeason <= 3; tmdbSeason++) {
             try {
               const seasonResponse = await fetch(
-                `${TMDB_BASE_URL}/tv/${id}/season/${tmdbSeason}?api_key=${TMDB_API_KEY}&language=en-US`
+                `${TMDB_PROXY_BASE}/tv/${id}/season/${tmdbSeason}?language=en-US`
               );
               const seasonData = await seasonResponse.json();
               
@@ -666,7 +663,7 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
       
       console.log(`[Season Details] Falling back to regular TMDB season ${seasonNumber}`);
       const response = await fetch(
-        `${TMDB_BASE_URL}/tv/${id}/season/${seasonNumber}?api_key=${TMDB_API_KEY}&language=en-US`
+        `${TMDB_PROXY_BASE}/tv/${id}/season/${seasonNumber}?language=en-US`
       );
       return await response.json();
     } catch (error) {
@@ -694,13 +691,17 @@ export const getVideoUrl = (sourceId: string, contentId: string, type: 'movie' |
   let url = source.urls[type];
   if (!url) return '';
   
-  url = url.replace('{id}', contentId);
+  // SECURITY: the id/season/episode values come from the URL query string, so
+  // percent-encode them before substituting into the embed URL. Otherwise a
+  // crafted link like /watch?id=123%26server=evil injects extra parameters
+  // into the third-party provider's URL.
+  url = url.replace('{id}', encodeURIComponent(contentId));
   
   if (type === 'tv') {
     const seasonValue = typeof season === 'number' && !Number.isNaN(season) ? season.toString() : '1';
     const episodeValue = typeof episode === 'number' && !Number.isNaN(episode) ? episode.toString() : '1';
-    url = url.replace('{season}', seasonValue);
-    url = url.replace('{episode}', episodeValue);
+    url = url.replace('{season}', encodeURIComponent(seasonValue));
+    url = url.replace('{episode}', encodeURIComponent(episodeValue));
   }
   
   // Quality hint from the user's Settings. Only appended to embed URLs that

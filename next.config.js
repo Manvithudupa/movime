@@ -58,6 +58,19 @@ const nextConfig = {
         ],
       },
       {
+        // SECURITY: API responses carry authenticated user data (watchlist,
+        // profile, settings). Never mark them cacheable — 'public' would let a
+        // shared cache store one user's data and replay it to another. This
+        // rule is matched after the generic rule above and overrides it.
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'private, no-cache, no-store, must-revalidate',
+          },
+        ],
+      },
+      {
         source: '/_next/image(.*)',
         headers: [
           {

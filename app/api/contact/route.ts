@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getResendClient } from '@/lib/resend'
 import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
+import { isSameOrigin } from '@/lib/requestGuard'
 
 const escapeHtml = (value: string) =>
   value.replace(/[&<>"']/g, (char) => ({
@@ -11,20 +12,45 @@ const escapeHtml = (value: string) =>
     "'": '&#39;',
   }[char] as string))
 
+// Reasonable caps so a single request can't blow up the email payload or
+// abuse the reply-to field.
+const MAX_NAME = 100
+const MAX_SUBJECT = 200
+const MAX_MESSAGE = 5000
+const MAX_EMAIL = 254
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 // POST /api/contact - Send a contact form submission via Resend
 export async function POST(request: NextRequest) {
   try {
+    // Block cross-site form posts (spam bots submit from other origins).
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     // Each email costs money (Resend quota) — keep the form heavily rate limited.
     const limited = rateLimit(request, { limit: 5, windowMs: 10 * 60 * 1000, keyPrefix: 'contact' })
     if (!limited.success) return rateLimitResponse(limited)
 
-    const { name, email, subject, message, type } = await request.json()
+    const body = await request.json().catch(() => ({}))
+    const { name, email, subject, message, type } = body
 
-    if (!name || !email || !subject || !message) {
+    // Validate presence, types, formats, and sizes server-side (the form's
+    // HTML5 attributes only apply to real browsers).
+    if (
+      typeof name !== 'string' || !name.trim() || name.length > MAX_NAME ||
+      typeof email !== 'string' || !EMAIL_RE.test(email) || email.length > MAX_EMAIL ||
+      typeof subject !== 'string' || !subject.trim() || subject.length > MAX_SUBJECT ||
+      typeof message !== 'string' || !message.trim() || message.length > MAX_MESSAGE
+    ) {
       return NextResponse.json(
-        { error: 'Please fill in all required fields' },
+        { error: 'Please fill in all required fields correctly' },
         { status: 400 }
       )
+    }
+
+    if (type !== undefined && typeof type !== 'string') {
+      return NextResponse.json({ error: 'Invalid inquiry type' }, { status: 400 })
     }
 
     if (!process.env.RESEND_API_KEY) {

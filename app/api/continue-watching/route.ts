@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { rateLimit, rateLimitResponse } from '@/lib/rateLimit'
+import { isSameOrigin } from '@/lib/requestGuard'
 
 // GET /api/continue-watching - Fetch user's continue watching items
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const limited = rateLimit(request, { limit: 120, windowMs: 60 * 1000, keyPrefix: 'continue-watching' })
+    if (!limited.success) return rateLimitResponse(limited)
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -34,6 +38,10 @@ export async function GET() {
 // POST /api/continue-watching - Upsert a continue watching entry
 export async function POST(request: NextRequest) {
   try {
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     // Progress saves happen every ~15s while watching — allow a comfortable margin.
     const limited = rateLimit(request, { limit: 60, windowMs: 60 * 1000, keyPrefix: 'continue-watching' })
     if (!limited.success) return rateLimitResponse(limited)
@@ -45,7 +53,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
+    const body = await request.json().catch(() => ({}))
     const { 
       content_id, 
       content_type, 
@@ -71,6 +79,37 @@ export async function POST(request: NextRequest) {
     
     if (isNaN(numericContentId)) {
       return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
+    }
+
+    // Validate every user-supplied field so junk values never reach the DB.
+    const isNonNegativeNumber = (v: unknown): v is number =>
+      typeof v === 'number' && Number.isFinite(v) && v >= 0
+    const isOptionalString = (v: unknown, max: number): boolean =>
+      v == null || (typeof v === 'string' && v.length <= max)
+
+    if (content_type !== 'movie' && content_type !== 'tv') {
+      return NextResponse.json({ error: 'Invalid content_type' }, { status: 400 })
+    }
+    if (typeof title !== 'string' || !title.trim() || title.length > 500) {
+      return NextResponse.json({ error: 'Invalid title' }, { status: 400 })
+    }
+    if (!isOptionalString(poster_path, 1000) || !isOptionalString(backdrop_path, 1000) || !isOptionalString(episode_title, 500)) {
+      return NextResponse.json({ error: 'Invalid text field' }, { status: 400 })
+    }
+    if (progress_seconds != null && !isNonNegativeNumber(progress_seconds)) {
+      return NextResponse.json({ error: 'Invalid progress_seconds' }, { status: 400 })
+    }
+    if (duration_seconds != null && !isNonNegativeNumber(duration_seconds)) {
+      return NextResponse.json({ error: 'Invalid duration_seconds' }, { status: 400 })
+    }
+    if (is_completed != null && typeof is_completed !== 'boolean') {
+      return NextResponse.json({ error: 'Invalid is_completed' }, { status: 400 })
+    }
+    if (season_number != null && !(Number.isInteger(season_number) && season_number >= 1)) {
+      return NextResponse.json({ error: 'Invalid season_number' }, { status: 400 })
+    }
+    if (episode_number != null && !(Number.isInteger(episode_number) && episode_number >= 1)) {
+      return NextResponse.json({ error: 'Invalid episode_number' }, { status: 400 })
     }
 
     const progressPercent = duration_seconds > 0 
@@ -178,6 +217,10 @@ export async function POST(request: NextRequest) {
 // DELETE /api/continue-watching - Remove a continue watching entry
 export async function DELETE(request: NextRequest) {
   try {
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const limited = rateLimit(request, { limit: 30, windowMs: 60 * 1000, keyPrefix: 'continue-watching' })
     if (!limited.success) return rateLimitResponse(limited)
 
