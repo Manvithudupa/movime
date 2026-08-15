@@ -6,9 +6,14 @@
     "dev": "next dev",
     "build": "node scripts/generate-icons.js && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "node scripts/e2e-fixtures.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.70.0",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.8",
     "@vercel/analytics": "^1.5.0",
@@ -30,7 +35,10 @@
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "^15.3.1",
+    "jsdom": "^30.0.1",
+    "puppeteer-core": "^25.7.0",
     "sharp": "^0.34.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

@@ -1,0 +1,108 @@
+name: CI
+
+# Runs on every push (any branch) and pull request, and can be triggered
+# manually from the Actions tab. On a push with multiple commits, all of
+# them are checked as one run.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # Cancel in-progress runs for the same branch when a new commit lands —
+  # only the latest commit's checks matter.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Placeholder values mirror .env.example so the build/e2e run without real
+# credentials. They're only needed for NEXT_PUBLIC_* inlining at build time
+# and graceful runtime no-ops — no real API calls are made.
+env:
+  NEXT_PUBLIC_SUPABASE_URL: https://your-project-id.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+  SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role
+  NEXT_PUBLIC_TMDB_API_KEY: ci_placeholder_tmdb_key
+  RESEND_API_KEY: ci_placeholder_resend_key
+  CONTACT_TO_EMAIL: ci@example.com
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  e2e:
+    name: E2E smoke test
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+      # Start the production server and wait until it responds.
+      - name: Start server
+        run: |
+          npm run start &
+          for i in $(seq 1 45); do
+            if curl -sf http://localhost:3000 > /dev/null 2>&1; then
+              echo "Server is up."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Server failed to start in time." >&2
+          exit 1
+
+      # E2E smoke test with mocked TMDB fixtures (uses Chrome from the runner
+      # image; requires the server from the previous step).
+      - name: Run e2e smoke test
+        run: node scripts/e2e-fixtures.mjs http://localhost:3000
