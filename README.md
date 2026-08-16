@@ -26,7 +26,7 @@
 
 ## ✨ Features
 
-- **🎥 Multi-Source Streaming** — Watch content from 9 verified embed providers with automatic source switching
+- **🎥 Multi-Source Streaming** — Watch content from 28 verified embed providers with automatic source switching
 - **📺 TV Shows & Seasons** — Browse episodes with season selectors and episode detail cards
 - **🐱 Anime Integration** — Dedicated anime section with AniList+TMDB cross-referencing for accurate season/episode mapping
 - **🏠 Anime Hero Banner** — Dedicated anime hero carousel with trailers, genre chips, and watchlist controls
@@ -88,6 +88,8 @@
 | `/api/continue-watching` | GET/POST/DELETE | Fetch, upsert, or remove continue-watching progress |
 | `/api/user/profile` | GET/PUT | Fetch or update user profile |
 | `/api/user/settings` | GET/PUT | Fetch or save cross-device playback settings (preferred source, quality, auto-play) |
+| `/api/user/delete` | DELETE | Delete the signed-in user's account and data (rate-limited) |
+| `/api/tmdb/[...slug]` | GET | Server-side TMDB proxy — injects the API key and caches responses (rate-limited) |
 | `/api/anilist/character?q=` | GET | Search AniList anime characters |
 | `/api/contact` | POST | Send contact form submissions via Resend |
 
@@ -114,13 +116,13 @@
 
 ### Streaming Providers (iframe embed)
 
-The platform aggregates from **9 verified embed providers** (each checked to be live): CinemaOS, VidNest, MappleTV, VidSrcSU, VidSrcSBS, VidSrcME, VidSrcNL, Flicky, and VidZee.
+The platform aggregates from **28 verified embed providers** (each checked to be live): CinemaOS, VidNest, MappleTV, SuperEmbed, MultiEmbed, MoviesAPI, GoDrive, EmbedSU, Hexa, VidSrcXyz, VidSrcRIP, VidSrcSU, VidSrcSBS, VidSrcME, VidSrcNL, VidSrcVIP, VidSrcCC, SmashyStream, AutoEmbed, VidEasy, VidFast, Vidify, Flicky, Vidora, VidZee, StreamFlix, VidJoy, and Frembed (French).
 
 ---
 
 ## 🧠 Architecture & Data Flow
 
-Movime is a client-rendered Next.js app (App Router) that fetches metadata directly from TMDB in the browser, then embeds third-party video players. User data (auth, watchlist, continue watching, profiles) is persisted through server-side API routes backed by Supabase.
+Movime is a client-rendered Next.js app (App Router). All TMDB metadata requests go through a server-side proxy (`/api/tmdb`) so the API key never ships in the browser bundle, then third-party video players are embedded. User data (auth, watchlist, continue watching, profiles) is persisted through server-side API routes backed by Supabase.
 
 ```mermaid
 flowchart LR
@@ -132,6 +134,7 @@ flowchart LR
 
     subgraph API[Next.js Server]
         AR["API Routes<br/>/api/*"]
+        PXY["/api/tmdb Proxy<br/>injects key + caches"]
         MW[Middleware<br/>Session Refresh + Legacy Redirects]
     end
 
@@ -139,10 +142,11 @@ flowchart LR
     ANI[(AniList GraphQL)]
     SUP[(Supabase<br/>Auth + Postgres)]
     RES[(Resend Email)]
-    EMB[9 Embed Providers<br/>iframe players]
+    EMB[28 Embed Providers<br/>iframe players]
 
     UI -->|fetch content| CACHE
-    CACHE --> TMDB
+    CACHE -->|GET /api/tmdb/...| PXY
+    PXY --> TMDB
     UI -->|fetch /api/watchlist, /api/continue-watching| AR
     UI -->|embed iframe| EMB
     AR --> SUP
@@ -156,11 +160,11 @@ flowchart LR
 
 ### Key Data Flows
 
-1. **Content browsing** — Pages (`/`, `/movies`, `/tv`, `/anime`, `/search`) call fetch helpers in `lib/utils.ts`, which hit the TMDB API through a layered cache (in-memory + localStorage, 10-min TTL) and deduplicate in-flight requests. Results are filtered (adult/blocked content) before rendering.
+1. **Content browsing** — Pages (`/`, `/movies`, `/tv`, `/anime`, `/search`) call fetch helpers in `lib/utils.ts`, which go through the server-side `/api/tmdb` proxy (the API key is injected server-side and never ships in the client bundle) with a layered cache (in-memory + localStorage, 10-min TTL) and in-flight request deduplication. Results are filtered (adult/blocked content) before rendering.
 
 2. **Anime mapping** — `fetchContentDetails` detects anime (genre/keyword/JP origin) and cross-references **AniList + TMDB** in `lib/animeMapper.ts` to produce accurate season/episode breakdowns, falling back to plain TMDB data when mapping fails.
 
-3. **Watching** — The `/watch` page builds an embed URL from the selected source in `lib/sources.ts` (9 verified providers — dead providers are removed) and renders it in a sandboxed iframe. If a source fails, `handleSourceFailure` automatically falls back to the next provider. Progress is saved to the Continue Watching store.
+3. **Watching** — The `/watch` page builds an embed URL from the selected source in `lib/sources.ts` (28 verified providers — dead providers are removed) and renders it in an iframe. Sources flagged `requiresNoSandbox` play unsandboxed (they refuse to play sandboxed); the rest are sandboxed for security. If a source fails, `handleSourceFailure` automatically falls back to the next provider. Progress is saved to the Continue Watching store.
 
 4. **User data** — Zustand stores (`lib/store.ts`) hold watchlist and continue-watching state optimistically, then sync to Supabase via `/api/watchlist` and `/api/continue-watching`. Profiles live in `AuthProvider` and are updated via `/api/user/profile`. Guests use localStorage; signed-in users sync across devices.
 
@@ -205,8 +209,17 @@ Create a `.env.local` file with the following (see `.env.example` for details):
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# TMDB (required for movie/TV/anime data)
-NEXT_PUBLIC_TMDB_API_KEY=your_tmdb_key
+# Secret key for admin operations (account deletion). MUST stay server-only —
+# never prefix with NEXT_PUBLIC_.
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# TMDB (required for movie/TV/anime data). All TMDB requests are proxied
+# server-side through /api/tmdb, so the key never ships in the client bundle.
+TMDB_API_KEY=your_tmdb_key
+# Legacy fallback (deprecated): only used when TMDB_API_KEY is unset. Because
+# it starts with NEXT_PUBLIC_ it ships in the client bundle — remove it once
+# TMDB_API_KEY is set.
+# NEXT_PUBLIC_TMDB_API_KEY=your_tmdb_key
 
 # Resend (required for the contact form)
 RESEND_API_KEY=re_your_resend_key
@@ -215,6 +228,11 @@ RESEND_EMAIL_FROM=Movime <onboarding@resend.dev>
 
 # Optional: image proxy for privacy/caching of TMDB images
 NEXT_PUBLIC_IMAGE_PROXY=https://images.weserv.nl/?url=
+
+# Optional: global (cross-instance) API rate limiting via Upstash Redis.
+# Without these, rate limits are enforced per serverless instance.
+# UPSTASH_REDIS_REST_URL=https://your-db.upstash.io
+# UPSTASH_REDIS_REST_TOKEN=your-token
 
 # Optional: Sentry error monitoring (skip to disable)
 NEXT_PUBLIC_SENTRY_DSN=https://example@sentry.example/1
@@ -281,6 +299,7 @@ movime/
 │   │   ├── anilist/     # AniList character search API
 │   │   ├── contact/     # Contact form email API (Resend, rate-limited)
 │   │   ├── continue-watching/  # Continue watching CRUD API (rate-limited)
+│   │   ├── tmdb/        # Server-side TMDB proxy (injects key, caches, rate-limited)
 │   │   ├── user/
 │   │   │   ├── delete/  # Account deletion API (rate-limited)
 │   │   │   ├── profile/ # User profile API (rate-limited)
@@ -340,10 +359,11 @@ movime/
 │   ├── animeMapper.ts   # AniList + TMDB anime season mapping
 │   ├── contentMeta.ts   # Per-page SEO metadata helpers
 │   ├── rateLimit.ts     # API rate limiting
+│   ├── requestGuard.ts  # Same-origin & CSRF request guards
 │   ├── resend.ts        # Lazy Resend client
 │   ├── routes.ts        # View -> route mapping
 │   ├── settings.ts      # Playback settings (localStorage + server sync)
-│   ├── sources.ts       # 9 available embed streaming sources
+│   ├── sources.ts       # 28 available embed streaming sources
 │   ├── store.ts         # Zustand stores (watchlist, continue watching)
 │   ├── supabase/
 │   │   ├── client.ts    # Supabase browser client
@@ -418,6 +438,7 @@ Edit `lib/sources.ts` to add or remove embed providers:
   name: 'My Source',
   isFrench: false,
   requiresNoSandbox: true, // set false for secure mode filtering
+  playerType: 'embed',
   urls: {
     movie: 'https://example.com/embed/movie/{id}',
     tv: 'https://example.com/embed/tv/{id}/{season}/{episode}'
@@ -425,7 +446,7 @@ Edit `lib/sources.ts` to add or remove embed providers:
 }
 ```
 
-The `{id}`, `{season}`, and `{episode}` placeholders are automatically replaced.
+The `{id}`, `{season}`, and `{episode}` placeholders are automatically replaced. `requiresNoSandbox: true` sources play unsandboxed (they refuse to play when sandboxed), and `playerType` is `'embed'` for iframe embeds or `'native'` for native players.
 
 ### Image Proxy
 

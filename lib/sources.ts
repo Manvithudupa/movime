@@ -1,7 +1,7 @@
 // Verified working embed providers (checked August 2026).
-// Dead/offline providers (RiveStream, AutoEmbed, VidLink, 2Embed, 123Embed,
-// VidEasy, VidFast, VidSrcPM, VidSrcDEV, VidStreamPro) were removed because
-// their domains no longer respond.
+// Domains that no longer respond (RiveStream, VidLink, 2Embed, 123Embed,
+// VidSrcPM, VidSrcDEV, VidStreamPro) are excluded, as are dead or premium
+// sources — see the commented-out section at the bottom.
 export const availableSources = [
         // ── Embed providers ───────────────────────────────────────────────────
     {
