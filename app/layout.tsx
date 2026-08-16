@@ -10,6 +10,8 @@ import Script from 'next/script'
 import AnnouncementPopup from '@/components/AnnouncementPopup'
 
 const SITE_URL = 'https://movime.vercel.app'
+const SITE_DESCRIPTION =
+  'Watch movies, TV shows, and anime online for free on Movime. Stream trending titles in HD with no signup — browse and start watching instantly.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -17,8 +19,7 @@ export const metadata: Metadata = {
     default: 'Movime - Watch Movies, TV Shows & Anime Free',
     template: '%s',
   },
-  description:
-    'Click, watch, enjoy. Movime breaks down the paywall, ensuring that quality content is accessible to everyone.',
+  description: SITE_DESCRIPTION,
   keywords:
     'free movies, free streaming, watch movies online, free tv shows, streaming service, watch movies free, online streaming, movime stream, free movies online, free series online',
   applicationName: 'Movime',
@@ -26,8 +27,7 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'Movime',
     title: 'Movime - Watch Movies, TV Shows & Anime Free',
-    description:
-      'Click, watch, enjoy. Movime breaks down the paywall, ensuring that quality content is accessible to everyone.',
+    description: SITE_DESCRIPTION,
     url: SITE_URL,
     images: [
       {
@@ -41,8 +41,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Movime - Watch Movies, TV Shows & Anime Free',
-    description:
-      'Click, watch, enjoy. Movime breaks down the paywall, ensuring that quality content is accessible to everyone.',
+    description: SITE_DESCRIPTION,
     images: [`${SITE_URL}/logo.png`],
   },
   icons: {

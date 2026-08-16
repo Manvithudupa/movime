@@ -1,7 +1,7 @@
 {
   "name": "Movime",
   "short_name": "Movime",
-  "description": "Movime - Streaming Platform",
+  "description": "Watch movies, TV shows, and anime online for free on Movime.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

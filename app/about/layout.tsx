@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'About - Movime',
-  description: 'Click, watch, enjoy. Movime is a free streaming platform aggregating movies, TV shows, and anime.',
+  description:
+    'Learn about Movime — a free streaming platform that aggregates movies, TV shows, and anime into one seamless experience.',
 }
 
 export default function AboutLayout({ children }: { children: React.ReactNode }) {
