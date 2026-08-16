@@ -6,6 +6,9 @@
 // Dead as of the August 2026 audit (removed): MoviesAPI, GoDrive, EmbedSU,
 // Hexa, VidSrcXyz, VidSrcVIP, VidSrcCC, SmashyStream, AutoEmbed, Vidify,
 // Flicky, Vidora, StreamFlix, VidJoy, and Frembed.
+//
+// Added August 2026 (verified rendering real players in a browser):
+// VidSrcPM (vidsrc.pm) and VidLink (vidlink.pro).
 export const availableSources = [
     // ── Embed providers ───────────────────────────────────────────────────
     {
@@ -119,6 +122,30 @@ export const availableSources = [
         urls: {
             movie: 'https://vidsrc.nl/embed/movie/{id}',
             tv: 'https://vidsrc.nl/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidsrcpm',
+        name: 'VidSrcPM',
+        isFrench: false,
+        requiresNoSandbox: true,
+        playerType: 'embed',
+        urls: {
+            // verified live Aug 2026 (renders a real player iframe)
+            movie: 'https://vidsrc.pm/embed/movie/{id}',
+            tv: 'https://vidsrc.pm/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'vidlink',
+        name: 'VidLink',
+        isFrench: false,
+        requiresNoSandbox: true,
+        playerType: 'embed',
+        urls: {
+            // verified live Aug 2026 (renders a real <video> player)
+            movie: 'https://vidlink.pro/movie/{id}',
+            tv: 'https://vidlink.pro/tv/{id}/{season}/{episode}'
         }
     },
     {
