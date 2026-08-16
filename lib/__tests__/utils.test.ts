@@ -20,23 +20,23 @@ describe('getVideoUrl', () => {
   })
 
   it('appends the quality hint to URLs that already have a query string', () => {
-    expect(getVideoUrl('vidsrccc', '123', 'movie', undefined, undefined, '1080p')).toBe(
-      'https://vidsrc.cc/v2/embed/movie/123?autoPlay=false&quality=1080p'
+    expect(getVideoUrl('VidNest', '123', 'movie', undefined, undefined, '1080p')).toBe(
+      'https://vidnest.fun/movie/123?server=gama&quality=1080p'
     )
   })
 
   it('skips the quality hint for auto or missing quality', () => {
-    expect(getVideoUrl('vidsrccc', '123', 'movie', undefined, undefined, 'auto')).toBe(
-      'https://vidsrc.cc/v2/embed/movie/123?autoPlay=false'
+    expect(getVideoUrl('VidNest', '123', 'movie', undefined, undefined, 'auto')).toBe(
+      'https://vidnest.fun/movie/123?server=gama'
     )
-    expect(getVideoUrl('vidsrccc', '123', 'movie')).toBe(
-      'https://vidsrc.cc/v2/embed/movie/123?autoPlay=false'
+    expect(getVideoUrl('VidNest', '123', 'movie')).toBe(
+      'https://vidnest.fun/movie/123?server=gama'
     )
   })
 
   it('does not add a quality param to bare-path URLs', () => {
-    expect(getVideoUrl('vidsrcXyz', '123', 'movie', undefined, undefined, '720p')).toBe(
-      'https://vidsrc.xyz/embed/movie/123'
+    expect(getVideoUrl('vidsrcrip', '123', 'movie', undefined, undefined, '720p')).toBe(
+      'https://vidsrc.rip/embed/movie/123'
     )
   })
 

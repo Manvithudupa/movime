@@ -44,7 +44,8 @@ ALTER TABLE public.watch_later ENABLE ROW LEVEL SECURITY;
 -- Users can only read their own profile. If a public profile feature is
 -- added later, expose only non-sensitive fields through a dedicated view or
 -- a narrow column-level policy instead of opening the whole table.
--- (For existing databases, run fix_profiles_rls.sql to swap this policy.)
+-- (Existing databases: this policy replaces the previous "Profiles are
+-- viewable by everyone" SELECT policy — drop it if it still exists.)
 DROP POLICY IF EXISTS "Profiles are viewable by everyone" ON public.profiles;
 CREATE POLICY "Users can view own profile"
   ON public.profiles FOR SELECT
