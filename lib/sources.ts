@@ -13,7 +13,7 @@
 // (both multiembed.mov, which redirects to streamingnow.mov).
 //
 // Added August 2026 (verified rendering real players in a browser):
-// VidSrcPM (vidsrc.pm) and VidLink (vidlink.pro).
+// VidSrcPM (vidsrc.pm), VidLink (vidlink.pro), and CineSrc (cinesrc.st).
 export const availableSources = [
     // ── Embed providers ───────────────────────────────────────────────────
     {
@@ -162,6 +162,19 @@ export const availableSources = [
         urls: {
             movie: 'https://player.vidzee.wtf/embed/movie/{id}',
             tv: 'https://player.vidzee.wtf/embed/tv/{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'cinesrc',
+        name: 'CineSrc',
+        isFrench: false,
+        requiresNoSandbox: true,
+        playerType: 'embed',
+        urls: {
+            // verified live Aug 2026 (renders a real <video> player for both
+            // movies and TV in a cross-origin iframe; TV uses s/e query params)
+            movie: 'https://cinesrc.st/embed/movie/{id}',
+            tv: 'https://cinesrc.st/embed/tv/{id}?s={season}&e={episode}'
         }
     },
 

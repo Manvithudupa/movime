@@ -26,7 +26,7 @@
 
 ## ✨ Features
 
-- **🎥 Multi-Source Streaming** — Watch content from 15 verified embed providers with automatic source switching
+- **🎥 Multi-Source Streaming** — Watch content from 14 verified embed providers with automatic source switching
 - **📺 TV Shows & Seasons** — Browse episodes with season selectors and episode detail cards
 - **🐱 Anime Integration** — Dedicated anime section with AniList+TMDB cross-referencing for accurate season/episode mapping
 - **🏠 Anime Hero Banner** — Dedicated anime hero carousel with trailers, genre chips, and watchlist controls
@@ -116,7 +116,7 @@
 
 ### Streaming Providers (iframe embed)
 
-The platform aggregates from **13 verified embed providers** (each checked to be live): CinemaOS, VidNest, MappleTV, VidSrcRIP, VidSrcSU, VidSrcSBS, VidSrcME, VidSrcNL, VidSrcPM, VidLink, VidEasy, VidFast, and VidZee.
+The platform aggregates from **14 verified embed providers** (each checked to be live): CinemaOS, VidNest, MappleTV, VidSrcRIP, VidSrcSU, VidSrcSBS, VidSrcME, VidSrcNL, VidSrcPM, VidLink, VidEasy, VidFast, VidZee, and CineSrc.
 
 ---
 
@@ -164,7 +164,7 @@ flowchart LR
 
 2. **Anime mapping** — `fetchContentDetails` detects anime (genre/keyword/JP origin) and cross-references **AniList + TMDB** in `lib/animeMapper.ts` to produce accurate season/episode breakdowns, falling back to plain TMDB data when mapping fails.
 
-3. **Watching** — The `/watch` page builds an embed URL from the selected source in `lib/sources.ts` (15 verified providers — dead providers are removed) and renders it in an iframe. Sources flagged `requiresNoSandbox` play unsandboxed (they refuse to play sandboxed); the rest are sandboxed for security. If a source fails, `handleSourceFailure` automatically falls back to the next provider. Progress is saved to the Continue Watching store.
+3. **Watching** — The `/watch` page builds an embed URL from the selected source in `lib/sources.ts` (14 verified providers — dead providers are removed) and renders it in an iframe. Sources flagged `requiresNoSandbox` play unsandboxed (they refuse to play sandboxed); the rest are sandboxed for security. If a source fails, `handleSourceFailure` automatically falls back to the next provider. Progress is saved to the Continue Watching store.
 
 4. **User data** — Zustand stores (`lib/store.ts`) hold watchlist and continue-watching state optimistically, then sync to Supabase via `/api/watchlist` and `/api/continue-watching`. Profiles live in `AuthProvider` and are updated via `/api/user/profile`. Guests use localStorage; signed-in users sync across devices.
 
