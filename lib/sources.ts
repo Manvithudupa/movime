@@ -7,6 +7,11 @@
 // Hexa, VidSrcXyz, VidSrcVIP, VidSrcCC, SmashyStream, AutoEmbed, Vidify,
 // Flicky, Vidora, StreamFlix, VidJoy, and Frembed.
 //
+// Removed August 2026 (multiembed.mov now refuses cross-origin iframe
+// embedding — Cloudflare challenge sends X-Frame-Options: SAMEORIGIN, so the
+// watch page iframe gets "refused to connect"): SuperEmbed and MultiEmbed
+// (both multiembed.mov, which redirects to streamingnow.mov).
+//
 // Added August 2026 (verified rendering real players in a browser):
 // VidSrcPM (vidsrc.pm) and VidLink (vidlink.pro).
 export const availableSources = [
@@ -45,28 +50,6 @@ export const availableSources = [
             // file-1 domain (mapple.rip) kept as verified
             movie: 'https://mapple.rip/watch/movie/{id}?autoPlay=true&theme=#9900ff',
             tv: 'https://mapple.rip/watch/tv/{id}-{season}-{episode}?nextButton=true&autoPlay=true&theme=#9900ff'
-        }
-    },
-    {
-        id: 'SuperEmbed',
-        name: 'SuperEmbed',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://multiembed.mov/directstream.php?video_id={id}&tmdb=1',
-            tv: 'https://multiembed.mov/directstream.php?video_id={id}&tmdb=1&s={season}&e={episode}'
-        }
-    },
-    {
-        id: 'multiembed',
-        name: 'MultiEmbed',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://multiembed.mov/?video_id={id}&tmdb=1',
-            tv: 'https://multiembed.mov/?video_id={id}&tmdb=1&s={season}&e={episode}'
         }
     },
     {

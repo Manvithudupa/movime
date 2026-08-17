@@ -116,7 +116,7 @@
 
 ### Streaming Providers (iframe embed)
 
-The platform aggregates from **15 verified embed providers** (each checked to be live): CinemaOS, VidNest, MappleTV, SuperEmbed, MultiEmbed, VidSrcRIP, VidSrcSU, VidSrcSBS, VidSrcME, VidSrcNL, VidSrcPM, VidLink, VidEasy, VidFast, and VidZee.
+The platform aggregates from **13 verified embed providers** (each checked to be live): CinemaOS, VidNest, MappleTV, VidSrcRIP, VidSrcSU, VidSrcSBS, VidSrcME, VidSrcNL, VidSrcPM, VidLink, VidEasy, VidFast, and VidZee.
 
 ---
 
