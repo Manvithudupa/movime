@@ -401,6 +401,15 @@ export const fetchContentDetails = async (id: string, type: 'movie' | 'tv') => {
       const response = await fetch(
         `${TMDB_PROXY_BASE}/${type}/${id}?append_to_response=images,videos,credits,similar,keywords,${extra}&language=en-US&include_image_language=en,null`
       );
+      // The proxy maps upstream errors (404, rate limits, etc.) to a 502 with
+      // an error body. Return null instead of treating that body as content,
+      // so callers render their "Content Not Found" state. All callers already
+      // tolerate null (hero filters it, search uses optional chaining, season
+      // details checks for it).
+      if (!response.ok) {
+        console.warn(`[fetchContentDetails] ${type} ${id} failed with status ${response.status}`);
+        return null;
+      }
       const data = await response.json();
 
       if (type === 'tv' && isAnimeContent(data)) {

@@ -97,9 +97,10 @@ export default function AnnouncementPopup() {
                     height={80}
                     className="object-contain mb-4"
                   />
-                  <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-wide">
+                  {/* Modal heading — h2 so it never hijacks the page's h1 */}
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-wide">
                     Welcome to Movime
-                  </h1>
+                  </h2>
                   <span
                     className="mt-3 inline-block px-3 py-1 text-[10px] sm:text-xs font-semibold uppercase tracking-widest rounded-full border border-white/[0.15]"
                     style={{
@@ -115,7 +116,7 @@ export default function AnnouncementPopup() {
                 {/* Message sections */}
                 <div className="space-y-5 text-sm sm:text-base text-gray-300 leading-relaxed">
                   <p className="text-center text-gray-400 font-light italic">
-                    Your destination for seamless streaming.
+                    Stream movies, TV shows, and anime — free, no signup required.
                   </p>
 
                   {/* Feature highlights */}
@@ -123,10 +124,10 @@ export default function AnnouncementPopup() {
                     <FeatureItem
                       icon={
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
                       }
-                      text="Create your profile and choose from hundreds of anime avatars."
+                      text="Watch instantly from 14 verified sources — switch players any time with one tap."
                     />
 
                     <FeatureItem
@@ -135,7 +136,7 @@ export default function AnnouncementPopup() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                         </svg>
                       }
-                      text="Build your personal watchlist and never lose track of what to watch next."
+                      text="Build your watchlist and sync it across every device with a free account."
                     />
 
                     <FeatureItem
@@ -144,7 +145,7 @@ export default function AnnouncementPopup() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                       }
-                      text="Pick up right where you left off with the new continue watching feature."
+                      text="Pick up right where you left off with continue watching on any title."
                     />
                   </div>
 
@@ -164,10 +165,10 @@ export default function AnnouncementPopup() {
                   {/* CTA section */}
                   <div className="text-center space-y-3">
                     <p className="text-gray-200 font-medium">
-                      Create a free account to sync your watchlist across devices.
+                      Create a free account to sync your watchlist and pick your favorite player.
                     </p>
                     <p className="text-gray-500 text-sm">
-                      Many more exciting features are on the way.
+                      More exciting features are on the way.
                     </p>
                   </div>
                 </div>

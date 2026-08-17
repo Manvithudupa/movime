@@ -265,6 +265,11 @@ export default function BrowseContent({
   const showHeroSkeleton = showAnimeHero && loading;
   const mainClassName = hasHero || showHeroSkeleton ? 'pb-8 pt-2' : 'pt-24 pb-8';
 
+  // The anime page gets its page-level h1 from AnimeHero, so its section
+  // title stays an h2; movies/tv/genre pages have no other h1, so their
+  // title is the page h1.
+  const SectionTitle = category === 'anime' ? 'h2' : 'h1';
+
   return (
     <motion.div
       className="min-h-screen bg-black text-white overflow-x-hidden"
@@ -304,7 +309,7 @@ export default function BrowseContent({
         <div className="px-4 sm:px-6 lg:px-8">
           {/* Section title */}
           <div className="mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white">{displayTitle}</h2>
+            <SectionTitle className="text-2xl sm:text-3xl font-bold text-white">{displayTitle}</SectionTitle>
             {subtitle && !isGenreBrowse && (
               <p className="text-gray-300 text-sm mt-1">{subtitle}</p>
             )}

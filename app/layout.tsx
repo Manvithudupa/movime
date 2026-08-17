@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import AuthProvider from '@/components/AuthProvider'
 import MotionProvider from '@/components/MotionProvider'
@@ -12,6 +12,15 @@ import AnnouncementPopup from '@/components/AnnouncementPopup'
 const SITE_URL = 'https://movime.vercel.app'
 const SITE_DESCRIPTION =
   'Watch movies, TV shows, and anime online for free on Movime. Stream trending titles in HD with no signup — browse and start watching instantly.'
+
+// Declared via the viewport export (rather than a manual <meta> tag) so
+// Next.js injects exactly one viewport meta instead of duplicating its own
+// default alongside a hand-written one.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#000000',
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -62,9 +71,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#000000" />
-
         {/* PWA manifest and icons */}
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/logo.png" />

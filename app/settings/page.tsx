@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { availableSources } from '@/lib/sources';
 import { setLocalStorage } from '@/lib/utils';
-import { fetchSettings, saveSettings, type UserSettings } from '@/lib/settings';
+import { fetchSettings, saveSettings, DEFAULT_SETTINGS, type UserSettings } from '@/lib/settings';
 import { useAuth } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
 import { SkeletonSettings } from '@/components/SkeletonSettings';
@@ -18,7 +18,9 @@ export default function SettingsPage() {
   const router = useRouter();
   const { isSignedIn } = useAuth();
   const [preferredSource, setPreferredSource] = useState('');
-  const [defaultQuality, setDefaultQuality] = useState('720p');
+  // Initialize from the real default so the dropdown doesn't flash '720p'
+  // before the saved settings load.
+  const [defaultQuality, setDefaultQuality] = useState(DEFAULT_SETTINGS.defaultQuality);
   const [autoPlay, setAutoPlay] = useState(true);
   const [loading, setLoading] = useState(true);
   const [showSearch, setShowSearch] = useState(false);
