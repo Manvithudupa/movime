@@ -8,21 +8,7 @@ import Navbar from '@/components/Navbar';
 import { useWatchlistStore } from '@/lib/store';
 
 export default function TermsOfService() {
-  const [showSearch, setShowSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const watchLaterCount = useWatchlistStore((s) => s.count);
-
-  const handleSearchToggle = () => {
-    setShowSearch(!showSearch);
-    if (!showSearch) {
-      setSearchQuery('');
-    }
-  };
-
-  const handleSearchChange = (query: string) => {
-    setSearchQuery(query);
-  };
-
   const router = useRouter();
 
   const handleViewChange = (view: string) => {
@@ -33,12 +19,12 @@ export default function TermsOfService() {
     <div className="min-h-screen bg-black text-white">
       <Navbar
         currentView="terms"
-        showSearch={showSearch}
-        searchQuery={searchQuery}
+        showSearch={false}
+        searchQuery={''}
         watchLaterCount={watchLaterCount}
         onViewChange={handleViewChange}
-        onSearchToggle={handleSearchToggle}
-        onSearchChange={handleSearchChange}
+        onSearchToggle={() => {}}
+        onSearchChange={() => {}}
       />
 
       {/* Main Content */}

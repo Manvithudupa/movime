@@ -1,28 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getViewPath } from '@/lib/routes';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { useWatchlistStore } from '@/lib/store';
 
 export default function AboutPage() {
-  const [showSearch, setShowSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const watchLaterCount = useWatchlistStore((s) => s.count);
-
-  const handleSearchToggle = () => {
-    setShowSearch(!showSearch);
-    if (!showSearch) {
-      setSearchQuery('');
-    }
-  };
-
-  const handleSearchChange = (query: string) => {
-    setSearchQuery(query);
-  };
-
   const router = useRouter();
 
   const handleViewChange = (view: string) => {
@@ -33,12 +20,12 @@ export default function AboutPage() {
     <div className="min-h-screen bg-black text-white">
       <Navbar
         currentView="about"
-        showSearch={showSearch}
-        searchQuery={searchQuery}
+        showSearch={false}
+        searchQuery={''}
         watchLaterCount={watchLaterCount}
         onViewChange={handleViewChange}
-        onSearchToggle={handleSearchToggle}
-        onSearchChange={handleSearchChange}
+        onSearchToggle={() => {}}
+        onSearchChange={() => {}}
       />
 
       {/* Hero Section */}
@@ -234,26 +221,7 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* Footer CTA */}
-      <div className="bg-white/[0.02] py-12 border-t border-white/10">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <h3 className="text-2xl font-bold mb-4 text-white">Have Questions?</h3>
-          <p className="text-gray-400 mb-6">
-            Check out our documentation, privacy policy, or get in touch with our support team.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/privacy" className="text-white hover:text-gray-300 underline">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="text-white hover:text-gray-300 underline">
-              Terms of Service
-            </Link>
-            <Link href="/contact" className="text-white hover:text-gray-300 underline">
-              Contact Support
-            </Link>
-          </div>
-        </div>
-      </div>
+      <Footer />
     </div>
   );
 }

@@ -18,21 +18,7 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showSearch, setShowSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const watchLaterCount = useWatchlistStore((s) => s.count);
-
-  const handleSearchToggle = () => {
-    setShowSearch(!showSearch);
-    if (!showSearch) {
-      setSearchQuery('');
-    }
-  };
-
-  const handleSearchChange = (query: string) => {
-    setSearchQuery(query);
-  };
-
   const router = useRouter();
 
   const handleViewChange = (view: string) => {
@@ -87,12 +73,12 @@ export default function ContactPage() {
     <div className="min-h-screen bg-black text-white">
       <Navbar
         currentView="contact"
-        showSearch={showSearch}
-        searchQuery={searchQuery}
+        showSearch={false}
+        searchQuery={''}
         watchLaterCount={watchLaterCount}
         onViewChange={handleViewChange}
-        onSearchToggle={handleSearchToggle}
-        onSearchChange={handleSearchChange}
+        onSearchToggle={() => {}}
+        onSearchChange={() => {}}
       />
 
       {/* Hero Section */}

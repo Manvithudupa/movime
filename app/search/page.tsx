@@ -12,7 +12,7 @@ import type { ContentItem, Genre } from '@/lib/types';
 import { useWatchlistStore } from '@/lib/store';
 import { SkeletonSearch } from '@/components/SkeletonSearch';
 
-const ContentCard = ({ item }: { item: Record<string, any> }) => {
+const SearchContentCard = ({ item }: { item: Record<string, any> }) => {
   const title = item.title || item.name || '';
   const poster = item.poster_path;
   const type = item.media_type || (item.title ? 'movie' : 'tv');
@@ -466,7 +466,7 @@ function SearchPageContent() {
 
         {((!loading && results.length > 0) || (!genreLoading && genreItems.length > 0)) && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-5 md:gap-6">
-            {(showingGenre ? genreSorted : sortedResults).map(item => <ContentCard key={`${item.id}-${item.media_type || 'x'}`} item={item} />)}
+            {(showingGenre ? genreSorted : sortedResults).map(item => <SearchContentCard key={`${item.id}-${item.media_type || 'x'}`} item={item} />)}
           </div>
         )}
 
