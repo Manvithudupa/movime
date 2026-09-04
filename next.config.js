@@ -3,7 +3,7 @@ const { withSentryConfig } = require('@sentry/nextjs')
 
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   images: {
     remotePatterns: [
@@ -28,10 +28,6 @@ const nextConfig = {
         hostname: 'avatars.githubusercontent.com',
       }
     ],
-    dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    unoptimized: true,
   },
   async headers() {
     return [

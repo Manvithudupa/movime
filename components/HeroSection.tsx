@@ -6,9 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   fetchMovies,
   fetchContentDetails,
-  formatRuntime
+  formatRuntime,
+  blockedMovieIds,
+  filterAdultContent
 } from '@/lib/utils';
 import type { ContentItem, Movie } from '@/lib/types';
+import { STATUS_LABELS } from '@/lib/constants';
 import { SkeletonHero } from '@/components/SkeletonHero';
 
 interface HeroSectionProps {
@@ -18,13 +21,6 @@ interface HeroSectionProps {
   isInWatchLater?: (movie: ContentItem) => boolean;
   getWatchStatus?: (movie: ContentItem) => string | undefined;
 }
-
-const statusLabels: Record<string, string> = {
-  watching: 'Watching',
-  completed: 'Completed',
-  plan_to_watch: 'Plan to Watch',
-  dropped: 'Dropped',
-};
 
 export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLater, isInWatchLater, getWatchStatus }: HeroSectionProps) {
   const [featuredMovies, setFeaturedMovies] = useState<Movie[]>([]);
@@ -55,11 +51,16 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
         const moviesResponse = await fetchMovies(1);
         
         if (moviesResponse.results && moviesResponse.results.length > 0) {
-          const topMovies = moviesResponse.results.slice(0, 6);
+          const topMovies = moviesResponse.results
+            .filter((movie: any) => !blockedMovieIds.includes(movie.id.toString()))
+            .slice(0, 6);
           const movieDetailsPromises = topMovies.map((movie: Record<string, any>) => fetchContentDetails(movie.id.toString(), 'movie'));
           
           const movieDetails = await Promise.all(movieDetailsPromises);
-          const validMovies = movieDetails.filter(movie => movie !== null) as Movie[];
+          const validMovies = filterAdultContent(
+            movieDetails.filter(movie => movie !== null),
+            false
+          ) as Movie[];
           
           if (validMovies.length > 0) {
             setFeaturedMovies(validMovies);
@@ -331,7 +332,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
                   transition={{ duration: 0.2 }}
                 >
                   <svg className={`w-4 sm:w-5 h-4 sm:h-5 ${isMovieInWatchLater(currentMovie) ? 'fill-current' : ''}`} fill={isMovieInWatchLater(currentMovie) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-                  {isMovieInWatchLater(currentMovie) ? `${getWatchStatus ? statusLabels[getWatchStatus(currentMovie as ContentItem) || 'plan_to_watch'] || 'MY LIST' : 'MY LIST'} ✓` : '+ MY LIST'}
+                  {isMovieInWatchLater(currentMovie) ? `${getWatchStatus ? STATUS_LABELS[getWatchStatus(currentMovie as ContentItem) || 'plan_to_watch'] || 'MY LIST' : 'MY LIST'} ✓` : '+ MY LIST'}
                 </motion.button>
                 <motion.button
                   onClick={handleMoreDetails}

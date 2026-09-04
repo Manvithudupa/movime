@@ -18,6 +18,7 @@ import {
 import type { Movie, TVShow, Season, Episode, Video, CastMember } from '@/lib/types';
 import { useAuth } from '@/components/AuthProvider';
 import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store';
+import { STATUS_INFO } from '@/lib/constants';
 import Navbar from '@/components/Navbar';
 import ShareButton from '@/components/ShareButton';
 import { SkeletonDetails } from '@/components/SkeletonDetails';
@@ -47,12 +48,7 @@ function DetailsPageContent() {
   const fetchContinueWatching = useContinueWatchingStore((s) => s.fetch);
 
 
-  const statusLabels: Record<string, { label: string, color: string, icon: string }> = {
-    watching: { label: 'Watching', color: 'bg-white', icon: '▶' },
-    completed: { label: 'Completed', color: 'bg-white/60', icon: '✓' },
-    plan_to_watch: { label: 'Plan to Watch', color: 'bg-white/30', icon: '⏳' },
-    dropped: { label: 'Dropped', color: 'bg-white/10', icon: '✕' },
-  };
+  const statusLabels = STATUS_INFO;
 
   const contentId = searchParams.get('id');
   const contentType = searchParams.get('type') as 'movie' | 'tv';

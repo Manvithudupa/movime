@@ -359,20 +359,18 @@ function HomePageContent() {
     try {
       const results = await searchContent(searchQuery);
       
-      const searchTerms = searchQuery.toLowerCase();
-      const isAdultSearch = ['adult', 'sex', 'erotic', 'xxx', 'porn', 'explicit', 'nude'].some(
-        term => searchTerms.includes(term)
-      );
-      
       // Multi-search can return people/companies — only keep watchable titles
       // so cards link to valid /details and /watch pages.
+      // Always filter by item metadata (genre_ids, adult flag, title keywords)
+      // rather than bypassing based on the user's search query, which could
+      // cause false positives for legitimate titles like "Adult Swim".
       const filteredResults = filterAdultContent(
         results.results?.filter(
           (item: any) =>
             !blockedMovieIds.includes(item.id.toString()) &&
             (item.media_type === 'movie' || item.media_type === 'tv')
         ) || [],
-        isAdultSearch
+        false
       ) as ContentItem[];
       
       setSearchResults(filteredResults);

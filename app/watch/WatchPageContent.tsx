@@ -450,24 +450,22 @@ function WatchPageContent() {
             {/* Season tabs are kept outside the episodes block so users can always
                 switch seasons, even when the currently selected season has no episodes. */}
             {(() => {
-              const seasonCount =
-                (content as any).seasons?.filter((s: any) => s.season_number > 0).length ||
-                (content as any).number_of_seasons ||
-                1;
+              const availableSeasons = (content as any).seasons?.filter((s: any) => s.season_number > 0) || [];
+              const seasonCount = availableSeasons.length || 1;
               if (seasonCount <= 1) return null;
               return (
                 <div className="flex flex-wrap gap-2 mb-4">
                   {Array.from({ length: seasonCount }, (_, i) => i + 1).map(seasonNum => (
                     <button
                       key={seasonNum}
-                      onClick={() => setSelectedSeason(seasonNum)}
+                      onClick={() => setSelectedSeason(availableSeasons[seasonNum - 1]?.season_number || seasonNum)}
                       className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                        selectedSeason === seasonNum
+                        selectedSeason === (availableSeasons[seasonNum - 1]?.season_number || seasonNum)
                           ? 'bg-white text-black'
                           : 'bg-white/10 text-gray-300 hover:bg-white/20'
                       }`}
                     >
-                      S{seasonNum}
+                      S{availableSeasons[seasonNum - 1]?.season_number || seasonNum}
                     </button>
                   ))}
                 </div>

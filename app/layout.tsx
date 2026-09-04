@@ -102,7 +102,7 @@ export default function RootLayout({
                 if (!isLocalhost && !isHttps) return;
 
                 navigator.serviceWorker
-                  .register('/sw.js')
+                  .register('/sw.js?v=' + new Date().getTime())
                   .then(function(reg) {
                     console.log('Service worker registered.', reg);
                   })

@@ -30,11 +30,22 @@ describe('watchlist store', () => {
     expect(useWatchlistStore.getState().count).toBe(0)
   })
 
-  it('toggling add on an existing item removes it', () => {
+  it('add on an existing item replaces it (upsert)', () => {
     const { add } = useWatchlistStore.getState()
     add(watchlistItem())
-    add(watchlistItem())
+    add(watchlistItem({ status: 'watching' }))
+    expect(useWatchlistStore.getState().count).toBe(1)
+    expect(useWatchlistStore.getState().items[0].status).toBe('watching')
+  })
+
+  it('toggle removes an existing item and adds if absent', () => {
+    const { toggle } = useWatchlistStore.getState()
+    toggle(watchlistItem())
+    expect(useWatchlistStore.getState().count).toBe(1)
+    toggle(watchlistItem())
     expect(useWatchlistStore.getState().count).toBe(0)
+    toggle(watchlistItem())
+    expect(useWatchlistStore.getState().count).toBe(1)
   })
 
   it('updates status', () => {

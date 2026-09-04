@@ -21,6 +21,7 @@ interface WatchlistStore {
   isLoading: boolean
   fetch: (isSignedIn: boolean) => Promise<void>
   add: (item: WatchlistItem) => void
+  toggle: (item: WatchlistItem) => void
   remove: (contentId: number) => void
   updateStatus: (contentId: number, status: string) => void
   clear: () => void
@@ -93,7 +94,22 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
     set((state) => {
       const exists = state.items.some(i => i.content_id === item.content_id)
       if (exists) {
-        // Toggle off if already exists
+        // Replace existing entry with the new data
+        const newItems = state.items.map(i =>
+          i.content_id === item.content_id ? { ...i, ...item } : i
+        )
+        return { items: newItems, count: newItems.length }
+      }
+      const newItems = [...state.items, item]
+      return { items: newItems, count: newItems.length }
+    })
+  },
+
+  // Toggle: add if absent, remove if present
+  toggle: (item) => {
+    set((state) => {
+      const exists = state.items.some(i => i.content_id === item.content_id)
+      if (exists) {
         const newItems = state.items.filter(i => i.content_id !== item.content_id)
         return { items: newItems, count: newItems.length }
       }

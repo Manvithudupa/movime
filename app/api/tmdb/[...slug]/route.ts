@@ -14,10 +14,10 @@ const TMDB_SERVER_KEY =
   process.env.TMDB_API_KEY || process.env.NEXT_PUBLIC_TMDB_API_KEY || ''
 
 // The client only ever requests paths we construct in lib/utils.ts, but the
-// proxy still validates every segment as defense-in-depth (no dots, no
-// traversal, printable URL-path characters only).
+// proxy still validates every segment as defense-in-depth (no traversal,
+// printable URL-path characters only).
 const MAX_SEGMENTS = 10
-const SEGMENT_RE = /^[a-zA-Z0-9_-]+$/
+const SEGMENT_RE = /^[a-zA-Z0-9._-]+$/
 
 export async function GET(request: NextRequest) {
   // Keep this tight enough to stop scripted abuse of the proxy but loose
