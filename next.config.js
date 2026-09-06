@@ -28,6 +28,10 @@ const nextConfig = {
         hostname: 'avatars.githubusercontent.com',
       }
     ],
+    // Serve raw image URLs instead of routing them through the host's
+    // image optimizer (e.g. Vercel). Proxying/caching is handled by
+    // ProxyImage via NEXT_PUBLIC_IMAGE_PROXY.
+    unoptimized: true,
   },
   async headers() {
     return [
