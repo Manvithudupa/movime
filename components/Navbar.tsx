@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/components/AuthProvider';
 import Avatar from '@/components/Avatar';
 
-import { useEffect } from 'react';
 import BottomNav from '@/components/BottomNav';
 import { VIEW_ROUTES } from '@/lib/routes';
 
@@ -34,6 +33,7 @@ export default function Navbar({
   const [isScrolled, setIsScrolled] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const { user, profile, isLoading, isSignedIn, signOut } = useAuth();
   const router = useRouter();
 
@@ -49,6 +49,27 @@ export default function Navbar({
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [currentView]);
+
+  // Close the account dropdown on outside click/tap or Escape — it used to
+  // stay open until the avatar was clicked again.
+  useEffect(() => {
+    if (!isUserMenuOpen) return;
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      if (userMenuRef.current?.contains(e.target as Node)) return;
+      setIsUserMenuOpen(false);
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsUserMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isUserMenuOpen]);
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -83,14 +104,6 @@ export default function Navbar({
       }
     } else {
       onViewChange(view);
-    }
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleSearchChange = (value: string) => {
-    onSearchChange(value);
-    if (value) {
-      onViewChange('search');
     }
   };
 
@@ -258,10 +271,12 @@ export default function Navbar({
             {isLoading ? (
               <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/10 rounded-full animate-pulse"></div>
             ) : isSignedIn ? (
-              <div className="relative">
+              <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="focus:outline-none"
+                  aria-expanded={isUserMenuOpen}
+                  aria-haspopup="menu"
                 >
                   <Avatar
                     src={avatarUrl}

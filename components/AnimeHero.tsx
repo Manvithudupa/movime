@@ -57,7 +57,17 @@ export default function AnimeHero({
   const [isMobile, setIsMobile] = useState(false);
 
   const total = Math.min(animeContent.length, 6);
-  const currentAnime = animeContent[currentIndex];
+  // The list can shrink between renders (a refresh returning fewer titles, or
+  // a different genre/category loading into the same mounted component). Clamp
+  // the index so the hero can never read past the end of the array — before,
+  // that threw on `currentAnime.vote_average` and blanked every slide.
+  const activeIndex = total > 0 ? Math.min(currentIndex, total - 1) : 0;
+  const currentAnime = animeContent[activeIndex];
+
+  // Bring the stored index back in range too, so navigation keeps working.
+  useEffect(() => {
+    if (total > 0 && currentIndex >= total) setCurrentIndex(0);
+  }, [total, currentIndex]);
 
   // Track the slide so the async trailer fetch doesn't clobber newer slides
   const indexRef = useRef(currentIndex);
@@ -110,7 +120,7 @@ export default function AnimeHero({
     };
   }, [currentIndex, animeContent]);
 
-  if (animeContent.length === 0) return <SkeletonHero />;
+  if (animeContent.length === 0 || !currentAnime) return <SkeletonHero />;
 
   const goToSlide = (index: number) => {
     if (index !== currentIndex) setCurrentIndex(index);
@@ -192,7 +202,7 @@ export default function AnimeHero({
           <div
             key={anime.id}
             className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-              index === currentIndex ? 'opacity-100 kenburns' : 'opacity-0'
+              index === activeIndex ? 'opacity-100 kenburns' : 'opacity-0'
             }`}
           >
             <Image
@@ -220,7 +230,7 @@ export default function AnimeHero({
                 key={index}
                 onClick={() => goToSlide(index)}
                 className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                  index === currentIndex
+                  index === activeIndex
                     ? 'bg-white scale-110 shadow-lg'
                     : 'bg-white/50 hover:bg-white/70'
                 }`}
@@ -241,7 +251,7 @@ export default function AnimeHero({
         <div className="max-w-xl sm:max-w-2xl">
           <AnimatePresence mode="wait">
             <motion.div
-              key={currentIndex}
+              key={activeIndex}
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -50 }}
@@ -410,7 +420,7 @@ export default function AnimeHero({
         <div className="flex-1" />
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentIndex}
+            key={activeIndex}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

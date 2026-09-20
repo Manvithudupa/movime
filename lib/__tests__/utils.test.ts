@@ -75,6 +75,27 @@ describe('filterAdultContent', () => {
     const items = [{ id: 1, title: 'Documentary', overview: 'an intimate portrait of penguins' }]
     expect(filterAdultContent(items)).toHaveLength(0)
   })
+
+  it('matches keywords as whole words, not substrings', () => {
+    // These used to be hidden because their titles merely CONTAIN a keyword
+    // ("Essex" contains "sex", "Adulthood" contains "adult").
+    const innocentTitles = ['Essex Boys', 'Middlesex', 'Adulthood', 'Sussex', 'Unisex Salon', 'Desirable']
+    const items = innocentTitles.map((title, i) => ({ id: i + 1, title, overview: '' }))
+    expect(filterAdultContent(items)).toHaveLength(innocentTitles.length)
+  })
+
+  it('still filters when the keyword appears as a real word', () => {
+    const items = [
+      { id: 1, title: 'Sex Education', overview: '' },
+      { id: 2, title: 'Nothing Suspicious', overview: 'an explicit xxx feature' },
+    ]
+    expect(filterAdultContent(items)).toHaveLength(0)
+  })
+
+  it('never lets an item flagged adult slip through', () => {
+    const items = [{ id: 1, title: 'Harmless Title', overview: '', adult: true }]
+    expect(filterAdultContent(items)).toHaveLength(0)
+  })
 })
 
 describe('localStorage helpers', () => {

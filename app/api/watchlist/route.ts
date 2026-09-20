@@ -276,6 +276,12 @@ export async function PATCH(request: NextRequest) {
 
     const numericContentId = typeof content_id === 'string' ? parseInt(content_id, 10) : content_id
 
+    // POST validates this; PATCH used to skip it, so garbage ids went straight
+    // into the query and reported "Item not found" instead of a bad request.
+    if (!Number.isInteger(numericContentId) || numericContentId <= 0) {
+      return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
+    }
+
     const { data: updated, error } = await supabase
       .from('watch_later')
       .update({ status, updated_at: new Date().toISOString() })
@@ -353,6 +359,10 @@ export async function DELETE(request: NextRequest) {
     }
 
     const numericContentId = parseInt(contentId, 10)
+
+    if (!Number.isInteger(numericContentId) || numericContentId <= 0) {
+      return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
+    }
 
     const { error } = await supabase
       .from('watch_later')

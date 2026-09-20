@@ -72,7 +72,7 @@ const ContentCard = memo(({
             item.status === 'watching' ? 'bg-white text-black' :
             item.status === 'completed' ? 'bg-white/70 text-black' :
             item.status === 'dropped' ? 'bg-white/40 text-black' :
-            'bg-white/20 text-black'
+            'bg-white/25 text-white'
           }`}>
             {item.status === 'watching' ? '▶ Watching' :
              item.status === 'completed' ? '✓ Completed' :

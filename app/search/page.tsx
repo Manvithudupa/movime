@@ -83,7 +83,10 @@ function SearchPageContent() {
     try {
       const data = await searchContent(q);
       const qLower = q.toLowerCase();
-      const allowAdult = ['adult','sex','erotic','xxx','porn','explicit','nude'].some(t=>qLower.includes(t));
+      // Only an explicit whole-word adult term lifts the metadata filter. The
+      // old substring check also matched innocent queries ("adulting",
+      // "unisex", "adult swim") and silently switched filtering off for them.
+      const allowAdult = /\b(adult|sex|erotic|xxx|porn|explicit|nude)\b/i.test(qLower);
       // Multi-search can return people/companies — only keep watchable titles
       // so cards link to valid /details and /watch pages.
       let filtered = filterAdultContent(

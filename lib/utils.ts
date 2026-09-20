@@ -20,8 +20,9 @@ function cleanupOldCacheFormat() {
   if (typeof window === 'undefined' || storageCleanupDone) return;
   storageCleanupDone = true;
   try {
-    // Remove old cache format keys
-    for (let i = 0; i < window.localStorage.length; i++) {
+    // Iterate backwards: removeItem shifts every later index down, so a
+    // forward loop would skip an entry every time it deletes one.
+    for (let i = window.localStorage.length - 1; i >= 0; i--) {
       const key = window.localStorage.key(i);
       if (key && key.startsWith('movime_api_cache_v1')) {
         window.localStorage.removeItem(key);
@@ -718,8 +719,7 @@ export const getVideoUrl = (sourceId: string, contentId: string, type: 'movie' |
   // params — while bare-path embeds are left untouched so the setting can never
   // produce a broken embed URL.
   if (quality && quality !== 'auto' && url.includes('?')) {
-    const separator = url.includes('?') ? '&' : '?';
-    url = `${url}${separator}quality=${encodeURIComponent(quality)}`;
+    url = `${url}&quality=${encodeURIComponent(quality)}`;
   }
   
   return url;
@@ -763,8 +763,6 @@ export const blockedMovieIds = [
 ];
 
 // Adult filter
-export const adultGenreIds: number[] = [];
-
 export const adultContentKeywords = [
   'xxx', 'porn', 'erotic', 'explicit', 'adult', 'sex', 'nude', 'naked', 
   'sensual', 'intimate', 'seductive', 'temptation', 'desire', 'passion',
@@ -773,23 +771,26 @@ export const adultContentKeywords = [
   'brothel', 'prostitute', 'call girl', 'gigolo', 'swinger'
 ];
 
+// Word-boundary matchers, built once. A plain substring check wrongly flagged
+// legitimate titles that merely CONTAIN a keyword — "Sex Education", "Essex
+// Boys", "Sussex", "Middlesex" or "Adulthood" were all hidden from browsing.
+// Boundaries keep the real matches ("Sex Tape") while dropping those.
+const adultKeywordPatterns: RegExp[] = adultContentKeywords.map(
+  (keyword) => new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+);
+
 export const isAdultContent = (item: Record<string, any>): boolean => {
   if (!item) return false;
-  
-  const title = (item.title || item.name || '').toLowerCase();
-  const overview = (item.overview || '').toLowerCase();
-  
-  const hasAdultKeywords = adultContentKeywords.some(keyword => 
-    title.includes(keyword) || overview.includes(keyword)
+
+  const title = item.title || item.name || '';
+  const overview = item.overview || '';
+
+  const hasAdultKeywords = adultKeywordPatterns.some(
+    (pattern) => pattern.test(title) || pattern.test(overview)
   );
-  
-  const isExplicitRating = item.adult === true;
-  
-  const genreIds = item.genre_ids || [];
-  const hasAdultGenreCombination = genreIds.includes(18) && 
-    (genreIds.includes(10749) || genreIds.includes(53));
-  
-  return hasAdultKeywords || isExplicitRating || (hasAdultGenreCombination && hasAdultKeywords);
+
+  // TMDB's own explicit flag is authoritative.
+  return hasAdultKeywords || item.adult === true;
 };
 
 export const filterAdultContent = <T extends Record<string, any>>(items: T[], allowAdultContent: boolean = false): T[] => {

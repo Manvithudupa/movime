@@ -106,8 +106,12 @@ export default function WatchlistPage() {
         }
       } else {
         const saved = getLocalStorage('watchLater', [])
-        const updated = saved.map((i: any) => 
-          i.id === item.content_id ? { ...i, status: newStatus } : i
+        // Match on content_id as well as id — guest entries store both, and
+        // matching only `id` silently failed to persist the new status.
+        const updated = saved.map((i: any) =>
+          i.id === item.content_id || i.content_id === item.content_id
+            ? { ...i, status: newStatus }
+            : i
         )
         setLocalStorage('watchLater', updated)
         setMessage(`Status changed to ${STATUS_OPTIONS.find(s => s.value === newStatus)?.label}`)
@@ -172,12 +176,15 @@ export default function WatchlistPage() {
     dropped: items.filter(i => i.status === 'dropped').length,
   }
 
+  // The two translucent variants used black text on a nearly transparent white
+  // background — effectively invisible on the black card. They use light text
+  // now so every status badge stays readable.
   const getStatusStyle = (status: WatchStatus) => {
     switch (status) {
       case 'watching': return 'bg-white text-black'
       case 'completed': return 'bg-white/70 text-black'
-      case 'plan_to_watch': return 'bg-white/30 text-black'
-      case 'dropped': return 'bg-white/10 text-black'
+      case 'plan_to_watch': return 'bg-white/25 text-white'
+      case 'dropped': return 'bg-white/15 text-white'
     }
   }
 

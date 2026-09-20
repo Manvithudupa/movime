@@ -412,6 +412,14 @@ function DetailsPageContent() {
   const cast = getCast();
   const recommendations = getRecommendations();
 
+  // Real seasons only (specials/season 0 are excluded). Using the actual
+  // season list instead of 1..number_of_seasons keeps the tabs correct for
+  // shows with gaps in their season numbering and for anime whose seasons are
+  // remapped from AniList.
+  const seasonTabs: Season[] = ((content as any)?.seasons || [])
+    .filter((s: Season) => s.season_number > 0)
+    .sort((a: Season, b: Season) => a.season_number - b.season_number);
+
   if (loading) {
     return (
       <SkeletonPageLayout
@@ -834,19 +842,19 @@ function DetailsPageContent() {
             <div className="mb-6 sm:mb-8">
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Episodes</h2>
               
-              {'number_of_seasons' in content && content.number_of_seasons > 1 && (
+              {seasonTabs.length > 1 && (
                 <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
-                  {Array.from({ length: content.number_of_seasons }, (_, i) => i + 1).map(seasonNum => (
+                  {seasonTabs.map((season) => (
                     <button
-                      key={seasonNum}
-                      onClick={() => setSelectedSeason(seasonNum)}
+                      key={season.season_number}
+                      onClick={() => setSelectedSeason(season.season_number)}
                       className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${
-                        selectedSeason === seasonNum
+                        selectedSeason === season.season_number
                           ? 'bg-white text-black'
                           : 'bg-white/10 text-gray-300 hover:bg-white/20'
                       }`}
                     >
-                      Season {seasonNum}
+                      Season {season.season_number}
                     </button>
                   ))}
                 </div>

@@ -382,7 +382,10 @@ function HomePageContent() {
   };
 
   const handleHeroWatchNow = (movie: ContentItem) => {
-    router.push(`/watch?id=${movie.id}&type=movie`);
+    // Derive the media type the same way the details handler does — hardcoding
+    // 'movie' would send a TV title to the movie endpoint ("Content Not Found").
+    const type = movie.media_type || (movie.title ? 'movie' : 'tv');
+    router.push(`/watch?id=${movie.id}&type=${type}`);
   };
 
   const handleHeroMoreDetails = (movie: ContentItem) => {
@@ -485,8 +488,6 @@ function HomePageContent() {
             </div>
             <div className="flex overflow-x-auto scrollbar-hide gap-4 pb-4">
               {continueWatching.slice(0, 10).map((item) => {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const type = item.content_type;
                 const href = item.content_type === 'tv'
                   ? `/watch?id=${item.content_id}&type=tv&season=${item.season_number || 1}&episode=${item.episode_number || 1}`
                   : `/watch?id=${item.content_id}&type=movie`;
