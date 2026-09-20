@@ -278,14 +278,38 @@ function DetailsPageContent() {
     );
   };
 
+  // Most recent continue-watching entry for this title that hasn't been
+  // finished — shared by the PLAY and RESUME buttons so both pick up where
+  // the user left off. The store keeps one entry per show/movie.
+  const getResumeItem = () => {
+    if (!content) return null;
+    return continueWatching
+      .filter((cw) => cw.content_id === content.id && cw.content_type === contentType)
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      .find((cw) => !cw.is_completed) || null;
+  };
+
   const handleWatchNow = (episodeId?: number) => {
     if (!content) return;
-    
-    const watchUrl = contentType === 'tv' && episodeId 
-      ? `/watch?id=${contentId}&type=${contentType}&season=${selectedSeason}&episode=${episodeId}`
-      : `/watch?id=${contentId}&type=${contentType}`;
-    
-    router.push(watchUrl);
+
+    // Clicking a specific episode always plays that exact episode.
+    if (contentType === 'tv' && episodeId) {
+      router.push(`/watch?id=${contentId}&type=${contentType}&season=${selectedSeason}&episode=${episodeId}`);
+      return;
+    }
+
+    // Otherwise resume from continue watching (any progress, as long as it
+    // isn't finished) instead of always restarting at season 1 episode 1.
+    const resumeItem = getResumeItem();
+    if (resumeItem) {
+      const watchUrl = resumeItem.content_type === 'tv'
+        ? `/watch?id=${contentId}&type=tv&season=${resumeItem.season_number || 1}&episode=${resumeItem.episode_number || 1}`
+        : `/watch?id=${contentId}&type=movie`;
+      router.push(watchUrl);
+      return;
+    }
+
+    router.push(`/watch?id=${contentId}&type=${contentType}`);
   };
 
   const getBackdropUrl = () => {
@@ -571,15 +595,11 @@ function DetailsPageContent() {
                 {content.overview}
               </p>
               <div className="flex flex-wrap gap-3 sm:gap-4 mb-5 sm:mb-6">
-                {/* Resume / Continue Watching Button — picks the most recent entry for TV shows */}
+                {/* Resume / Continue Watching Button — shows the progress of the
+                    entry PLAY would resume from (mid-way through only; a 0%
+                    or finished entry stays PLAY-only) */}
                 {(() => {
-                  const matches = content ? continueWatching.filter(
-                    (cw) => cw.content_id === content.id && cw.content_type === contentType
-                  ) : [];
-                  // Sort by updated_at descending to get the most recent
-                  const contItem = matches.sort(
-                    (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-                  )[0];
+                  const contItem = getResumeItem();
 
                   if (contItem && contItem.progress_percentage > 0 && contItem.progress_percentage < 100) {
                     const resumeUrl = contItem.content_type === 'tv'
