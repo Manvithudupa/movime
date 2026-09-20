@@ -101,8 +101,33 @@ function WatchPageContent() {
     fetchContinueWatching(!!isSignedIn);
   }, [isSignedIn, fetchWatchlist, fetchContinueWatching]);
 
+  // Keep the URL's season/episode params in sync with the player state.
+  // Without this, switching episodes only changes React state: a refresh
+  // restarts the show at episode 1, shared links point at the wrong episode,
+  // and a refresh even overwrites the continue-watching entry with the old
+  // episode. router.replace (not push) keeps the back button behaviour intact.
+  useEffect(() => {
+    if (!content || !contentId || contentType !== 'tv') return;
+    // Wait for the season's episodes so we only write a validated episode
+    // number to the URL — never a transient default from before the load.
+    if (!seasonData) return;
+    const params = new URLSearchParams(searchParams.toString());
+    if (
+      params.get('season') === String(selectedSeason) &&
+      params.get('episode') === String(selectedEpisode)
+    ) {
+      return;
+    }
+    params.set('season', String(selectedSeason));
+    params.set('episode', String(selectedEpisode));
+    router.replace(`/watch?${params.toString()}`, { scroll: false });
+  }, [content, contentId, contentType, seasonData, selectedSeason, selectedEpisode, searchParams, router]);
+
   const loadContent = async () => {
     if (!contentId || !contentType) return;
+    // Navigating to a different show/movie on the same page — restart the
+    // "start at episode 1" logic for the new target.
+    initFromQueryRef.current = false;
     setLoading(true);
     try {
       const data = await fetchContentDetails(contentId, contentType);
@@ -455,17 +480,19 @@ function WatchPageContent() {
               if (seasonCount <= 1) return null;
               return (
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {Array.from({ length: seasonCount }, (_, i) => i + 1).map(seasonNum => (
+                  {/* Map over the real seasons so non-contiguous season numbers
+                      (e.g. 1 and 3 without a 2) still select correctly. */}
+                  {availableSeasons.map((s: any) => (
                     <button
-                      key={seasonNum}
-                      onClick={() => setSelectedSeason(availableSeasons[seasonNum - 1]?.season_number || seasonNum)}
+                      key={s.season_number}
+                      onClick={() => setSelectedSeason(s.season_number)}
                       className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                        selectedSeason === (availableSeasons[seasonNum - 1]?.season_number || seasonNum)
+                        selectedSeason === s.season_number
                           ? 'bg-white text-black'
                           : 'bg-white/10 text-gray-300 hover:bg-white/20'
                       }`}
                     >
-                      S{availableSeasons[seasonNum - 1]?.season_number || seasonNum}
+                      S{s.season_number}
                     </button>
                   ))}
                 </div>
@@ -673,6 +700,9 @@ function SaveProgress({
   const lastTickRef = useRef(Date.now());
   const completedRef = useRef(false);
   const isUnmountingRef = useRef(false);
+  // Identifies the movie/episode the accumulated watch time belongs to, so a
+  // save can never write the previous episode's watch time onto a new one.
+  const targetKeyRef = useRef('');
 
   // Latest props, read through a ref so the interval/cleanup closures stay
   // stable while still seeing fresh values without restarting timers.
@@ -714,6 +744,22 @@ function SaveProgress({
     } = latest.current;
 
     if (!cId || !c) return;
+    // Transient state while navigating between two shows on the same page:
+    // the loaded content object still belongs to the previous show. Saving
+    // here would create a junk continue-watching entry for the new target.
+    if (String(c.id) !== String(cId)) return;
+
+    // The save target changed (episode switch, auto-advance, new show).
+    // Watch time accumulated for the previous target must not leak into this
+    // save — otherwise switching to the next episode right after finishing
+    // one marks the new episode as already watched.
+    const targetKey = `${cType}:${cId}:${sSeason ?? ''}:${sEpisode ?? ''}`;
+    if (targetKeyRef.current !== targetKey) {
+      targetKeyRef.current = targetKey;
+      watchedSecondsRef.current = 0;
+      lastTickRef.current = Date.now();
+      completedRef.current = false;
+    }
 
     const elapsed = Math.min(Math.floor(watchedSecondsRef.current), Math.floor(durationSeconds));
     const percentage = durationSeconds > 0
