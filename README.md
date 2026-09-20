@@ -33,7 +33,7 @@
 - **🔍 Smart Search** — Full-text search with relevance scoring, live autocomplete, recent searches, trending suggestions, sorting (popularity/rating/year/title), and adult content filtering
 - **🔖 Watch Later** — Save content with status tracking (Watching, Completed, Plan to Watch, Dropped), synced across devices via Supabase
 - **⚙️ Cross-Device Settings** — Preferred source, default quality, and auto-play preferences sync across devices via Supabase (guests still use localStorage)
-- **⏯️ Continue Watching** — Auto-resume playback from where you left off with progress persistence
+- **⏯️ Continue Watching** — Auto-resume playback from where you left off with progress persistence. The **PLAY** button on a detail page resumes the last episode you were on, and the watch page keeps `season`/`episode` in the URL so refreshing or sharing a link returns to the exact episode instead of restarting at S1E1
 - **👤 User Accounts** — Supabase-powered authentication with profile management (avatar, bio, anime character picker)
 - **📱 Progressive Web App** — Installable on mobile and desktop with offline service worker
 - **🔄 Source Fallback** — Automatic source switching if a provider fails
@@ -45,6 +45,22 @@
 - **✨ Polished Animations** — Cinematic Ken Burns zoom on the hero carousel, GPU-friendly card hovers, hover scroll arrows on content rows, and a non-flashing route loading bar
 - **💀 Skeleton Loading** — Shimmer skeletons on every page (home, movies/TV/anime, details, watch, search, profile, settings, watchlist) so layout shifts are eliminated
 - **🚀 Optimized Performance** — API response caching, in-flight request deduplication, and localStorage persistence for fast loads
+
+---
+
+## 🩹 Recent audit fixes
+
+A full codebase pass fixed the following (each verified by typecheck, lint, unit tests, and a production build):
+
+- **Episode tracking** — Changing episode/season on `/watch` now updates the URL (via `router.replace`, no history spam) so refreshes, shares, and the Continue Watching entry point at the episode actually being watched. Progress for the new episode starts from zero instead of inheriting the previous episode's watch time (which used to mark a fresh episode as already finished).
+- **Resume everywhere** — The detail page's **PLAY** button resumes from Continue Watching (`getResumeItem`) instead of always starting at S1E1; the RESUME chip and PLAY share one lookup so they can never disagree.
+- **Content filtering** — Adult-content keywords are matched on word boundaries, so legitimate titles that merely contain a keyword (`Sex Education`, `Essex Boys`, `Middlesex`, `Adulthood`) are no longer hidden. Search only lifts the metadata filter for an explicit whole-word adult query, not for words like "adulting".
+- **Season lists** — Detail and watch pages build their season tabs/selectors from the show's real season list, so shows with gaps in numbering (and AniList-remapped anime) no longer offer seasons that don't exist.
+- **Anime hero** — Clamps its slide index, so a shrinking content list can no longer crash or blank the banner.
+- **Watchlist** — Status badges keep readable contrast, guest status changes persist to `localStorage` (matching on `content_id` as well as `id`), and the API rejects malformed `content_id` values on `PATCH`/`DELETE` with a `400` instead of a misleading `404`.
+- **Hero PLAY** — Derives the media type from the item instead of assuming `movie`.
+- **Navbar** — The account dropdown closes on outside click, tap, or `Escape`, and dead code was removed.
+- **Caching/dead code** — The legacy API-cache sweep no longer skips entries while deleting, and unused keyframes/animations and an unused export were dropped.
 
 ---
 
@@ -363,7 +379,7 @@ movime/
 │   ├── resend.ts        # Lazy Resend client
 │   ├── routes.ts        # View -> route mapping
 │   ├── settings.ts      # Playback settings (localStorage + server sync)
-│   ├── sources.ts       # 15 available embed streaming sources
+│   ├── sources.ts       # 14 available embed streaming sources
 │   ├── store.ts         # Zustand stores (watchlist, continue watching)
 │   ├── supabase/
 │   │   ├── client.ts    # Supabase browser client
@@ -398,9 +414,9 @@ movime/
 
 1. Browse content on the homepage, or use the Movies / TV Shows / Anime pages
 2. Click any card to go to the detail page
-3. Click **Play** or go directly via `/watch?id=123&type=movie`
+3. Click **Play** or go directly via `/watch?id=123&type=movie` — for a TV show you've already started, **Play** resumes from your last episode
 4. If a source fails, manually switch sources from the source sidebar
-5. For TV shows, select season and episode before watching
+5. For TV shows, select season and episode before watching — the URL updates to `&season=[s]&episode=[e]` as you switch, so the address bar always points at what's playing
 
 ### Watchlist Management
 
