@@ -155,10 +155,19 @@ function BottomNavInner() {
                 }`}>
                   {item.label}
                 </span>
+                {/* Active tab indicator.
+                    Centred with `left-0 right-0 mx-auto` rather than
+                    `left-1/2 -translate-x-1/2`. The shared layout animation
+                    performs its animation by writing an inline `transform`,
+                    which overwrites a CSS-applied transform — so the
+                    `-translate-x-1/2` was clobbered and the bar sat half its
+                    own width (12px) right of the icon it was marking. Auto
+                    margins centre it without touching `transform`, so the
+                    measurement stays accurate. */}
                 {active && (
                   <motion.div
                     layoutId="bottomNavActiveTab"
-                    className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-white"
+                    className="absolute -top-0.5 left-0 right-0 mx-auto w-6 h-0.5 rounded-full bg-white"
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   />
                 )}
