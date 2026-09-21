@@ -135,7 +135,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="w-full px-4 py-3 bg-black border border-white/20 rounded-xl focus:border-white focus:outline-none focus:ring-1 focus:ring-white text-white placeholder-gray-500 transition-all"
+                className="w-full px-4 py-3 bg-white/[0.04] border border-white/15 rounded-xl focus:border-white/60 focus:outline-none focus:ring-1 focus:ring-white/60 text-white placeholder-gray-500 transition-colors"
               />
             </div>
             <div>
@@ -146,7 +146,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full px-4 py-3 bg-black border border-white/20 rounded-xl focus:border-white focus:outline-none focus:ring-1 focus:ring-white text-white placeholder-gray-500 transition-all"
+                className="w-full px-4 py-3 bg-white/[0.04] border border-white/15 rounded-xl focus:border-white/60 focus:outline-none focus:ring-1 focus:ring-white/60 text-white placeholder-gray-500 transition-colors"
               />
             </div>
             <div className="flex justify-end -mt-2">

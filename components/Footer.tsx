@@ -85,7 +85,9 @@ export default function Footer() {
         >
           <div className="border-l-4 border-white/20 pl-4 py-2">
             <div className="flex items-start space-x-2">
-              <span className="text-gray-400 text-sm mt-0.5">⚠️</span>
+              <svg className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m0 3.75h.008v.008H12v-.008zM10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
               <p className="text-gray-500 text-xs leading-relaxed">
                 <strong className="text-white">Disclaimer:</strong> Movime does not host or store any media files on its servers. 
                 All content is sourced from third-party providers and is intended for educational and informational use only. 

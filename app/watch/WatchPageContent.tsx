@@ -206,7 +206,7 @@ function WatchPageContent() {
     const nextEpisode = currentIndex >= 0 ? sorted[currentIndex + 1] : undefined;
 
     if (nextEpisode) {
-      toast(`▶ Auto-playing next episode: ${nextEpisode.name || `Episode ${nextEpisode.episode_number}`}`, {
+      toast(`Auto-playing next episode: ${nextEpisode.name || `Episode ${nextEpisode.episode_number}`}`, {
         duration: 3000,
       });
       setSelectedEpisode(nextEpisode.episode_number);
@@ -220,7 +220,7 @@ function WatchPageContent() {
       .sort((a: any, b: any) => a.season_number - b.season_number)[0];
 
     if (nextSeason) {
-      toast(`▶ Auto-playing Season ${nextSeason.season_number}`, { duration: 3000 });
+      toast(`Auto-playing Season ${nextSeason.season_number}`, { duration: 3000 });
       setSelectedSeason(nextSeason.season_number);
       setSelectedEpisode(1);
     }
@@ -355,7 +355,7 @@ function WatchPageContent() {
                   style={{ border: 'none', background: '#000' }}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">🎬 Video Loading...</div>
+                <div className="w-full h-full flex items-center justify-center text-gray-400">Loading video…</div>
               )}
                </div>
             </div>

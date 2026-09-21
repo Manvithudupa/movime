@@ -3,23 +3,33 @@
 @tailwind utilities;
 
 /* ── Editorial Noir Design Tokens ─────────────────────────────────── */
+/* Strict monochrome: pure black canvas, white as the only accent. Red is
+   reserved exclusively for destructive actions (sign out, delete, clear).
+   No neon/lime tint — every surface is neutral gray or black. */
 :root {
-  --background: #101111;
-  --foreground: #f2f1ed;
-  --card: #191a19;
-  --card-foreground: #f2f1ed;
-  --primary: #d9ff3f;
-  --primary-foreground: #101111;
-  --muted: #191a19;
-  --muted-foreground: #9da09a;
-  --border: rgba(242, 241, 237, .14);
-  --ring: #d9ff3f;
+  --background: #000000;
+  --foreground: #f5f5f5;
+  --card: #0a0a0a;
+  --card-foreground: #f5f5f5;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+  --muted: #0a0a0a;
+  --muted-foreground: #a3a3a3;
+  --border: rgba(255, 255, 255, .12);
+  --ring: #ffffff;
+  --danger: #f87171;
+
+  /* Tells the browser to render native UI (select dropdowns, date pickers,
+     autofill, scrollbars) in its dark variant. Without this the <select>
+     popups on /settings render as bright white sheets. */
+  color-scheme: dark;
 }
 
 /* ── Global Reset (Editorial Noir) ──────────────────────────────── */
 * { box-sizing: border-box; }
 html {
   background: var(--background);
+  color-scheme: dark;
   scroll-behavior: smooth;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -137,7 +147,8 @@ body::-webkit-scrollbar {
 }
 
 .card-hover:hover {
-  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.5);
+  /* Neutral black lift only — no coloured or white glow. */
+  box-shadow: 0 18px 32px -12px rgba(0, 0, 0, 0.75);
 }
 
 .card-hover:hover .card-overlay {
@@ -163,7 +174,8 @@ body::-webkit-scrollbar {
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Keyboard focus visibility — acid-lime ring */
+/* Keyboard focus visibility — white ring so focus stays inside the
+   black/white palette instead of introducing a third accent colour. */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
@@ -256,6 +268,25 @@ iframe[src*="popup"],
 .scroll-button {
   opacity: 0;
   transition: opacity 0.3s ease;
+}
+
+/* Native form controls on a black canvas.
+   `color-scheme: dark` covers modern Chromium/Firefox, but WebKit still
+   paints option lists white, so the colours are set explicitly too. */
+select {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--foreground);
+}
+
+select option {
+  background-color: #0a0a0a;
+  color: var(--foreground);
+}
+
+/* Monochrome selection highlight */
+::selection {
+  background: rgba(255, 255, 255, 0.85);
+  color: #000000;
 }
 
 /* Dark search input styling */

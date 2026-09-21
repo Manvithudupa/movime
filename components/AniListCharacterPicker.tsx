@@ -152,13 +152,17 @@ export default function AniListCharacterPicker({ onSelect, onClose, currentChara
             </div>
           ) : searchQuery ? (
             <div className="text-center py-12">
-              <div className="text-4xl mb-4">🔍</div>
+              <svg className="w-10 h-10 mx-auto mb-4 text-white/25" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
               <p className="text-gray-400">No characters found for &quot;{searchQuery}&quot;</p>
               <p className="text-gray-600 text-sm mt-1">Try a different name or check the spelling</p>
             </div>
           ) : (
             <div className="text-center py-12">
-              <div className="text-5xl mb-4">🎭</div>
+              <svg className="w-10 h-10 mx-auto mb-4 text-white/25" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
               <p className="text-gray-400">Start typing to search for anime characters</p>
               <p className="text-gray-600 text-sm mt-1">Choose your favorite character as your avatar</p>
             </div>

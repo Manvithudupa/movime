@@ -32,9 +32,14 @@ const ContentCard = memo(({
 
   return (
     <motion.div 
-      className="group relative bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden card-hover"
+      className="group relative bg-white/[0.03] border border-white/10 rounded-xl overflow-hidden card-hover"
       initial={false}
-      whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+      whileHover={{
+        // 1.03 rather than 1.05: in a tight grid the larger scale made
+        // adjacent cards overlap and clipped neighbours at the container edge.
+        scale: 1.03,
+        transition: { duration: 0.2 },
+      }}
       whileTap={{ scale: 0.95 }}
       style={{ willChange: 'transform' }}
       onClick={handleCardClick}
@@ -66,18 +71,21 @@ const ContentCard = memo(({
           </div>
         )}
         
-        {/* Status Badge */}
+        {/* Status Badge — the palette mirrors STATUS_INFO so a badge reads the
+            same here and on the watchlist. Every variant is now white-backed
+            with black text; the old plan-to-watch badge was white text on a
+            translucent white pill, which washed out over bright posters. */}
         {item.status && (
           <div className={`absolute top-3 left-3 z-10 px-2 py-0.5 rounded-full text-[10px] font-semibold shadow-lg ${
             item.status === 'watching' ? 'bg-white text-black' :
-            item.status === 'completed' ? 'bg-white/70 text-black' :
-            item.status === 'dropped' ? 'bg-white/40 text-black' :
-            'bg-white/25 text-white'
+            item.status === 'completed' ? 'bg-white/80 text-black' :
+            item.status === 'plan_to_watch' ? 'bg-white/55 text-black' :
+            'bg-white/30 text-black'
           }`}>
             {item.status === 'watching' ? '▶ Watching' :
              item.status === 'completed' ? '✓ Completed' :
-             item.status === 'dropped' ? '✕ Dropped' :
-             '⏳ Plan to Watch'}
+             item.status === 'plan_to_watch' ? '○ Plan to Watch' :
+             '✕ Dropped'}
           </div>
         )}
         
@@ -90,9 +98,11 @@ const ContentCard = memo(({
           }}
           className="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-sm rounded-full p-2 transition-all duration-200 hover:bg-black/80"
         >
+          {/* Saved state is the filled bookmark, not a red one — red is
+              reserved for destructive actions across the site. */}
           <svg 
             className={`w-5 h-5 transition-colors ${
-              isInWatchLater(item) ? 'text-red-500 fill-current' : 'text-white'
+              isInWatchLater(item) ? 'text-white fill-current' : 'text-white/80'
             }`} 
             fill={isInWatchLater(item) ? 'currentColor' : 'none'} 
             stroke="currentColor" 

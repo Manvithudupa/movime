@@ -6,7 +6,9 @@ import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const STORAGE_KEY = 'movime_announcement_seen_v2';
+// Bump this key whenever the announcement copy changes so returning users
+// are shown the new message once, instead of never seeing it again.
+const STORAGE_KEY = 'movime_announcement_seen_v3';
 
 export default function AnnouncementPopup() {
   const pathname = usePathname();
@@ -59,22 +61,12 @@ export default function AnnouncementPopup() {
             transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
             className="fixed inset-0 z-[101] flex items-center justify-center p-4"
           >
+            {/* Flat near-black panel — the previous blue-tinted gradient plus
+                top glow read as a coloured accent on an otherwise neutral UI. */}
             <div
-              className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-white/[0.08] shadow-2xl"
-              style={{
-                background: 'linear-gradient(180deg, #0a0a0f 0%, #050508 100%)',
-                boxShadow: '0 0 60px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06)',
-              }}
+              className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#0a0a0a] shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Subtle top glow */}
-              <div
-                className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px"
-                style={{
-                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)',
-                }}
-              />
-
               {/* Close button */}
               <button
                 onClick={handleDismiss}
@@ -101,13 +93,7 @@ export default function AnnouncementPopup() {
                   <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-wide">
                     Welcome to Movime
                   </h2>
-                  <span
-                    className="mt-3 inline-block px-3 py-1 text-[10px] sm:text-xs font-semibold uppercase tracking-widest rounded-full border border-white/[0.15]"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))',
-                      color: 'rgba(255,255,255,0.6)',
-                    }}
-                  >
+                  <span className="mt-3 inline-block px-3 py-1 text-[10px] sm:text-xs font-semibold uppercase tracking-widest rounded-full border border-white/15 bg-white/5 text-white/60">
                     What&rsquo;s New
                   </span>
                   <div className="mt-3 w-12 h-[2px] rounded-full bg-white/20" />
@@ -121,6 +107,15 @@ export default function AnnouncementPopup() {
 
                   {/* Feature highlights */}
                   <div className="space-y-3 bg-white/[0.02] rounded-xl p-5 border border-white/[0.04]">
+                    <FeatureItem
+                      icon={
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4h16v16H4zM20 4L4 20" />
+                        </svg>
+                      }
+                      text="A cleaner, fully monochrome look — pure black with plain white controls and easier-to-read contrast."
+                    />
+
                     <FeatureItem
                       icon={
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

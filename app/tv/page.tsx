@@ -7,7 +7,7 @@ function TVShowsPageContent() {
   return (
     <BrowseContent
       category="tv"
-      title="📺 Popular TV Shows"
+      title="Popular TV Shows"
       subtitle="Binge-worthy series and shows"
       showGenreChips
     />

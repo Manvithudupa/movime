@@ -27,6 +27,8 @@ module.exports = {
         },
         border: 'var(--border)',
         ring: 'var(--ring)',
+        // Reserved for destructive actions only (sign out, delete, clear).
+        danger: 'var(--danger)',
       },
       // `loading-bar` is the only animation the UI actually uses (LoadingBar).
       // The former float/slide-down/glow/spin-reverse entries had no callers.

@@ -81,9 +81,10 @@ export default function SignupPage() {
 
         {/* Card */}
         <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8">
-          {/* Error */}
+          {/* Error — matches the login page's error treatment so a failed
+              signup is not silently rendered as neutral helper text. */}
           {error && (
-            <div className="mb-4 p-3 bg-white/5 border border-white/10 rounded-lg text-gray-300 text-sm">
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-300 text-sm">
               {error}
             </div>
           )}
@@ -98,7 +99,7 @@ export default function SignupPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
                 required
-                className="w-full px-4 py-3 bg-black border border-white/20 rounded-xl focus:border-white focus:outline-none focus:ring-1 focus:ring-white text-white placeholder-gray-500 transition-all"
+                className="w-full px-4 py-3 bg-white/[0.04] border border-white/15 rounded-xl focus:border-white/60 focus:outline-none focus:ring-1 focus:ring-white/60 text-white placeholder-gray-500 transition-colors"
               />
             </div>
             <div>
@@ -109,7 +110,7 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="w-full px-4 py-3 bg-black border border-white/20 rounded-xl focus:border-white focus:outline-none focus:ring-1 focus:ring-white text-white placeholder-gray-500 transition-all"
+                className="w-full px-4 py-3 bg-white/[0.04] border border-white/15 rounded-xl focus:border-white/60 focus:outline-none focus:ring-1 focus:ring-white/60 text-white placeholder-gray-500 transition-colors"
               />
             </div>
             <div>
@@ -121,7 +122,7 @@ export default function SignupPage() {
                 placeholder="At least 6 characters"
                 required
                 minLength={6}
-                className="w-full px-4 py-3 bg-black border border-white/20 rounded-xl focus:border-white focus:outline-none focus:ring-1 focus:ring-white text-white placeholder-gray-500 transition-all"
+                className="w-full px-4 py-3 bg-white/[0.04] border border-white/15 rounded-xl focus:border-white/60 focus:outline-none focus:ring-1 focus:ring-white/60 text-white placeholder-gray-500 transition-colors"
               />
             </div>
             <button

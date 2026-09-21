@@ -16,7 +16,7 @@ import { SkeletonWatchlist } from '@/components/SkeletonWatchlist'
 const STATUS_OPTIONS = [
   { value: 'watching', label: 'Watching', icon: '▶' },
   { value: 'completed', label: 'Completed', icon: '✓' },
-  { value: 'plan_to_watch', label: 'Plan to Watch', icon: '⏳' },
+  { value: 'plan_to_watch', label: 'Plan to Watch', icon: '○' },
   { value: 'dropped', label: 'Dropped', icon: '✕' },
 ] as const
 

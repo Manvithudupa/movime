@@ -329,7 +329,7 @@ export default function BrowseContent({
                       : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white'
                   }`}
                 >
-                  {t === 'movie' ? '🎬 Movies' : '📺 TV Shows'}
+                  {t === 'movie' ? 'Movies' : 'TV Shows'}
                 </button>
               ))}
             </div>

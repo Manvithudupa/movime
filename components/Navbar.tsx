@@ -326,7 +326,7 @@ export default function Navbar({
                       <div className="border-t border-white/10 py-1">
                         <button
                           onClick={handleSignOut}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-400 hover:bg-white/10 hover:text-white transition-colors w-full text-left"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors w-full text-left"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -341,7 +341,7 @@ export default function Navbar({
             ) : (
               <Link
                 href="/auth/login"
-                className="px-3 py-1.5 sm:px-4 rounded-sm text-black text-xs sm:text-sm font-semibold tracking-wide transition-all duration-150 bg-white hover:bg-gray-100 shadow-md focus:outline-none focus:ring-2 focus:ring-white/60"
+                className="px-3 py-1.5 sm:px-4 rounded-sm text-black text-xs sm:text-sm font-semibold tracking-wide transition-all duration-150 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/60"
               >
                 Sign In
               </Link>
@@ -371,7 +371,7 @@ export default function Navbar({
               className="fixed top-0 left-0 right-0 z-40 pt-20 pb-6 lg:hidden"
               style={{ originY: 'top' }}
             >
-              <div className="mx-4 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+              <div className="mx-4 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
                 <nav className="py-3 px-2">
                   {[
                     { view: 'home', label: 'Home', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },

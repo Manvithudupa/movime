@@ -435,7 +435,7 @@ function DetailsPageContent() {
         <div className="fixed top-16 sm:top-24 left-2 sm:left-4 z-50">
           <Link
             href="/"
-            className="flex items-center space-x-1.5 sm:space-x-2 bg-black/90 hover:bg-black backdrop-blur-sm text-white px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 border border-white/30 hover:border-white/50 shadow-2xl hover:shadow-3xl group"
+            className="flex items-center space-x-1.5 sm:space-x-2 bg-black/90 hover:bg-black backdrop-blur-sm text-white px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 border border-white/30 hover:border-white/50 shadow-2xl group"
           >
             <svg className="w-4 sm:w-5 h-4 sm:h-5 group-hover:-translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -559,7 +559,7 @@ function DetailsPageContent() {
         <div className="fixed top-16 sm:top-24 left-2 sm:left-4 z-50">
           <Link
             href="/"
-            className="flex items-center space-x-1.5 sm:space-x-2 bg-black/90 hover:bg-black backdrop-blur-sm text-white px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 border border-white/30 hover:border-white/50 shadow-2xl hover:shadow-3xl group"
+            className="flex items-center space-x-1.5 sm:space-x-2 bg-black/90 hover:bg-black backdrop-blur-sm text-white px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 border border-white/30 hover:border-white/50 shadow-2xl group"
           >
             <svg className="w-4 sm:w-5 h-4 sm:h-5 group-hover:-translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -773,7 +773,7 @@ function DetailsPageContent() {
                     return (
                       <div
                         key={member.id}
-                        className="group/cast flex-shrink-0 w-36 sm:w-40 rounded-xl overflow-hidden bg-white/[0.03] border border-white/10 hover:border-white/30 transition-all hover:shadow-[0_4px_18px_-4px_rgba(255,255,255,0.18)]"
+                        className="group/cast flex-shrink-0 w-36 sm:w-40 rounded-xl overflow-hidden bg-white/[0.03] border border-white/10 hover:border-white/30 transition-colors"
                       >
                         <div className="relative aspect-[2/3] bg-white/5">
                           {profileSrc ? (
@@ -993,7 +993,7 @@ function DetailsPageContent() {
                       <Link
                         key={item.id}
                         href={`/details?id=${item.id}&type=${mediaType}`}
-                        className="group/card w-44 sm:w-48 md:w-52 flex-shrink-0 rounded-xl overflow-hidden bg-white/[0.03] border border-white/10 hover:border-white/30 transition-all hover:shadow-[0_4px_18px_-4px_rgba(255,255,255,0.18)]"
+                        className="group/card w-44 sm:w-48 md:w-52 flex-shrink-0 rounded-xl overflow-hidden bg-white/[0.03] border border-white/10 hover:border-white/30 transition-colors"
                       >
                         <div className="relative aspect-[2/3]">
                           <Image

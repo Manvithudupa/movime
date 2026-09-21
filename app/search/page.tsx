@@ -370,8 +370,8 @@ function SearchPageContent() {
             <div className="w-full max-w-4xl mx-auto mt-10 text-left">
               <h2 className="text-xl sm:text-2xl font-bold mb-1">Browse by Genre</h2>
               <p className="text-gray-400 text-sm mb-8">Discover movies and TV shows by genre.</p>
-              <GenreSection title="🎬 Movies" genres={genresMovie} type="movie" onSelect={selectGenre} />
-              <GenreSection title="📺 TV Shows" genres={genresTv} type="tv" onSelect={selectGenre} />
+              <GenreSection title="Movies" genres={genresMovie} type="movie" onSelect={selectGenre} />
+              <GenreSection title="TV Shows" genres={genresTv} type="tv" onSelect={selectGenre} />
             </div>
           )}
 
@@ -390,7 +390,7 @@ function SearchPageContent() {
                         : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white'
                     }`}
                   >
-                    {t === 'movie' ? '🎬 Movies' : '📺 TV Shows'}
+                    {t === 'movie' ? 'Movies' : 'TV Shows'}
                   </button>
                 ))}
               </div>

@@ -155,7 +155,7 @@ export default function SettingsPage() {
                   <select
                     value={preferredSource}
                     onChange={(e) => setPreferredSource(e.target.value)}
-                    className="w-full px-3 py-2 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white"
+                    className="w-full px-3 py-2 bg-white/[0.04] border border-white/15 rounded-lg focus:border-white/60 focus:outline-none text-white transition-colors"
                   >
                     {availableSources.map(source => (
                       <option key={source.id} value={source.id}>
@@ -173,7 +173,7 @@ export default function SettingsPage() {
                   <select
                     value={defaultQuality}
                     onChange={(e) => setDefaultQuality(e.target.value)}
-                    className="w-full px-3 py-2 bg-black border border-white/20 rounded-lg focus:border-white focus:outline-none text-white"
+                    className="w-full px-3 py-2 bg-white/[0.04] border border-white/15 rounded-lg focus:border-white/60 focus:outline-none text-white transition-colors"
                   >
                     <option value="1080p">1080p (Full HD)</option>
                     <option value="720p">720p (HD)</option>
@@ -224,9 +224,11 @@ export default function SettingsPage() {
                   <p className="text-gray-400 text-sm mb-3">
                     You have {watchLaterCount} items in your watch later list
                   </p>
+                  {/* Destructive actions share the red treatment used for
+                      sign out, so danger is signalled consistently. */}
                   <button
                     onClick={clearWatchLater}
-                    className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors border border-white/10"
+                    className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-300 hover:text-red-200 border border-red-500/25 hover:border-red-500/40 rounded-lg transition-colors"
                   >
                     Clear Watch Later
                   </button>
@@ -239,7 +241,7 @@ export default function SettingsPage() {
                   </p>
                   <button
                     onClick={clearAllData}
-                    className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors border border-white/10"
+                    className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-300 hover:text-red-200 border border-red-500/25 hover:border-red-500/40 rounded-lg transition-colors"
                   >
                     Clear All Data
                   </button>

@@ -695,11 +695,11 @@ function HomePageContent() {
               {/* Section title */}
               <div className="mb-6">
                 <h2 className="text-2xl sm:text-3xl font-bold text-white">
-                  {currentView === 'hollywood' && '🌟 Hollywood Movies'}
-                  {currentView === 'bollywood' && '🎭 Bollywood Movies'}
-                  {currentView === 'netflix' && '🔴 Netflix Content'}
-                  {currentView === 'amazonprime' && '🎥 Amazon Prime Video'}
-                  {currentView === 'search' && `🔍 Results for "${searchQuery}"`}
+                  {currentView === 'hollywood' && 'Hollywood Movies'}
+                  {currentView === 'bollywood' && 'Bollywood Movies'}
+                  {currentView === 'netflix' && 'Netflix Content'}
+                  {currentView === 'amazonprime' && 'Amazon Prime Video'}
+                  {currentView === 'search' && `Results for "${searchQuery}"`}
                 </h2>
               </div>
               

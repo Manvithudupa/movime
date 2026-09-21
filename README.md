@@ -41,6 +41,7 @@
 - **📈 Trending & Categories** — Dedicated Movies, TV Shows, and Anime pages plus Hollywood, Bollywood, Netflix Originals, and Amazon Prime sections
 - **🏷️ Genre Browsing** — Genre filters built into the search page (`/search?genre=[id]&type=movie|tv`): a browse-by-genre landing when search is empty, a Movies/TV toggle, genre chips, and infinite scroll — plus quick genre chips on the Movies and TV pages
 - **📧 Contact Form** — Server-side email delivery via Resend
+- **🎨 Strict Monochrome UI** — Pure black canvas (`#000000`) with white as the only accent colour. No neon tints or decorative glows; red is reserved exclusively for destructive actions (sign out, clear data)
 - **♿ Accessibility** — Respects `prefers-reduced-motion` (CSS + Framer Motion), global keyboard `:focus-visible` rings, and screen-reader-friendly loading indicators
 - **✨ Polished Animations** — Cinematic Ken Burns zoom on the hero carousel, GPU-friendly card hovers, hover scroll arrows on content rows, and a non-flashing route loading bar
 - **💀 Skeleton Loading** — Shimmer skeletons on every page (home, movies/TV/anime, details, watch, search, profile, settings, watchlist) so layout shifts are eliminated
@@ -61,6 +62,20 @@ A full codebase pass fixed the following (each verified by typecheck, lint, unit
 - **Hero PLAY** — Derives the media type from the item instead of assuming `movie`.
 - **Navbar** — The account dropdown closes on outside click, tap, or `Escape`, and dead code was removed.
 - **Caching/dead code** — The legacy API-cache sweep no longer skips entries while deleting, and unused keyframes/animations and an unused export were dropped.
+
+---
+
+## 🎨 UI refresh
+
+A design pass tightened the interface into a strict black-and-white system. Verified by typecheck, lint, unit tests, and a from-scratch production build.
+
+- **Pure black canvas** — `--background` moved from a warm `#101111` to `#000000`, with card surfaces on `#0a0a0a` and a neutralized foreground/border palette. The design tokens previously declared an acid-lime accent (`--primary: #d9ff3f`) that was *also* the global focus ring, so every keyboard focus outline and accent carried a neon tint. `--primary`, `--ring`, and the white buttons are now plain white.
+- **Red means destructive** — Sign Out is red, as are the destructive actions on `/settings` (**Clear Watch Later**, **Clear All Data**). The watchlist bookmark no longer turns red when saved; it uses the filled state instead.
+- **Contrast fixes** — The signup error box was neutral gray while login's was red, so a failed signup rendered as helper text; both are red now. Auth inputs and settings selects were `bg-black` on black surfaces, leaving invisible wells only distinguishable by a faint border. Card status badges were white-on-translucent-white over bright posters; all variants are now white-backed with black text, matching `STATUS_INFO`.
+- **Native control theming** — Added `color-scheme: dark` (plus explicit `select option` colours for WebKit) so the `<select>` popups on `/settings` no longer render as bright white sheets, and `::selection` no longer paints a blue block.
+- **Accents removed** — The announcement popup's blue-tinted gradient and top glow, the loading bar's glow, the white-glow card hover shadows, and the decorative emoji in headings, genre toggles, empty states, footer, and toasts (replaced with inline SVGs or plain text).
+- **Dead utility class** — `hover:shadow-3xl` on the details page was a no-op (`shadow-3xl` does not exist in Tailwind's default scale); removed.
+- **Grid hover** — Card hover scale reduced from `1.05` to `1.03`, so adjacent cards no longer overlap and clip neighbours in tight grids.
 
 ---
 

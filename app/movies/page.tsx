@@ -7,7 +7,7 @@ function MoviesPageContent() {
   return (
     <BrowseContent
       category="movies"
-      title="🎬 Popular Movies"
+      title="Popular Movies"
       subtitle="Trending and most popular movies right now"
       showGenreChips
     />
