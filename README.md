@@ -61,6 +61,7 @@ A full codebase pass fixed the following (each verified by typecheck, lint, unit
 - **Watchlist** — Status badges keep readable contrast, guest status changes persist to `localStorage` (matching on `content_id` as well as `id`), and the API rejects malformed `content_id` values on `PATCH`/`DELETE` with a `400` instead of a misleading `404`.
 - **Hero PLAY** — Derives the media type from the item instead of assuming `movie`.
 - **Navbar** — The account dropdown closes on outside click, tap, or `Escape`, and dead code was removed.
+- **Mobile navbar declutter** — On phones the top bar now shows only the logo. The avatar, search icon, and sign-in button are hidden below `sm` because the bottom nav already provides You, Search, and (via the profile page) Sign Out; all of them remain on tablet/desktop, where the bottom nav doesn't exist.
 - **Caching/dead code** — The legacy API-cache sweep no longer skips entries while deleting, and unused keyframes/animations and an unused export were dropped.
 
 ---

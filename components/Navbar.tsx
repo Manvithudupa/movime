@@ -206,7 +206,8 @@ export default function Navbar({
             </nav>
           </div>
 
-          {/* Mobile Hamburger — hidden on mobile, visible on tablet breakpoints but not desktop */}
+          {/* Menu hamburger — visible on tablet breakpoints only, between the
+              bottom nav (phones) and the desktop nav row (lg+). */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="sm:flex lg:hidden p-2 hover:bg-white/10 rounded-full transition-all duration-100 group relative z-50"
@@ -235,9 +236,11 @@ export default function Navbar({
           {/* Right side icons & user */}
           <div className="flex items-center space-x-2 sm:space-x-4">
             <div className="flex items-center space-x-1 sm:space-x-2">
+              {/* Hidden on phones: the bottom nav already has a Search tab,
+                  so this icon was duplicate chrome on mobile. */}
               <Link
                 href="/search"
-                className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-all duration-100 group"
+                className="hidden sm:inline-flex p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-all duration-100 group"
                 title="Search"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,9 +275,14 @@ export default function Navbar({
               <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/10 rounded-full animate-pulse"></div>
             ) : isSignedIn ? (
               <div className="relative" ref={userMenuRef}>
+                {/* Hidden on phones: the bottom nav's "You" tab already opens
+                    the profile there, so showing the avatar twice was
+                    redundant. It stays visible from sm up, where there is no
+                    bottom nav and the dropdown (incl. sign out) is the only
+                    account entry point. */}
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="focus:outline-none"
+                  className="hidden sm:inline-flex focus:outline-none"
                   aria-expanded={isUserMenuOpen}
                   aria-haspopup="menu"
                 >
@@ -341,7 +349,7 @@ export default function Navbar({
             ) : (
               <Link
                 href="/auth/login"
-                className="px-3 py-1.5 sm:px-4 rounded-sm text-black text-xs sm:text-sm font-semibold tracking-wide transition-all duration-150 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/60"
+                className="hidden sm:inline-flex px-3 py-1.5 sm:px-4 rounded-sm text-black text-xs sm:text-sm font-semibold tracking-wide transition-all duration-150 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/60"
               >
                 Sign In
               </Link>

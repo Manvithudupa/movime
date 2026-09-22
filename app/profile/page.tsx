@@ -230,6 +230,16 @@ export default function ProfilePage() {
     }
   }
 
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+    } catch (signOutError) {
+      console.error('Sign out failed:', signOutError)
+    }
+    router.push('/')
+    router.refresh()
+  }
+
   if (authLoading || loading) {
     return (
       <SkeletonPageLayout
@@ -619,6 +629,26 @@ export default function ProfilePage() {
               </Link>
             ))}
           </div>
+        </motion.div>
+
+        {/* Sign Out (mobile only) — the top navbar account dropdown (the
+            only other sign-out UI) is hidden on phones, where the bottom nav
+            already shows the profile avatar, so sign out lives here. */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.25 }}
+          className="sm:hidden bg-white/[0.03] border border-white/10 rounded-xl p-6 mt-8"
+        >
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-300 hover:text-red-200 border border-red-500/25 hover:border-red-500/40 rounded-lg font-semibold text-sm transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Sign Out
+          </button>
         </motion.div>
 
         {/* Danger Zone */}
