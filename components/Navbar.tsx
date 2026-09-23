@@ -206,11 +206,14 @@ export default function Navbar({
             </nav>
           </div>
 
-          {/* Menu hamburger — visible on tablet breakpoints only, between the
-              bottom nav (phones) and the desktop nav row (lg+). */}
+          {/* Menu hamburger — hidden on lg+ where the inline nav row shows.
+              ml-auto pins it to the right edge: on phones the right-side
+              icons/avatar are hidden (the bottom nav covers them), so
+              justify-between with an empty third slot used to centre this
+              button in the middle of the bar. */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="sm:flex lg:hidden p-2 hover:bg-white/10 rounded-full transition-all duration-100 group relative z-50"
+            className="ml-auto flex lg:hidden p-2 hover:bg-white/10 rounded-full transition-all duration-100 group relative z-50"
             title={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
           >
