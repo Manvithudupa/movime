@@ -98,13 +98,21 @@ export async function GET(request: NextRequest) {
 
   if (id) {
     // Fetch character by ID
+    const numericId = parseInt(id, 10)
+
+    // parseInt('abc') is NaN — forwarding that to AniList returns a confusing
+    // upstream error instead of a clear 400.
+    if (!Number.isInteger(numericId) || numericId <= 0) {
+      return NextResponse.json({ error: 'Invalid character id' }, { status: 400 })
+    }
+
     try {
       const response = await fetch(ANILIST_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: CHARACTER_DETAIL_QUERY,
-          variables: { id: parseInt(id) }
+          variables: { id: numericId }
         })
       })
       
@@ -123,6 +131,12 @@ export async function GET(request: NextRequest) {
 
   if (!query) {
     return NextResponse.json({ error: 'Search query required' }, { status: 400 })
+  }
+
+  // Cap the search term so one request can't send an unbounded GraphQL
+  // variable upstream.
+  if (query.length > 100) {
+    return NextResponse.json({ error: 'Search query is too long' }, { status: 400 })
   }
 
   try {

@@ -212,21 +212,32 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
     >
       {/* Background Images */}
       <div className="absolute inset-0">
-        {featuredMovies.map((movie, index) => (
-          <div
-            key={movie.id}
-            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentMovieIndex ? 'opacity-100 kenburns' : 'opacity-0'}`}
-          >
-            <Image
-              src={`https://image.tmdb.org/t/p/original${isMobile ? movie.poster_path : movie.backdrop_path}`}
-              alt={movie.title}
-              fill
-              className="object-cover object-center"
-              priority={index === 0}
-              sizes="100vw"
-            />
-          </div>
-        ))}
+        {featuredMovies.map((movie, index) => {
+          // Horizontal art on desktop, poster on phones — but fall back to
+          // whichever exists. A title with no backdrop used to build the URL
+          // ".../originalnull", which renders as a broken image behind the hero.
+          const imagePath =
+            (isMobile ? movie.poster_path : movie.backdrop_path) ||
+            movie.poster_path ||
+            movie.backdrop_path
+          return (
+            <div
+              key={movie.id}
+              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentMovieIndex ? 'opacity-100 kenburns' : 'opacity-0'}`}
+            >
+              {imagePath && (
+                <Image
+                  src={`https://image.tmdb.org/t/p/original${imagePath}`}
+                  alt={movie.title}
+                  fill
+                  className="object-cover object-center"
+                  priority={index === 0}
+                  sizes="100vw"
+                />
+              )}
+            </div>
+          )
+        })}
   <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent" />
   <div className="absolute bottom-0 left-0 right-0 h-1/2 md:h-60 bg-gradient-to-t from-black via-black/60 to-transparent" />
       </div>

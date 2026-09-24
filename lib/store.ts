@@ -14,6 +14,16 @@ export interface WatchlistItem {
 
 const WATCHLIST_CACHE_TTL = 60 * 1000 // 1 minute before background re-fetch
 
+// localStorage is user-writable and can hold anything, but the stores assume
+// arrays. A non-array value used to throw inside the first .map(), and in the
+// watchlist fetch the catch block threw again with the same value — leaving
+// `isLoading` stuck true, which made every later fetch() a no-op for the rest
+// of the session. Always read lists through this guard.
+const readLocalList = <T,>(key: string): T[] => {
+  const stored = getLocalStorage<unknown>(key, [])
+  return Array.isArray(stored) ? (stored as T[]) : []
+}
+
 interface WatchlistStore {
   items: WatchlistItem[]
   count: number
@@ -60,7 +70,7 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
       }
 
       // Fallback to localStorage
-      const saved = getLocalStorage('watchLater', [])
+      const saved = readLocalList<any>('watchLater')
       const localItems = saved.map((item: any, i: number) => ({
         id: `local-${i}`,
         content_id: item.id || item.content_id,
@@ -75,7 +85,7 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
     } catch (error) {
       console.error('Error fetching watchlist:', error)
       // Try localStorage as last resort
-      const saved = getLocalStorage('watchLater', [])
+      const saved = readLocalList<any>('watchLater')
       const localItems = saved.map((item: any, i: number) => ({
         id: `local-${i}`,
         content_id: item.id || item.content_id,
@@ -206,11 +216,11 @@ export const useContinueWatchingStore = create<ContinueWatchingStore>((set, get)
       }
       
       // Try localStorage fallback
-      const saved = getLocalStorage('continueWatching', [])
+      const saved = readLocalList<ContinueWatchingItem>('continueWatching')
       set({ items: saved, count: saved.length, lastFetched: Date.now(), isLoading: false })
     } catch (error) {
       console.error('Error fetching continue watching:', error)
-      const saved = getLocalStorage('continueWatching', [])
+      const saved = readLocalList<ContinueWatchingItem>('continueWatching')
       set({ items: saved, count: saved.length, lastFetched: Date.now(), isLoading: false })
     }
   },

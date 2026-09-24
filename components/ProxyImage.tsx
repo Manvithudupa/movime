@@ -1,56 +1,25 @@
 import React from 'react'
 import Image, { ImageProps, StaticImageData } from 'next/image'
+import {
+  BLOCKED_SRC,
+  PROXY_BASE,
+  isAllowedImageHost,
+  isAllowedImageSrc,
+  shouldSkipProxy,
+} from '@/lib/imageHosts'
 
-const PROXY_BASE = process.env.NEXT_PUBLIC_IMAGE_PROXY || 'https://images.weserv.nl/?url='
-
-// Domains that should NOT be proxied
-const NO_PROXY_DOMAINS = ['anilist.co']
-
-// SECURITY: only these image hosts are ever rendered. Everything else is
-// replaced with a transparent pixel. This closes the open-proxy hole where a
-// user-controlled URL (avatar_url, localStorage poster_path) was wrapped in
-// the configured image proxy (images.weserv.nl or a custom NEXT_PUBLIC_IMAGE_PROXY)
-// and fetched from any host — a relay/SSRF vector when a self-hosted proxy is
-// configured. It also stops arbitrary external hosts from loading tracking
-// pixels in the user's browser. Mirror the hosts in next.config.js
-// images.remotePatterns plus the AniList CDN used for character avatars.
-const ALLOWED_IMAGE_HOSTS: string[] = [
-  'image.tmdb.org',
-  'anilist.co',
-  'lh3.googleusercontent.com',
-  'avatars.githubusercontent.com',
-  'upload.wikimedia.org',
-  'raw.githubusercontent.com',
-]
-
-// Transparent 1x1 GIF used in place of any blocked/untrusted image URL.
-const BLOCKED_SRC = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-
-export function isAllowedImageHost(hostname: string | null | undefined): boolean {
-  if (!hostname) return false
-  return ALLOWED_IMAGE_HOSTS.some(
-    (host) => hostname === host || hostname.endsWith(`.${host}`)
-  )
-}
-
-export function isAllowedImageSrc(src: string): boolean {
-  if (!src || src.startsWith('/')) return true
-  try {
-    return isAllowedImageHost(new URL(src).hostname)
-  } catch {
-    return false
-  }
-}
-
-function shouldSkipProxy(src: string): boolean {
-  return NO_PROXY_DOMAINS.some(domain => src.includes(domain))
-}
+// The allowlist itself lives in lib/imageHosts.ts (JSX-free, unit tested).
+// Re-exported here so existing imports from this module keep working.
+export { isAllowedImageHost, isAllowedImageSrc }
 
 function proxiedSrc(src?: string | StaticImageData): string | StaticImageData | undefined {
   if (!src) return src
   if (typeof src !== 'string') return src
-  // Local paths (e.g. "/poster.jpg") are always fine.
-  if (src.startsWith('/')) return src
+  // Local paths (e.g. "/poster.jpg") are always fine. Protocol-relative URLs
+  // ("//evil.com/x.png") are NOT — they resolve to an external host and would
+  // slip past the allowlist below. next.config sets images.unoptimized, so the
+  // browser fetches whatever src we hand to <Image>.
+  if (src.startsWith('/') && !src.startsWith('//')) return src
 
   let hostname: string
   let parsed: URL
@@ -71,8 +40,15 @@ function proxiedSrc(src?: string | StaticImageData): string | StaticImageData | 
 
   if (hostname === proxyHost && proxyHost) {
     const inner = parsed.searchParams.get('url')
-    if (inner && isAllowedImageHost(new URL(inner).hostname)) {
-      return src // already-proxied URL to a trusted host — pass through
+    if (inner) {
+      try {
+        if (isAllowedImageHost(new URL(inner).hostname)) {
+          return src // already-proxied URL to a trusted host — pass through
+        }
+      } catch {
+        // Malformed inner URL — treat it as untrusted rather than throwing.
+        // (new URL() throws here, which used to crash the whole render.)
+      }
     }
     return BLOCKED_SRC
   }

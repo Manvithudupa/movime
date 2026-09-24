@@ -10,6 +10,11 @@ export const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 const API_CACHE_TTL_MS = 10 * 60 * 1000;        // 10 min default
 const API_CACHE_STORAGE_KEY = 'movime_api_cache_v2';
+// localStorage is only ~5MB and shared with every other persisted key, so the
+// cache is capped and pruned. Without a bound the quota is eventually hit,
+// setItem starts throwing (swallowed below) and the cache silently stops
+// persisting — every request re-hits the network on each page load.
+const API_CACHE_MAX_ENTRIES = 60;
 const apiMemoryCache = new Map<string, { expiresAt: number; value: any }>();
 
 // In-flight request deduplication: prevents duplicate requests for the same key
@@ -27,6 +32,44 @@ function cleanupOldCacheFormat() {
       if (key && key.startsWith('movime_api_cache_v1')) {
         window.localStorage.removeItem(key);
       }
+    }
+  } catch {}
+}
+
+/**
+ * Keeps the persisted cache within `API_CACHE_MAX_ENTRIES`. Once the cap is
+ * reached the soonest-to-expire entries are dropped — those were written
+ * longest ago (and expired ones share an `expiresAt` of 0), so they are the
+ * least useful. Cheap when nothing needs pruning: only the key count is read.
+ */
+function pruneApiCache() {
+  if (typeof window === 'undefined') return;
+  try {
+    const prefix = `${API_CACHE_STORAGE_KEY}:`;
+    const cacheKeys: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key && key.startsWith(prefix)) cacheKeys.push(key);
+    }
+
+    if (cacheKeys.length < API_CACHE_MAX_ENTRIES) return;
+
+    const entries = cacheKeys
+      .map((key) => {
+        try {
+          const parsed = JSON.parse(window.localStorage.getItem(key) || '');
+          const expiresAt = typeof parsed?.expiresAt === 'number' ? parsed.expiresAt : 0;
+          return { key, expiresAt };
+        } catch {
+          return { key, expiresAt: 0 };
+        }
+      })
+      .sort((a, b) => a.expiresAt - b.expiresAt);
+
+    // Drop one more than the overflow so the next write has room.
+    const excess = entries.length - API_CACHE_MAX_ENTRIES + 1;
+    for (let i = 0; i < excess; i++) {
+      window.localStorage.removeItem(entries[i].key);
     }
   } catch {}
 }
@@ -74,6 +117,7 @@ const setCachedApiValue = (key: string, value: unknown, ttlMs = API_CACHE_TTL_MS
   if (typeof window !== 'undefined') {
     try {
       cleanupOldCacheFormat();
+      pruneApiCache();
       window.localStorage.setItem(
         `${API_CACHE_STORAGE_KEY}:${key}`,
         JSON.stringify({ expiresAt, value })
@@ -82,6 +126,28 @@ const setCachedApiValue = (key: string, value: unknown, ttlMs = API_CACHE_TTL_MS
       // Ignore storage quota or browser issues.
     }
   }
+};
+
+/**
+ * Whether a resolved response is worth persisting.
+ *
+ * Every fetcher below swallows its own errors and returns an empty payload
+ * ({ results: [] }, { genres: [] }, { episodes: [] } or null). Those are
+ * indistinguishable from a real "no results" — but caching them pinned a
+ * momentary network failure for the entire TTL, so a section stayed blank for
+ * minutes after the connection recovered. Empty payloads are therefore never
+ * persisted; they are simply re-fetched next time.
+ */
+const isCacheableApiValue = (value: unknown): boolean => {
+  if (value == null) return false;
+  if (typeof value !== 'object') return true;
+
+  const record = value as Record<string, unknown>;
+  for (const listKey of ['results', 'genres', 'episodes', 'characters']) {
+    const list = record[listKey];
+    if (Array.isArray(list) && list.length === 0) return false;
+  }
+  return true;
 };
 
 /**
@@ -107,7 +173,9 @@ const cachedApiRequest = async <T>(key: string, request: () => Promise<T>, ttlMs
 
   // 3. Fetch with dedup tracking
   const promise = request().then(data => {
-    setCachedApiValue(key, data, ttlMs);
+    if (isCacheableApiValue(data)) {
+      setCachedApiValue(key, data, ttlMs);
+    }
     inflightRequests.delete(key);
     return data;
   }).catch(err => {

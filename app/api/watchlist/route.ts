@@ -358,6 +358,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required params' }, { status: 400 })
     }
 
+    // POST/PATCH already reject an unknown content_type; DELETE passed it
+    // straight into the filter, which silently matched nothing.
+    if (contentType !== 'movie' && contentType !== 'tv') {
+      return NextResponse.json({ error: 'Invalid content_type' }, { status: 400 })
+    }
+
     const numericContentId = parseInt(contentId, 10)
 
     if (!Number.isInteger(numericContentId) || numericContentId <= 0) {

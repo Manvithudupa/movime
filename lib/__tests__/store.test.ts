@@ -54,6 +54,20 @@ describe('watchlist store', () => {
     updateStatus(1, 'watching')
     expect(useWatchlistStore.getState().items[0].status).toBe('watching')
   })
+
+  it('recovers when the cached list is not an array', async () => {
+    // A non-array value used to throw inside .map(), and the catch block threw
+    // again with the same value — leaving isLoading stuck true, which made
+    // every later fetch() a silent no-op for the rest of the session.
+    localStorage.setItem('watchLater', JSON.stringify({ not: 'an array' }))
+
+    await useWatchlistStore.getState().fetch(false)
+    await useWatchlistStore.getState().fetch(false)
+
+    expect(useWatchlistStore.getState().isLoading).toBe(false)
+    expect(useWatchlistStore.getState().items).toEqual([])
+    expect(useWatchlistStore.getState().count).toBe(0)
+  })
 })
 
 describe('continue watching store', () => {

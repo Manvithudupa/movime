@@ -241,8 +241,28 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required params' }, { status: 400 })
     }
 
+    // POST validates these; DELETE used to pass them straight into the query,
+    // so a garbage id/type silently matched 0 rows and reported success.
+    if (contentType !== 'movie' && contentType !== 'tv') {
+      return NextResponse.json({ error: 'Invalid content_type' }, { status: 400 })
+    }
+
     const numericContentId = parseInt(contentId, 10)
-    
+
+    if (!Number.isInteger(numericContentId) || numericContentId <= 0) {
+      return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
+    }
+
+    const numericSeason = seasonNumber != null ? parseInt(seasonNumber, 10) : undefined
+    const numericEpisode = episodeNumber != null ? parseInt(episodeNumber, 10) : undefined
+
+    if (
+      (numericSeason !== undefined && (!Number.isInteger(numericSeason) || numericSeason < 0)) ||
+      (numericEpisode !== undefined && (!Number.isInteger(numericEpisode) || numericEpisode < 0))
+    ) {
+      return NextResponse.json({ error: 'Invalid season_number or episode_number' }, { status: 400 })
+    }
+
     let query = supabase
       .from('continue_watching')
       .delete()
@@ -250,11 +270,11 @@ export async function DELETE(request: NextRequest) {
       .eq('content_id', numericContentId)
       .eq('content_type', contentType)
 
-    if (seasonNumber) {
-      query = query.eq('season_number', parseInt(seasonNumber, 10))
+    if (numericSeason !== undefined) {
+      query = query.eq('season_number', numericSeason)
     }
-    if (episodeNumber) {
-      query = query.eq('episode_number', parseInt(episodeNumber, 10))
+    if (numericEpisode !== undefined) {
+      query = query.eq('episode_number', numericEpisode)
     }
 
     const { error } = await query
