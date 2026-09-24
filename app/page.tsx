@@ -185,9 +185,13 @@ function HomePageContent() {
     const saved = getLocalStorage('watchLater', []);
     const itemId = item.id;
     if (wasInList) {
-      const updated = saved.filter((w: any) => w.id !== itemId && w.content_id !== itemId);
+      // Match on type as well as id — TMDB ids are only unique per media type.
+      const updated = saved.filter((w: any) =>
+        !((w.id === itemId || w.content_id === itemId) &&
+          (w.type || w.content_type || (w.title ? 'movie' : 'tv')) === contentType)
+      );
       setLocalStorage('watchLater', updated);
-      removeItemFromStore(itemId)
+      removeItemFromStore(itemId, contentType as 'movie' | 'tv')
     } else {
       const newItem = {
         id: itemId,
@@ -211,12 +215,16 @@ function HomePageContent() {
     const contentType = item.media_type || (item.title ? 'movie' : 'tv');
     const itemId = item.id;
 
-    // Check if item already exists before optimistic update
-    const exists = watchLater.some((w: any) => w.id === itemId || w.content_id === itemId);
+    // Check if item already exists before optimistic update. Match on type as
+    // well as id — a movie and a TV show can share the same TMDB id.
+    const exists = watchLater.some(
+      (w: any) =>
+        (w.id === itemId || w.content_id === itemId) && w.content_type === contentType
+    );
     
     // Optimistically update the store
     if (exists) {
-      removeItemFromStore(itemId);
+      removeItemFromStore(itemId, contentType as 'movie' | 'tv');
     }
 
     if (isSignedIn) {
@@ -245,7 +253,7 @@ function HomePageContent() {
               updated_at: result.item.updated_at || new Date().toISOString(),
             })
           } else {
-            removeItemFromStore(itemId)
+            removeItemFromStore(itemId, contentType as 'movie' | 'tv')
           }
         } else {
           console.error('Watchlist API error:', result.error);
@@ -268,7 +276,11 @@ function HomePageContent() {
 
   const isInWatchLater = useCallback((item: ContentItem) => {
     const itemId = item.id;
-    return watchLater.some((w: any) => w.id === itemId || w.content_id === itemId);
+    const itemType = item.media_type || (item.title ? 'movie' : 'tv');
+    return watchLater.some(
+      (w: any) =>
+        (w.id === itemId || w.content_id === itemId) && w.content_type === itemType
+    );
   }, [watchLater]);
 
   const loadMoreContent = async (contentType: string) => {
@@ -464,7 +476,11 @@ function HomePageContent() {
           onAddToWatchLater={addToWatchLater}
           isInWatchLater={isInWatchLater}
           getWatchStatus={(item) => {
-            const found = watchLater.find((w: any) => w.id === item.id || w.content_id === item.id);
+            const itemType = item.media_type || (item.title ? 'movie' : 'tv');
+            const found = watchLater.find(
+              (w: any) =>
+                (w.id === item.id || w.content_id === item.id) && w.content_type === itemType
+            );
             return found?.status;
           }}
         />

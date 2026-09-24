@@ -112,7 +112,13 @@ function DetailsPageContent() {
   }, [content, contentType, selectedSeason, loadSeasonData]);
 
   const getCurrentStatus = (): string => {
-    const item = watchLater.find((w: any) => w.content_id === content?.id || w.id === content?.id);
+    // Match on type as well as id — a movie and a TV show can share the same
+    // TMDB id, so id-only lookups can return the wrong entry.
+    const item = watchLater.find(
+      (w: any) =>
+        (w.content_id === content?.id || w.id === content?.id) &&
+        w.content_type === contentType
+    );
     return item?.status || 'plan_to_watch';
   };
 
@@ -150,7 +156,7 @@ function DetailsPageContent() {
               updated_at: result.item.updated_at || new Date().toISOString(),
             });
           } else {
-            removeItemFromStore(itemId);
+            removeItemFromStore(itemId, contentType);
           }
         }
       } catch (error) {
@@ -161,14 +167,17 @@ function DetailsPageContent() {
       // Guest with an explicit status: add or update the item in the local
       // store + localStorage instead of hitting the (auth-required) API.
       const exists = watchLater.some((w: any) =>
-        w.content_id === itemId || w.id === itemId
+        (w.content_id === itemId || w.id === itemId) && w.content_type === contentType
       );
       if (exists) {
-        updateStatusInStore(itemId, status);
+        updateStatusInStore(itemId, status, contentType);
         const saved = getLocalStorage<any[]>('watchLater', []);
         setLocalStorage('watchLater',
           saved.map((w: any) =>
-            w.id === itemId || w.content_id === itemId ? { ...w, status } : w
+            (w.id === itemId || w.content_id === itemId) &&
+            (w.type || w.content_type || (w.title ? 'movie' : 'tv')) === contentType
+              ? { ...w, status }
+              : w
           )
         );
       } else {
@@ -195,14 +204,17 @@ function DetailsPageContent() {
     if (!content) return;
     const itemId = content.id;
     const exists = watchLater.some((w: any) => 
-      w.content_id === itemId || w.id === itemId
+      (w.content_id === itemId || w.id === itemId) && w.content_type === contentType
     );
 
     if (exists) {
-      removeItemFromStore(itemId);
+      removeItemFromStore(itemId, contentType);
       const saved = getLocalStorage<any[]>('watchLater', []);
       setLocalStorage('watchLater',
-        saved.filter((w: any) => w.id !== itemId && w.content_id !== itemId)
+        saved.filter((w: any) =>
+          !((w.id === itemId || w.content_id === itemId) &&
+            (w.type || w.content_type || (w.title ? 'movie' : 'tv')) === contentType)
+        )
       );
     } else {
       addItemToStore({
@@ -274,7 +286,7 @@ function DetailsPageContent() {
   const isInWatchLater = () => {
     if (!content) return false;
     return watchLater.some((w: any) => 
-      w.content_id === content.id || w.id === content.id
+      (w.content_id === content.id || w.id === content.id) && w.content_type === contentType
     );
   };
 
@@ -688,11 +700,12 @@ function DetailsPageContent() {
                                       });
                                   } else {
                                     // Guests: update local store + localStorage directly
-                                    updateStatusInStore(content!.id, key);
+                                    updateStatusInStore(content!.id, key, contentType);
                                     const saved = getLocalStorage<any[]>('watchLater', []);
                                     setLocalStorage('watchLater',
                                       saved.map((w: any) =>
-                                        w.id === content!.id || w.content_id === content!.id
+                                        (w.id === content!.id || w.content_id === content!.id) &&
+                                        (w.type || w.content_type || (w.title ? 'movie' : 'tv')) === contentType
                                           ? { ...w, status: key }
                                           : w
                                       )

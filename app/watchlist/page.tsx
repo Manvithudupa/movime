@@ -64,7 +64,7 @@ export default function WatchlistPage() {
           { method: 'DELETE' }
         )
         if (response.ok) {
-          removeItemFromStore(item.content_id)
+          removeItemFromStore(item.content_id, item.content_type)
           setMessage('Removed from watchlist')
         } else {
           const err = await response.json()
@@ -72,9 +72,13 @@ export default function WatchlistPage() {
         }
       } else {
         const saved = getLocalStorage('watchLater', [])
-        const updated = saved.filter((i: any) => i.id !== item.content_id && i.content_id !== item.content_id)
+        // Match on type as well as id — TMDB ids are only unique per media type.
+        const updated = saved.filter((i: any) =>
+          !((i.id === item.content_id || i.content_id === item.content_id) &&
+            (i.type || i.content_type || (i.title ? 'movie' : 'tv')) === item.content_type)
+        )
         setLocalStorage('watchLater', updated)
-        removeItemFromStore(item.content_id)
+        removeItemFromStore(item.content_id, item.content_type)
         setMessage('Removed from watchlist')
       }
     } catch (error) {
@@ -85,7 +89,7 @@ export default function WatchlistPage() {
   }
 
   const updateStatus = async (item: typeof items[number], newStatus: WatchStatus) => {
-    updateStatusInStore(item.content_id, newStatus)
+    updateStatusInStore(item.content_id, newStatus, item.content_type)
     
     try {
       if (item._source === 'api' && isSignedIn) {
@@ -106,10 +110,11 @@ export default function WatchlistPage() {
         }
       } else {
         const saved = getLocalStorage('watchLater', [])
-        // Match on content_id as well as id — guest entries store both, and
-        // matching only `id` silently failed to persist the new status.
+        // Match on content_id + type — guest entries store both, and matching
+        // only `id` would also rewrite the other media type sharing that id.
         const updated = saved.map((i: any) =>
-          i.id === item.content_id || i.content_id === item.content_id
+          (i.id === item.content_id || i.content_id === item.content_id) &&
+          (i.type || i.content_type || (i.title ? 'movie' : 'tv')) === item.content_type
             ? { ...i, status: newStatus }
             : i
         )

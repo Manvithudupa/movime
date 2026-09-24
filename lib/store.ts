@@ -32,11 +32,24 @@ interface WatchlistStore {
   fetch: (isSignedIn: boolean) => Promise<void>
   add: (item: WatchlistItem) => void
   toggle: (item: WatchlistItem) => void
-  remove: (contentId: number) => void
-  updateStatus: (contentId: number, status: string) => void
+  remove: (contentId: number, contentType?: 'movie' | 'tv') => void
+  updateStatus: (contentId: number, status: string, contentType?: 'movie' | 'tv') => void
   clear: () => void
-  isInWatchlist: (contentId: number) => boolean
+  isInWatchlist: (contentId: number, contentType?: 'movie' | 'tv') => boolean
 }
+
+// TMDB shares its numeric id space between movies and TV, so content_id alone
+// is NOT a unique key — a movie and a show can carry the same id. The database
+// keys a row on (user_id, content_id, content_type); every matcher mirrors
+// that. contentType is optional so legacy callers keep working, but passing it
+// is what prevents a same-id movie/TV pair from colliding.
+const matchesItem = (
+  item: WatchlistItem,
+  contentId: number,
+  contentType?: 'movie' | 'tv'
+): boolean =>
+  item.content_id === contentId &&
+  (contentType === undefined || item.content_type === contentType)
 
 export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
   items: [],
@@ -74,7 +87,11 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
       const localItems = saved.map((item: any, i: number) => ({
         id: `local-${i}`,
         content_id: item.id || item.content_id,
-        content_type: item.type || item.content_type || 'movie',
+        // 'movie' was a blanket default that surfaced type-less TV entries as
+        // movies everywhere. Derive it the way the content components do
+        // (TMDB uses `title` for movies, `name` for TV).
+        content_type:
+          item.type || item.content_type || (item.title ? 'movie' : 'tv'),
         title: item.title || '',
         poster_path: item.poster || item.poster_path || null,
         status: item.status || 'plan_to_watch',
@@ -89,7 +106,11 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
       const localItems = saved.map((item: any, i: number) => ({
         id: `local-${i}`,
         content_id: item.id || item.content_id,
-        content_type: item.type || item.content_type || 'movie',
+        // 'movie' was a blanket default that surfaced type-less TV entries as
+        // movies everywhere. Derive it the way the content components do
+        // (TMDB uses `title` for movies, `name` for TV).
+        content_type:
+          item.type || item.content_type || (item.title ? 'movie' : 'tv'),
         title: item.title || '',
         poster_path: item.poster || item.poster_path || null,
         status: item.status || 'plan_to_watch',
@@ -102,11 +123,10 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
 
   add: (item) => {
     set((state) => {
-      const exists = state.items.some(i => i.content_id === item.content_id)
-      if (exists) {
-        // Replace existing entry with the new data
+      if (state.items.some(i => matchesItem(i, item.content_id, item.content_type))) {
+        // Replace the matching entry with the new data
         const newItems = state.items.map(i =>
-          i.content_id === item.content_id ? { ...i, ...item } : i
+          matchesItem(i, item.content_id, item.content_type) ? { ...i, ...item } : i
         )
         return { items: newItems, count: newItems.length }
       }
@@ -118,9 +138,10 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
   // Toggle: add if absent, remove if present
   toggle: (item) => {
     set((state) => {
-      const exists = state.items.some(i => i.content_id === item.content_id)
-      if (exists) {
-        const newItems = state.items.filter(i => i.content_id !== item.content_id)
+      if (state.items.some(i => matchesItem(i, item.content_id, item.content_type))) {
+        const newItems = state.items.filter(
+          i => !matchesItem(i, item.content_id, item.content_type)
+        )
         return { items: newItems, count: newItems.length }
       }
       const newItems = [...state.items, item]
@@ -128,17 +149,17 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
     })
   },
 
-  remove: (contentId) => {
+  remove: (contentId, contentType) => {
     set((state) => {
-      const newItems = state.items.filter(i => i.content_id !== contentId)
+      const newItems = state.items.filter(i => !matchesItem(i, contentId, contentType))
       return { items: newItems, count: newItems.length }
     })
   },
 
-  updateStatus: (contentId, status) => {
+  updateStatus: (contentId, status, contentType) => {
     set((state) => ({
-      items: state.items.map(i => 
-        i.content_id === contentId ? { ...i, status } : i
+      items: state.items.map(i =>
+        matchesItem(i, contentId, contentType) ? { ...i, status } : i
       ),
     }))
   },
@@ -147,8 +168,8 @@ export const useWatchlistStore = create<WatchlistStore>((set, get) => ({
     set({ items: [], count: 0, lastFetched: 0, isLoading: false })
   },
 
-  isInWatchlist: (contentId) => {
-    return get().items.some(i => i.content_id === contentId)
+  isInWatchlist: (contentId, contentType) => {
+    return get().items.some(i => matchesItem(i, contentId, contentType))
   },
 }))
 

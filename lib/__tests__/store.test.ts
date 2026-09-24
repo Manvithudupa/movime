@@ -55,6 +55,30 @@ describe('watchlist store', () => {
     expect(useWatchlistStore.getState().items[0].status).toBe('watching')
   })
 
+  it('treats a movie and a TV show sharing the same TMDB id as distinct entries', () => {
+    const { add } = useWatchlistStore.getState()
+    // TMDB reuses its numeric id space across media types, so this pair must
+    // not collide the way the old content_id-only matcher made them.
+    add(watchlistItem({ id: 7, content_id: 7, content_type: 'movie', title: 'Same Id Movie' }))
+    add(watchlistItem({ id: 8, content_id: 7, content_type: 'tv', title: 'Same Id Show' }))
+
+    expect(useWatchlistStore.getState().count).toBe(2)
+    expect(useWatchlistStore.getState().isInWatchlist(7, 'movie')).toBe(true)
+    expect(useWatchlistStore.getState().isInWatchlist(7, 'tv')).toBe(true)
+
+    // Status updates and removals stay scoped to one type.
+    useWatchlistStore.getState().updateStatus(7, 'watching', 'tv')
+    const movie = useWatchlistStore.getState().items.find((i) => i.content_type === 'movie')
+    const show = useWatchlistStore.getState().items.find((i) => i.content_type === 'tv')
+    expect(movie?.status).toBe('plan_to_watch')
+    expect(show?.status).toBe('watching')
+
+    useWatchlistStore.getState().remove(7, 'movie')
+    const remaining = useWatchlistStore.getState().items
+    expect(remaining).toHaveLength(1)
+    expect(remaining[0].content_type).toBe('tv')
+  })
+
   it('recovers when the cached list is not an array', async () => {
     // A non-array value used to throw inside .map(), and the catch block threw
     // again with the same value — leaving isLoading stuck true, which made
