@@ -8,6 +8,7 @@ import SearchAutocomplete from '@/components/SearchAutocomplete';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { searchContent, fetchByGenre, fetchGenres, TMDB_IMAGE_BASE_URL, filterAdultContent, blockedMovieIds, fetchContentDetails } from '@/lib/utils';
+import { filterRankSearchResults, stripInternalScores, rankByRuntime, allowsShortContent } from '@/lib/searchFilter';
 import type { ContentItem, Genre } from '@/lib/types';
 import { useWatchlistStore } from '@/lib/store';
 import { SkeletonSearch } from '@/components/SkeletonSearch';
@@ -82,68 +83,13 @@ function SearchPageContent() {
     setLoading(true);
     try {
       const data = await searchContent(q);
-      const qLower = q.toLowerCase();
-      // Only an explicit whole-word adult term lifts the metadata filter. The
-      // old substring check also matched innocent queries ("adulting",
-      // "unisex", "adult swim") and silently switched filtering off for them.
-      const allowAdult = /\b(adult|sex|erotic|xxx|porn|explicit|nude)\b/i.test(qLower);
-      // Multi-search can return people/companies — only keep watchable titles
-      // so cards link to valid /details and /watch pages.
-      let filtered = filterAdultContent(
-        data.results?.filter((item:any)=>(
-          !blockedMovieIds.includes(item.id.toString()) &&
-          (item.media_type === 'movie' || item.media_type === 'tv')
-        )) || [],
-        allowAdult
-      ) as ContentItem[];
+      // Same pipeline as the autocomplete dropdown, so the two never disagree
+      // about which titles exist for a query. __rel is kept on `base` so the
+      // async runtime pass can demote stray clips below real title matches.
+      const base = filterRankSearchResults<any>(data.results, q).slice(0, 60);
+      setResults(stripInternalScores(base.slice(0, 40)) as ContentItem[]);
 
-      const MIN_YEAR = 2004;
-      const explicitOlderYearMatch = q.match(/\b(19\d{2}|200[0-3])\b/);
-      if (!explicitOlderYearMatch) {
-        filtered = filtered.filter((item: any) => {
-          const date = item.release_date || item.first_air_date;
-          if (!date) return true; 
-          const year = parseInt(date.slice(0,4));
-          if (!year) return true;
-          return year >= MIN_YEAR;
-        });
-      }
-
-      const wantsReality = /\breality\b/i.test(qLower);
-      if (!wantsReality) {
-        filtered = filtered.filter((item:any) => {
-          if (item.genre_ids?.includes(10764)) return false;
-          const t = (item.title || item.name || '').toLowerCase();
-          if (t.includes('reality')) return false;
-          return true;
-        });
-      }
-
-      const normalize = (s:string) => s.toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
-      const queryNorm = normalize(qLower);
-      const score = (title:string): number => {
-        const t = normalize(title);
-        if (!t) return 0;
-        if (t === queryNorm) return 1.0;
-        if (t.startsWith(queryNorm)) return 0.92;
-        if (t.split(' ').some(w=>w.startsWith(queryNorm))) return 0.86;
-        if (t.includes(queryNorm)) return 0.72;
-        let qi=0; for (let i=0;i<t.length && qi<queryNorm.length;i++){ if(t[i]===queryNorm[qi]) qi++; }
-        const seqRatio = qi / queryNorm.length;
-        if (seqRatio >= 0.8) return 0.6 + (seqRatio-0.8)*0.2;
-        return seqRatio >= 0.5 ? 0.4 + (seqRatio-0.5)*0.2 : 0;
-      };
-      filtered = filtered.map((item:any)=>({ ...item, __rel: score(item.title || item.name || '') }));
-      const minScore = queryNorm.length <= 4 ? 0.86 : queryNorm.length <= 6 ? 0.6 : 0.5;
-      filtered = filtered.filter((i:any)=> i.__rel >= minScore);
-      filtered.sort((a:any,b:any)=> (b.__rel - a.__rel) || ((b.popularity||0)-(a.popularity||0)) );
-      filtered = filtered.map((i:any)=>{ delete i.__rel; return i; });
-      const base = filtered.slice(0,60); 
-      setResults(base.slice(0,40) as ContentItem[]);
-
-      const allowShort = /\b(short|clip|mini|reel)\b/i.test(qLower);
-      const MIN_DURATION_MIN = 40;
-      if (!allowShort && base.length && lastBasicResults.current !== q) {
+      if (!allowsShortContent(q) && base.length && lastBasicResults.current !== q) {
         lastBasicResults.current = q;
         (async () => {
           try {
@@ -165,13 +111,12 @@ function SearchPageContent() {
               }
             };
             await Promise.allSettled(Array.from({ length: Math.min(CONCURRENCY, toFetch.length) }, () => worker()));
-            const filteredRuntime = base.filter(it => {
-              const dur = runtimeCache.current[it.id];
-              if (!dur) return true;
-              return dur >= MIN_DURATION_MIN;
-            }).slice(0,40);
+            const filteredRuntime = rankByRuntime(
+              base,
+              (id) => runtimeCache.current[String(id)]
+            ).slice(0, 40);
             // Only apply if the user hasn't typed a newer query in the meantime.
-            setResults(prev => queryRef.current === q ? filteredRuntime as ContentItem[] : prev);
+            setResults(prev => queryRef.current === q ? stripInternalScores(filteredRuntime) as ContentItem[] : prev);
           } catch {}
         })();
       }
