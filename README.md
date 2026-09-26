@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/Supabase-FF6600?style=flat-square&logo=supabase" alt="Supabase" />
   <img src="https://img.shields.io/badge/PWA-ready-5A0FC8?style=flat-square&logo=pwa" alt="PWA" />
   <img src="https://img.shields.io/badge/license-educational-lightgrey?style=flat-square" alt="License" />
-  <img src="https://img.shields.io/github/actions/workflow/status/Manvithudupa/movime/ci.yml?branch=main&style=flat-square&label=CI" alt="CI" />
+  <img src="https://img.shields.io/github/actions/workflow/status/Manvithudupa/movime/.github/workflows/ci.yml?branch=main&style=flat-square&label=CI" alt="CI" />
 </p>
 
 ---
