@@ -33,7 +33,7 @@ The Movime repository is currently **private**, so external users can't open iss
 | I want to... | Do this |
 |--------------|---------|
 | Report a bug | Use the contact form on the site at `/contact`, or email the developer directly. Include the page, what you did, and what went wrong. |
-| Request a feature | Send your idea through the contact form or reach out to the developer on [GitHub](https://github.com/Manvith911). Be specific about what you want and why. |
+| Request a feature | Send your idea through the contact form or reach out to the developer on [GitHub](https://github.com/Manvithudupa). Be specific about what you want and why. |
 | Report a broken source | Note the content title and which source failed (the source name is shown in the sidebar on the watch page). |
 | Contribute code | If you're a collaborator, follow the workflow below. If you're external and have a patch, reach out via the contact form and the developer can guide you. |
 
@@ -54,7 +54,7 @@ The Movime repository is currently **private**, so external users can't open iss
 
 ```bash
 # Clone the repository
-git clone https://github.com/Manvith911/movime.git
+git clone https://github.com/Manvithudupa/movime.git
 cd movime
 
 # Install dependencies

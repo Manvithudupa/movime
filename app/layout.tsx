@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   keywords:
     'free movies, free streaming, watch movies online, free tv shows, streaming service, watch movies free, online streaming, movime stream, free movies online, free series online',
   applicationName: 'Movime',
-  authors: [{ name: 'Manvith Udupa', url: 'https://github.com/Manvith911' }],
+  authors: [{ name: 'Manvith Udupa', url: 'https://github.com/Manvithudupa' }],
   creator: 'Manvith Udupa',
   openGraph: {
     type: 'website',

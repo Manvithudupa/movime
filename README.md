@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/Supabase-FF6600?style=flat-square&logo=supabase" alt="Supabase" />
   <img src="https://img.shields.io/badge/PWA-ready-5A0FC8?style=flat-square&logo=pwa" alt="PWA" />
   <img src="https://img.shields.io/badge/license-educational-lightgrey?style=flat-square" alt="License" />
-  <img src="https://img.shields.io/github/actions/workflow/status/Manvith911/movime/ci.yml?branch=main&style=flat-square&label=CI" alt="CI" />
+  <img src="https://img.shields.io/github/actions/workflow/status/Manvithudupa/movime/ci.yml?branch=main&style=flat-square&label=CI" alt="CI" />
 </p>
 
 ---
@@ -219,7 +219,7 @@ flowchart LR
 
 ```bash
 # Clone the repository
-git clone https://github.com/Manvith911/movime.git
+git clone https://github.com/Manvithudupa/movime.git
 cd movime
 
 # Install dependencies
@@ -487,7 +487,7 @@ Images from TMDB are proxied through `https://images.weserv.nl/?url=` by default
 
 ## 🤝 Contributing
 
-Feedback and feature requests are welcome — use the contact form at `/contact` or reach out to the developer on [GitHub](https://github.com/Manvith911).
+Feedback and feature requests are welcome — use the contact form at `/contact` or reach out to the developer on [GitHub](https://github.com/Manvithudupa).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution guide — including how to report bugs, request features, set up the project locally, code style, and the pull request process.
 

@@ -171,7 +171,7 @@ export default function AboutPage() {
               </p>
               <div className="flex justify-center space-x-4">
                 <a 
-                  href="https://github.com/Manvith911" 
+                  href="https://github.com/Manvithudupa" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="bg-white/10 hover:bg-white/20 p-3 rounded-lg transition-colors"

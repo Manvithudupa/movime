@@ -282,7 +282,7 @@ export default function TermsOfService() {
                 <ul className="text-gray-300 space-y-2">
                   <li><strong>Email:</strong> legal@movime.vercel.app</li>
                   <li><strong>Contact Page:</strong> <Link href="/contact" className="text-white hover:text-gray-300">movime.vercel.app/contact</Link></li>
-                  <li><strong>GitHub:</strong> <a href="https://github.com/Manvith911" className="text-white hover:text-gray-300">@Manvith911</a></li>
+                  <li><strong>GitHub:</strong> <a href="https://github.com/Manvithudupa" className="text-white hover:text-gray-300">@Manvithudupa</a></li>
                 </ul>
               </div>
             </section>
