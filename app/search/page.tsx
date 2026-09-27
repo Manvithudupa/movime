@@ -77,6 +77,16 @@ function SearchPageContent() {
   // Holds the most recent query so async work can avoid clobbering newer results
   const queryRef = useRef('');
 
+  // Query ↔ URL syncing. The typed query is written to ?q= (debounced) so a
+  // reload, a shared link, or browser back/forward restores the same results;
+  // a ?q= changed elsewhere (deep link, Navbar search, back button) is adopted
+  // into the input. Refs keep the sync callback stable and let it read the
+  // *current* URL (with its genre params) without re-creating itself.
+  const searchParamsRef = useRef(searchParams);
+  searchParamsRef.current = searchParams;
+  const lastUrlRef = useRef('');
+  const urlSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const performSearch = useCallback(async (q: string) => {
     queryRef.current = q;
     if (!q.trim()) { setResults([]); return; }
@@ -127,6 +137,28 @@ function SearchPageContent() {
     }
   }, []);
 
+  // Debounced write of the query into the URL. A non-empty query drops the
+  // genre params (typing leaves genre browsing); an empty query just removes
+  // ?q= so the URL never keeps a stale search.
+  const syncUrlWithQuery = useCallback((value: string) => {
+    if (urlSyncTimer.current) clearTimeout(urlSyncTimer.current);
+    urlSyncTimer.current = setTimeout(() => {
+      const trimmed = value.trim();
+      const params = new URLSearchParams(searchParamsRef.current.toString());
+      if (trimmed) {
+        params.delete('genre');
+        params.delete('type');
+        params.set('q', trimmed);
+      } else {
+        params.delete('q');
+      }
+      const target = params.toString() ? `/search?${params.toString()}` : '/search';
+      if (lastUrlRef.current === target) return;
+      lastUrlRef.current = target;
+      router.replace(target, { scroll: false });
+    }, 400);
+  }, [router]);
+
   useEffect(()=>{
   const h = setTimeout(()=>performSearch(query), 550); 
     return ()=>clearTimeout(h);
@@ -139,6 +171,19 @@ function SearchPageContent() {
     setGenreId(g ? parseInt(g, 10) || null : null);
     setGenreType(searchParams.get('type') === 'tv' ? 'tv' : 'movie');
   }, [searchParams]);
+
+  // Adopt a ?q= that changed outside the input (deep link, Navbar search,
+  // browser back/forward), and cancel any pending URL write so it can't
+  // overwrite the navigation the user just made.
+  const urlQuery = searchParams.get('q') || '';
+  useEffect(() => {
+    if (urlSyncTimer.current) {
+      clearTimeout(urlSyncTimer.current);
+      urlSyncTimer.current = null;
+    }
+    lastUrlRef.current = urlQuery ? `/search?q=${encodeURIComponent(urlQuery)}` : '/search';
+    setQuery((prev) => (prev === urlQuery ? prev : urlQuery));
+  }, [urlQuery]);
 
   // Load the genre lists once (used for chips and the browse-by-genre landing).
   useEffect(() => {
@@ -212,16 +257,22 @@ function SearchPageContent() {
   }, [genreId, loadMoreGenres]);
 
   const selectGenre = (id: number, type: 'movie' | 'tv') => {
+    // Drop any pending query write so it can't overwrite the genre URL below.
+    if (urlSyncTimer.current) {
+      clearTimeout(urlSyncTimer.current);
+      urlSyncTimer.current = null;
+    }
     setQuery('');
     router.push(`/search?genre=${id}&type=${type}`);
   };
 
-  // Typing a query leaves genre mode (search results take over).
+  // Typing a query leaves genre mode (search results take over). The genre
+  // state is cleared locally for an immediate switch; the debounced URL write
+  // in syncUrlWithQuery then drops the genre params for real.
   const onQueryChange = (v: string) => {
     setQuery(v);
-    if (v && genreId != null) {
-      router.replace('/search', { scroll: false });
-    }
+    if (v && genreId != null) setGenreId(null);
+    syncUrlWithQuery(v);
   };
 
   const genreList = useMemo(() => (genreType === 'tv' ? genresTv : genresMovie), [genreType, genresTv, genresMovie]);
@@ -299,10 +350,11 @@ function SearchPageContent() {
               query={query}
               onSelect={(suggestion) => {
                 setQuery(suggestion);
-                if (genreId != null) router.replace('/search', { scroll: false });
+                if (genreId != null) setGenreId(null);
                 setIsFocused(false);
                 inputRef.current?.blur();
                 performSearch(suggestion);
+                syncUrlWithQuery(suggestion);
               }}
               // Already on the search page — results for the query are rendered
               // below, so just dismiss the dropdown instead of re-navigating.
