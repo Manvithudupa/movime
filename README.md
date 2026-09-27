@@ -49,6 +49,24 @@
 
 ---
 
+## 🛡️ Security & performance hardening
+
+A focused pass on the API surface and delivery, verified by typecheck, lint, unit tests (71 passing) and a production build.
+
+- **Shared input validation** — `lib/validation.ts` centralises `parseContentId` and the playback-settings value checks, with unit tests. `Number()` + `Number.isSafeInteger` replaces `parseInt`, so ids like `"12abc"` no longer truncate to `12`, and negative/overflowing ids are rejected up front.
+- **No raw DB errors to clients** — API routes log database errors server-side and return a generic message instead of `error.message` (which could expose column or constraint names).
+- **Settings value validation** — `PUT /api/user/settings` now type- and size-checks each allowed key, so a client can no longer store arbitrary JSON or megabytes of junk in the profile row.
+- **Continue-watching fix** — a missing `progress_seconds` no longer produces a `NaN` `progress_percentage`; the value is defaulted and clamped to `0–100`.
+- **AniList caching** — the character API caches results per server instance for an hour (its POST calls bypass Next's fetch cache), cutting upstream traffic.
+- **TMDB proxy cache** — upstream responses now cache for an hour with stale-while-revalidate semantics (previously 10 minutes).
+- **Content-Security-Policy** — a real `script-src`/`frame-src` policy is now enforced, listing only the analytics/Sentry script hosts and the verified embed providers; `Cross-Origin-Opener-Policy` and `Cross-Origin-Resource-Policy` are set to `same-origin`.
+- **Root error boundary** — `app/error.tsx` keeps the site's shell and offers retry/home instead of a blank Next error screen when a page throws.
+- **Dependabot + security.txt** — weekly npm and GitHub Actions update PRs, plus `/.well-known/security.txt` for vulnerability reports.
+- **Bundle & navigation** — the announcement popup is code-split (`next/dynamic`), and content cards prefetch their detail page on hover/focus so navigation feels instant.
+- **Quieter logging** — the anime mapper's step-by-step `console.log` traces now route through a single `debugLog` switch that is silent in production builds.
+
+---
+
 ## 🩹 Recent audit fixes
 
 A full codebase pass fixed the following (each verified by typecheck, lint, unit tests, and a production build):
@@ -143,7 +161,7 @@ A design pass tightened the interface into a strict black-and-white system. Veri
 | **Sentry** | Error monitoring (client + server) — optional, enabled via `NEXT_PUBLIC_SENTRY_DSN` |
 | **Vitest** | Unit tests for lib logic, stores, and rate limiting |
 | **sonner** | Toast notifications |
-| **next-pwa** | Progressive Web App support |
+| **Hand-written service worker** | Offline/PWA support (`public/sw.js`, no Workbox) |
 | **Vercel Analytics** | Usage analytics and speed insights |
 
 ### Streaming Providers (iframe embed)
@@ -174,7 +192,7 @@ flowchart LR
     ANI[(AniList GraphQL)]
     SUP[(Supabase<br/>Auth + Postgres)]
     RES[(Resend Email)]
-    EMB[15 Embed Providers<br/>iframe players]
+    EMB[14 Embed Providers<br/>iframe players]
 
     UI -->|fetch content| CACHE
     CACHE -->|GET /api/tmdb/...| PXY
@@ -322,8 +340,9 @@ npm start
 ```
 movime/
 ├── .github/
-│   └── workflows/
-│       └── ci.yml       # GitHub Actions: typecheck, lint, tests, build, e2e
+│   ├── workflows/
+│   │   └── ci.yml       # GitHub Actions: typecheck, lint, tests, build, e2e
+│   └── dependabot.yml   # Weekly npm + GitHub Actions updates
 ├── app/
 │   ├── about/           # About page
 │   ├── anime/           # Anime page with hero banner
@@ -349,6 +368,7 @@ movime/
 │   ├── tv/              # TV Shows page with infinite scroll
 │   ├── watch/           # Watch/player page (WatchPageContent.tsx)
 │   ├── watchlist/       # Full watchlist management page
+│   ├── error.tsx        # Root route error boundary
 │   ├── global-error.tsx # Global error boundary
 │   ├── globals.css      # Global styles & animations
 │   ├── layout.tsx       # Root layout (AuthProvider, PWA, fonts, analytics)
@@ -370,6 +390,7 @@ movime/
 │   ├── ContentSection.tsx         # Horizontal scrollable content row
 │   ├── Footer.tsx                 # App footer with disclaimer
 │   ├── HeroSection.tsx            # Hero carousel (featured movies)
+│   ├── LazyAnnouncementPopup.tsx  # Code-split announcement popup
 │   ├── LoadingBar.tsx             # Route loading indicator (grace delay, no flash)
 │   ├── MotionProvider.tsx         # Framer Motion config (reducedMotion="user")
 │   ├── Navbar.tsx                 # Navigation bar with user menu
@@ -405,8 +426,9 @@ movime/
 │   │   ├── continue_watching.sql  # Continue watching table schema
 │   │   └── user_settings.sql      # Playback settings table schema
 │   ├── types.ts         # TypeScript interfaces
-│   └── utils.ts         # API functions, caching, content filtering
-├── public/              # Static assets, PWA manifest, icons
+│   ├── utils.ts         # API functions, caching, content filtering
+│   └── validation.ts    # Shared API input-validation helpers
+├── public/              # Static assets, PWA manifest, icons, .well-known/security.txt
 ├── scripts/
 │   ├── generate-icons.js # PWA icon generation
 │   └── e2e-fixtures.mjs  # E2E smoke test with mocked TMDB fixtures

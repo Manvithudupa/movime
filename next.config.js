@@ -1,6 +1,35 @@
 /** @type {import('next').NextConfig} */
 const { withSentryConfig } = require('@sentry/nextjs')
 
+const isProd = process.env.NODE_ENV === 'production'
+
+// Content-Security-Policy.
+//
+// script-src keeps 'unsafe-inline' because Next.js emits inline hydration
+// scripts and a nonce would require threading a per-request value through the
+// whole tree. It still blocks scripts from any origin we did not list, which is
+// the main defence. 'unsafe-eval' is added only for local dev (HMR needs it).
+// img/media allow any https host because posters/backdrops are proxied through
+// the configurable NEXT_PUBLIC_IMAGE_PROXY; the app-level host allowlist in
+// lib/imageHosts.ts still constrains what is actually rendered.
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"} https://va.vercel-scripts.com https://*.sentry.io https://*.ingest.sentry.io`,
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' blob: https:",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.themoviedb.org https://graphql.anilist.co https://vitals.vercel-insights.com https://images.weserv.nl https://*.sentry.io https://*.ingest.sentry.io",
+  // The watch page iframes these embed providers (see lib/sources.ts).
+  "frame-src https://cinemaos.tech https://vidnest.fun https://mapple.rip https://vidsrc.rip https://vidsrc.su https://vidsrc.sbs https://vidsrcme.ru https://vidsrc.nl https://vidsrc.pm https://vidlink.pro https://player.videasy.net https://vidfast.pro https://player.vidzee.wtf https://cinesrc.st https://www.youtube.com https://www.youtube-nocookie.com",
+  "worker-src 'self' blob:",
+  "manifest-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+].join('; ')
+
 const nextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
@@ -63,14 +92,18 @@ const nextConfig = {
             value: 'max-age=31536000; includeSubDomains',
           },
           {
-            // Hardening directives that cannot break the app: no <object>/<embed>
-            // content, no <base> tag, and every form posts same-origin. A full
-            // script-src/frame-src policy is intentionally NOT set here — Next.js
-            // inline scripts and the third-party embed players would require
-            // nonce support and per-provider frame-src entries that need live
-            // verification against the deployed site.
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self';",
+            value: CONTENT_SECURITY_POLICY,
+          },
+          {
+            // Isolate our browsing context from any window.opener references.
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+          {
+            // Our resources are only meant to be loaded by same-origin pages.
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'same-origin',
           },
         ],
       },

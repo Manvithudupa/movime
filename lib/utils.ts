@@ -1,5 +1,12 @@
 import { availableSources } from './sources';
 
+// Debug logging is noisy (each anime lookup logs several lines) and costs a
+// little time in the browser. Route it through one switch that stays quiet in
+// production builds, while console.warn/error remain for real problems.
+const debugLog = (...args: unknown[]) => {
+  if (process.env.NODE_ENV !== 'production') debugLog(...args);
+};
+
 // TMDB API configuration.
 // SECURITY: all TMDB requests go through the server-side proxy at /api/tmdb
 // so the API key never ships in the client bundle. The proxy injects the key
@@ -393,7 +400,7 @@ export const fetchNetflixContent = async (page = 1) => {
       ];
       
       if (combinedResults.length === 0) {
-        console.log('No Netflix watch provider results, trying fallback...');
+        debugLog('No Netflix watch provider results, trying fallback...');
         const fallbackResponse = await fetch(
           `${TMDB_PROXY_BASE}/discover/movie?page=${page}&language=en-US&sort_by=popularity.desc&with_companies=2452`
         );
@@ -425,7 +432,7 @@ export const fetchAmazonPrimeContent = async (page = 1) => {
           results = data.results;
         }
       } catch {
-        console.log('Amazon Prime watch provider failed, trying fallback');
+        debugLog('Amazon Prime watch provider failed, trying fallback');
       }
       
       if (results.length === 0) {
@@ -482,7 +489,7 @@ export const fetchContentDetails = async (id: string, type: 'movie' | 'tv') => {
       const data = await response.json();
 
       if (type === 'tv' && isAnimeContent(data)) {
-        console.log(`[Anime Mapper] Detected anime: ${data.name}, applying AniList+TMDB mapping`);
+        debugLog(`[Anime Mapper] Detected anime: ${data.name}, applying AniList+TMDB mapping`);
         
         try {
           const { getAnimeSeasonBreakdown, mapAniListToTmdb } = await import('./animeMapper');
@@ -501,7 +508,7 @@ export const fetchContentDetails = async (id: string, type: 'movie' | 'tv') => {
                 
                 if (seasonData.episodes && seasonData.episodes.length > 0) {
                   allTmdbEpisodes = [...allTmdbEpisodes, ...seasonData.episodes];
-                  console.log(`[Anime Mapper] Found ${seasonData.episodes.length} episodes in TMDB Season ${seasonNum}`);
+                  debugLog(`[Anime Mapper] Found ${seasonData.episodes.length} episodes in TMDB Season ${seasonNum}`);
                 } else {
                   break;
                 }
@@ -510,22 +517,22 @@ export const fetchContentDetails = async (id: string, type: 'movie' | 'tv') => {
               }
             }
             
-            console.log(`[Anime Mapper] Total TMDB episodes: ${allTmdbEpisodes.length}`);
+            debugLog(`[Anime Mapper] Total TMDB episodes: ${allTmdbEpisodes.length}`);
             
             if (allTmdbEpisodes.length > 0) {
               const mappedData = mapAniListToTmdb(aniListSeasons, allTmdbEpisodes, data);
               
               if (mappedData) {
-                console.log(`[Anime Mapper] Successfully mapped anime with ${mappedData.seasons.length} seasons`);
+                debugLog(`[Anime Mapper] Successfully mapped anime with ${mappedData.seasons.length} seasons`);
                 return mappedData;
               }
             }
           }
           
-          console.log(`[Anime Mapper] AniList mapping failed, falling back to original anime patch`);
+          debugLog(`[Anime Mapper] AniList mapping failed, falling back to original anime patch`);
         } catch (error) {
           console.error('[Anime Mapper] Error during anime mapping:', error);
-          console.log('[Anime Mapper] Falling back to original anime patch');
+          debugLog('[Anime Mapper] Falling back to original anime patch');
         }
         
         data.seasons = (data.seasons || [])
@@ -595,14 +602,14 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
     try {
       if (seasonNumber === 0) return null;
       
-      console.log(`[Season Details] Fetching season ${seasonNumber} for content ID: ${id}`);
+      debugLog(`[Season Details] Fetching season ${seasonNumber} for content ID: ${id}`);
       
       // Reuse the cached content-details payload (already includes keywords) so we
       // don't issue a second raw TMDB request per season change.
       const showData = await fetchContentDetails(id, 'tv');
       if (!showData) return { episodes: [] };
       
-      console.log(`[Season Details] Show data:`, {
+      debugLog(`[Season Details] Show data:`, {
         name: showData.name,
         origin_country: showData.origin_country,
         genres: showData.genres?.map((g: any) => g.name),
@@ -610,26 +617,26 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
       });
       
       if (isAnimeContent(showData)) {
-        console.log(`[Season Details] Anime detected: ${showData.name}`);
+        debugLog(`[Season Details] Anime detected: ${showData.name}`);
 
         try {
           const enhancedData = await fetchContentDetails(id, 'tv');
           
           if (enhancedData && enhancedData._source === "AniList+TMDB" && enhancedData.seasons) {
-            console.log(`[Season Details] Using AniList+TMDB mapped data`);
+            debugLog(`[Season Details] Using AniList+TMDB mapped data`);
 
             const season = enhancedData.seasons.find((s: any) => s.season_number === seasonNumber);
             
             if (season) {
-              console.log(`[Season Details] Found mapped season ${seasonNumber} with ${season.episodes.length} episodes`);
+              debugLog(`[Season Details] Found mapped season ${seasonNumber} with ${season.episodes.length} episodes`);
               return season;
             } else {
-              console.log(`[Season Details] Season ${seasonNumber} not found in mapped data`);
+              debugLog(`[Season Details] Season ${seasonNumber} not found in mapped data`);
               return { episodes: [] };
             }
           }
           
-          console.log(`[Season Details] Enhanced data not available, falling back to legacy anime logic`);
+          debugLog(`[Season Details] Enhanced data not available, falling back to legacy anime logic`);
         } catch (error) {
           console.error('[Season Details] Error getting enhanced data:', error);
         }
@@ -650,7 +657,7 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
               if (seasonData.episodes && seasonData.episodes.length > 0) {
                 allEpisodes = [...allEpisodes, ...seasonData.episodes];
                 totalTmdbEpisodes += seasonData.episodes.length;
-                console.log(`[Season Details] TMDB Season ${tmdbSeason}: ${seasonData.episodes.length} episodes`);
+                debugLog(`[Season Details] TMDB Season ${tmdbSeason}: ${seasonData.episodes.length} episodes`);
               } else {
                 break;
               }
@@ -659,7 +666,7 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
             }
           }
           
-          console.log(`[Season Details] Total TMDB episodes across all seasons: ${totalTmdbEpisodes}`);
+          debugLog(`[Season Details] Total TMDB episodes across all seasons: ${totalTmdbEpisodes}`);
           
           if (allEpisodes.length > 0) {
             let totalEpisodes = totalTmdbEpisodes;
@@ -670,7 +677,7 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
               episodeSource = 'AniList';
             }
             
-            console.log(`[Season Details] Using ${episodeSource} episode count: ${totalEpisodes}`);
+            debugLog(`[Season Details] Using ${episodeSource} episode count: ${totalEpisodes}`);
             
             let episodesPerSeason;
             let totalSeasons;
@@ -689,7 +696,7 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
               totalSeasons = Math.ceil(totalEpisodes / 12);
             }
             
-            console.log(`[Season Details] Smart episode distribution:`, {
+            debugLog(`[Season Details] Smart episode distribution:`, {
               totalEpisodes,
               totalSeasons,
               episodesPerSeason,
@@ -703,7 +710,7 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
             if (seasonStartIndex < totalEpisodes) {
               const seasonEpisodes = allEpisodes.slice(seasonStartIndex, seasonEndIndex);
               
-              console.log(`[Season Details] Season ${seasonNumber} episodes:`, {
+              debugLog(`[Season Details] Season ${seasonNumber} episodes:`, {
                 startIndex: seasonStartIndex,
                 endIndex: seasonEndIndex,
                 episodeCount: seasonEpisodes.length
@@ -717,7 +724,7 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
                   original_episode_number: episode.episode_number
                 }));
                 
-                console.log(`[Season Details] Generated ${episodes.length} episodes for season ${seasonNumber}`);
+                debugLog(`[Season Details] Generated ${episodes.length} episodes for season ${seasonNumber}`);
                 
                 return {
                   id: `season-${seasonNumber}`,
@@ -728,7 +735,7 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
                 };
               }
             } else {
-              console.log(`[Season Details] Season ${seasonNumber} does not exist (only ${totalSeasons} seasons)`);
+              debugLog(`[Season Details] Season ${seasonNumber} does not exist (only ${totalSeasons} seasons)`);
               return { episodes: [] };
             }
           }
@@ -736,10 +743,10 @@ export const fetchSeasonDetails = async (id: string, seasonNumber: number) => {
           console.error(`[Season Details] Error fetching TMDB seasons:`, error);
         }
       } else {
-        console.log(`[Season Details] Not anime content, using regular TMDB fetch`);
+        debugLog(`[Season Details] Not anime content, using regular TMDB fetch`);
       }
       
-      console.log(`[Season Details] Falling back to regular TMDB season ${seasonNumber}`);
+      debugLog(`[Season Details] Falling back to regular TMDB season ${seasonNumber}`);
       const response = await fetch(
         `${TMDB_PROXY_BASE}/tv/${id}/season/${seasonNumber}?language=en-US`
       );

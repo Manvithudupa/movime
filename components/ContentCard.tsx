@@ -25,9 +25,17 @@ const ContentCard = memo(({
   const rating = item.vote_average || 0;
   const type = item.type || item.media_type || (item.title ? 'movie' : 'tv');
   const router = useRouter();
+  const detailsHref = `/details?id=${item.id}&type=${type}`;
 
   const handleCardClick = () => {
-    router.push(`/details?id=${item.id}&type=${type}`);
+    router.push(detailsHref);
+  };
+
+  // Prefetch the detail page as soon as the user shows intent. The card is a
+  // div (it contains its own buttons/links), so Next can't prefetch it
+  // automatically the way it does for <Link>.
+  const prefetchDetails = () => {
+    if (item?.id != null) router.prefetch(detailsHref);
   };
 
   return (
@@ -43,6 +51,8 @@ const ContentCard = memo(({
       whileTap={{ scale: 0.95 }}
       style={{ willChange: 'transform' }}
       onClick={handleCardClick}
+      onMouseEnter={prefetchDetails}
+      onFocus={prefetchDetails}
       onKeyDown={(e) => {
         // Don't swallow Enter/Space for the inner WATCH / Details links
         if ((e.target as HTMLElement).closest('a, button')) return;

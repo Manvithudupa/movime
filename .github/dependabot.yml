@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # Application dependencies. Security updates are raised immediately; routine
+  # version bumps are grouped so weekly noise stays manageable.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # Keep the CI workflow actions patched.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

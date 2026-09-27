@@ -22,8 +22,8 @@ const SEGMENT_RE = /^[a-zA-Z0-9._-]+$/
 export async function GET(request: NextRequest) {
   // Keep this tight enough to stop scripted abuse of the proxy but loose
   // enough for normal browsing — the client caches every URL for 10 minutes
-  // and the proxy caches upstream responses for 10 minutes too, so a real
-  // user issues far fewer than one request per second per URL.
+  // and the proxy caches upstream responses for an hour too, so a real user
+  // issues far fewer than one request per second per URL.
   const limited = await rateLimitGlobal(request, { limit: 240, windowMs: 60 * 1000, keyPrefix: 'tmdb-proxy' })
   if (!limited.success) return rateLimitResponse(limited)
 
@@ -51,9 +51,10 @@ export async function GET(request: NextRequest) {
   try {
     const response = await fetch(`${TMDB_API_URL}/${slug.join('/')}?${params.toString()}`, {
       headers: { Accept: 'application/json' },
-      // Cache upstream responses for 10 minutes (matching the client cache
-      // TTL) so popular pages don't hammer TMDB.
-      next: { revalidate: 600 },
+      // Cache upstream responses for an hour. Next's data cache serves the
+      // stale copy instantly and refreshes it in the background, so popular
+      // pages don't hammer TMDB while the content stays fresh.
+      next: { revalidate: 3600 },
     })
     const data = await response.json()
     return NextResponse.json(data, { status: response.ok ? 200 : 502 })

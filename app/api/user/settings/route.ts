@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { rateLimitGlobal, rateLimitResponse } from '@/lib/rateLimit'
 import { isSameOrigin } from '@/lib/requestGuard'
-
-// Only these keys are allowed into the settings JSONB column.
-const VALID_KEYS = ['preferredSource', 'defaultQuality', 'autoPlay'] as const
+import { pickValidSettings } from '@/lib/validation'
 
 // GET /api/user/settings - Fetch the signed-in user's playback settings
 export async function GET(request: NextRequest) {
@@ -61,32 +59,13 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid settings payload' }, { status: 400 })
     }
 
-    // Validate the value type and size of every known key. Restricting the key
-    // names alone still let a client store arbitrarily large strings or nested
-    // objects under them, bloating the profile row and confusing every reader.
-    const isValidSettingValue = (key: string, value: unknown): boolean => {
-      switch (key) {
-        case 'autoPlay':
-          return typeof value === 'boolean'
-        case 'preferredSource':
-          return typeof value === 'string' && value.length <= 100
-        case 'defaultQuality':
-          return typeof value === 'string' && value.length <= 20
-        default:
-          return false
-      }
+    // Validate and pick only the known keys/values so a client can't stuff
+    // arbitrary JSON (or megabytes of junk) into the profile's settings column.
+    const picked = pickValidSettings(settings as Record<string, unknown>)
+    if (!picked.ok) {
+      return NextResponse.json({ error: `Invalid value for ${picked.invalidKey}` }, { status: 400 })
     }
-
-    // Only persist known keys so a client can't stuff arbitrary JSON into the profile.
-    const clean: Record<string, unknown> = {}
-    for (const key of VALID_KEYS) {
-      if (key in settings) {
-        if (!isValidSettingValue(key, settings[key])) {
-          return NextResponse.json({ error: `Invalid value for ${key}` }, { status: 400 })
-        }
-        clean[key] = settings[key]
-      }
-    }
+    const clean = picked.value
 
     // Merge with existing settings so a partial save never wipes other prefs.
     const { data: existing } = await supabase

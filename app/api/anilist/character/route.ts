@@ -85,6 +85,33 @@ const CHARACTER_DETAIL_QUERY = `
   }
 `
 
+// AniList is queried with POST, which Next's fetch data cache does not store,
+// yet character data is effectively static. Cache results per server instance
+// so repeated searches/opening the picker don't hammer the upstream API.
+const CACHE_TTL_MS = 60 * 60 * 1000
+const CACHE_MAX_ENTRIES = 200
+type CacheEntry = { expiresAt: number; value: unknown }
+const anilistCache = new Map<string, CacheEntry>()
+
+function readCache<T>(key: string): T | undefined {
+  const entry = anilistCache.get(key)
+  if (!entry) return undefined
+  if (entry.expiresAt <= Date.now()) {
+    anilistCache.delete(key)
+    return undefined
+  }
+  return entry.value as T
+}
+
+function writeCache(key: string, value: unknown) {
+  if (anilistCache.size >= CACHE_MAX_ENTRIES) {
+    // Map preserves insertion order, so the first key is the oldest.
+    const oldest = anilistCache.keys().next().value
+    if (oldest !== undefined) anilistCache.delete(oldest)
+  }
+  anilistCache.set(key, { expiresAt: Date.now() + CACHE_TTL_MS, value })
+}
+
 export async function GET(request: NextRequest) {
   // This route is unauthenticated and proxies to the AniList GraphQL API, so it
   // must be rate limited like every other endpoint — otherwise it's a free
@@ -106,6 +133,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid character id' }, { status: 400 })
     }
 
+    const idCacheKey = `id:${numericId}`
+    const cachedCharacter = readCache<unknown>(idCacheKey)
+    if (cachedCharacter !== undefined) {
+      return NextResponse.json(cachedCharacter)
+    }
+
     try {
       const response = await fetch(ANILIST_API_URL, {
         method: 'POST',
@@ -122,7 +155,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: data.errors[0].message }, { status: 400 })
       }
       
-      return NextResponse.json(data.data?.Character || null)
+      const character = data.data?.Character || null
+      writeCache(idCacheKey, character)
+      return NextResponse.json(character)
     } catch (error) {
       console.error('AniList character fetch error:', error)
       return NextResponse.json({ error: 'Failed to fetch character' }, { status: 500 })
@@ -140,6 +175,12 @@ export async function GET(request: NextRequest) {
 
   if (searchTerm.length > 100) {
     return NextResponse.json({ error: 'Search query is too long' }, { status: 400 })
+  }
+
+  const queryCacheKey = `q:${searchTerm.toLowerCase()}`
+  const cachedResults = readCache<unknown>(queryCacheKey)
+  if (cachedResults !== undefined) {
+    return NextResponse.json(cachedResults)
   }
 
   try {
@@ -168,10 +209,12 @@ export async function GET(request: NextRequest) {
       age: char.age,
     }))
 
-    return NextResponse.json({
+    const payload = {
       characters,
       pageInfo: data.data?.Page?.pageInfo
-    })
+    }
+    writeCache(queryCacheKey, payload)
+    return NextResponse.json(payload)
   } catch (error) {
     console.error('AniList search error:', error)
     return NextResponse.json({ error: 'Failed to search characters' }, { status: 500 })

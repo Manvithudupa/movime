@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { rateLimitGlobal, rateLimitResponse } from '@/lib/rateLimit'
 import { isSameOrigin } from '@/lib/requestGuard'
+import { parseContentId } from '@/lib/validation'
 
 // GET /api/continue-watching - Fetch user's continue watching items
 export async function GET(request: NextRequest) {
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Continue watching fetch error:', error)
-      return NextResponse.json({ error: `Failed to fetch continue watching: ${error.message}` }, { status: 500 })
+      return NextResponse.json({ error: `Failed to fetch continue watching` }, { status: 500 })
     }
 
     return NextResponse.json(data || [])
@@ -75,12 +76,9 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Number() rejects trailing garbage that parseInt silently truncates
-    // ('12abc' -> 12), and the safe-integer + positive bounds reject NaN,
-    // negatives, and values that would overflow the DB integer column.
-    const numericContentId = typeof content_id === 'string' ? Number(content_id) : content_id
+    const numericContentId = parseContentId(content_id)
 
-    if (typeof numericContentId !== 'number' || !Number.isSafeInteger(numericContentId) || numericContentId <= 0) {
+    if (numericContentId === null) {
       return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
     }
 
@@ -207,7 +205,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Continue watching save error:', error)
-      return NextResponse.json({ error: `Failed to save progress: ${error.message}` }, { status: 500 })
+      return NextResponse.json({ error: `Failed to save progress` }, { status: 500 })
     }
 
     return NextResponse.json({ 
@@ -217,7 +215,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Continue watching error:', error)
     return NextResponse.json({ 
-      error: error instanceof Error ? error.message : 'Internal server error' 
+      error: 'Internal server error'
     }, { status: 500 })
   }
 }
@@ -255,9 +253,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid content_type' }, { status: 400 })
     }
 
-    const numericContentId = Number(contentId)
+    const numericContentId = parseContentId(contentId)
 
-    if (!Number.isSafeInteger(numericContentId) || numericContentId <= 0) {
+    if (numericContentId === null) {
       return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
     }
 
@@ -289,7 +287,7 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       console.error('Continue watching remove error:', error)
-      return NextResponse.json({ error: `Failed to remove: ${error.message}` }, { status: 500 })
+      return NextResponse.json({ error: `Failed to remove` }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })

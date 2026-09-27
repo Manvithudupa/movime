@@ -7,7 +7,7 @@ import { Toaster } from '@/components/Toaster'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import Script from 'next/script'
-import AnnouncementPopup from '@/components/AnnouncementPopup'
+import LazyAnnouncementPopup from '@/components/LazyAnnouncementPopup'
 
 const SITE_URL = 'https://movime.vercel.app'
 const SITE_DESCRIPTION =
@@ -120,7 +120,7 @@ export default function RootLayout({
         <AuthProvider>
           <MotionProvider>
             {children}
-            <AnnouncementPopup />
+            <LazyAnnouncementPopup />
           </MotionProvider>
         </AuthProvider>
 

@@ -122,7 +122,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid gender' }, { status: 400 })
     }
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     }
     

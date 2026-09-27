@@ -1,5 +1,11 @@
 // AniList + TMDB anime mapping utilities
 
+// Logging is routed through one switch so the mapper's step-by-step traces
+// stay quiet in production builds.
+const debugLog = (...args: unknown[]) => {
+  if (process.env.NODE_ENV !== 'production') debugLog(...args);
+};
+
 // AniList GraphQL queries
 const ANILIST_API_URL = 'https://graphql.anilist.co';
 
@@ -209,7 +215,7 @@ export const mapAniListToTmdb = (aniListSeasons: AniListSeason[], tmdbEpisodes: 
     return null;
   }
   
-  console.log('[AniList Mapper] Mapping', {
+  debugLog('[AniList Mapper] Mapping', {
     seasons: aniListSeasons.length,
     tmdbEpisodes: tmdbEpisodes.length,
     seasonBreakdown: aniListSeasons.map(s => `S${s.seasonNumber}: ${s.episodeCount} eps`)
@@ -263,7 +269,7 @@ export const mapAniListToTmdb = (aniListSeasons: AniListSeason[], tmdbEpisodes: 
     _season_breakdown: aniListSeasons.map(s => `S${s.seasonNumber}: ${s.episodeCount} eps`).join(', ')
   };
   
-  console.log('[AniList Mapper] Mapping complete:', {
+  debugLog('[AniList Mapper] Mapping complete:', {
     originalSeasons: tmdbData.seasons?.length || 0,
     mappedSeasons: mappedSeasons.length,
     totalEpisodes: mergedData.number_of_episodes
@@ -287,7 +293,7 @@ export const getAnimeSeasonBreakdown = async (title: string): Promise<AniListSea
     }
     
     const seasons = extractAniListSeasons(detailedData);
-    console.log('[AniList] Season breakdown for', title, ':', seasons);
+    debugLog('[AniList] Season breakdown for', title, ':', seasons);
     
     return seasons;
   } catch (error) {

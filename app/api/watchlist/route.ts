@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { rateLimitGlobal, rateLimitResponse } from '@/lib/rateLimit'
 import { isSameOrigin } from '@/lib/requestGuard'
+import { parseContentId } from '@/lib/validation'
 
 const VALID_STATUSES = ['completed', 'watching', 'plan_to_watch', 'dropped'] as const
 type WatchStatus = typeof VALID_STATUSES[number]
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Watchlist fetch error:', error)
-      return NextResponse.json({ error: `Failed to fetch watchlist: ${error.message}` }, { status: 500 })
+      return NextResponse.json({ error: `Failed to fetch watchlist` }, { status: 500 })
     }
 
     return NextResponse.json(data || [])
@@ -121,12 +122,9 @@ export async function POST(request: NextRequest) {
     const finalStatus: WatchStatus = status || 'plan_to_watch'
     
     // Ensure content_id is a valid positive integer for the integer column.
-    // Number() rejects trailing garbage that parseInt silently truncates
-    // ('12abc' -> 12); the safe-integer bound rejects negatives, NaN and values
-    // that would overflow the DB column.
-    const numericContentId = typeof content_id === 'string' ? Number(content_id) : content_id
+    const numericContentId = parseContentId(content_id)
 
-    if (typeof numericContentId !== 'number' || !Number.isSafeInteger(numericContentId) || numericContentId <= 0) {
+    if (numericContentId === null) {
       return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
     }
 
@@ -141,7 +139,7 @@ export async function POST(request: NextRequest) {
 
     if (checkError) {
       console.error('Watchlist check error:', checkError)
-      return NextResponse.json({ error: `Database error: ${checkError.message}` }, { status: 500 })
+      return NextResponse.json({ error: `Database error` }, { status: 500 })
     }
 
     if (existing) {
@@ -154,7 +152,7 @@ export async function POST(request: NextRequest) {
 
         if (error) {
           console.error('Watchlist remove error:', error)
-          return NextResponse.json({ error: `Failed to remove: ${error.message}` }, { status: 500 })
+          return NextResponse.json({ error: `Failed to remove` }, { status: 500 })
         }
 
         return NextResponse.json({ 
@@ -192,12 +190,12 @@ export async function POST(request: NextRequest) {
           })
           if (rebuilt.error) {
             console.error('Watchlist update error:', error)
-            return NextResponse.json({ error: `Failed to update status: ${error.message}` }, { status: 500 })
+            return NextResponse.json({ error: `Failed to update status` }, { status: 500 })
           }
           item = rebuilt.data
         } else {
           console.error('Watchlist update error:', error)
-          return NextResponse.json({ error: `Failed to update status: ${error.message}` }, { status: 500 })
+          return NextResponse.json({ error: `Failed to update status` }, { status: 500 })
         }
       }
 
@@ -229,7 +227,7 @@ export async function POST(request: NextRequest) {
       if (error.code === '23505') {
         return NextResponse.json({ error: 'Item already in watchlist' }, { status: 409 })
       }
-      return NextResponse.json({ error: `Failed to add: ${error.message}` }, { status: 500 })
+      return NextResponse.json({ error: `Failed to add` }, { status: 500 })
     }
 
     return NextResponse.json({ 
@@ -240,7 +238,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Watchlist error:', error)
     return NextResponse.json({ 
-      error: error instanceof Error ? error.message : 'Internal server error' 
+      error: 'Internal server error'
     }, { status: 500 })
   }
 }
@@ -277,11 +275,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: `Invalid status: ${status}` }, { status: 400 })
     }
 
-    const numericContentId = typeof content_id === 'string' ? Number(content_id) : content_id
-
     // POST validates this; PATCH used to skip it, so garbage ids went straight
     // into the query and reported "Item not found" instead of a bad request.
-    if (typeof numericContentId !== 'number' || !Number.isSafeInteger(numericContentId) || numericContentId <= 0) {
+    const numericContentId = parseContentId(content_id)
+
+    if (numericContentId === null) {
       return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
     }
 
@@ -296,7 +294,7 @@ export async function PATCH(request: NextRequest) {
 
     if (error) {
       console.error('Watchlist status update error:', error)
-      return NextResponse.json({ error: `Failed to update status: ${error.message}` }, { status: 500 })
+      return NextResponse.json({ error: `Failed to update status` }, { status: 500 })
     }
 
     if (!updated) {
@@ -313,7 +311,7 @@ export async function PATCH(request: NextRequest) {
 
       if (checkError) {
         console.error('Watchlist status check error:', checkError)
-        return NextResponse.json({ error: `Failed to update status: ${checkError.message}` }, { status: 500 })
+        return NextResponse.json({ error: `Failed to update status` }, { status: 500 })
       }
 
       if (!existing) {
@@ -323,7 +321,7 @@ export async function PATCH(request: NextRequest) {
       const rebuilt = await rebuildWatchlistItem(supabase, existing, { status })
       if (rebuilt.error) {
         console.error('Watchlist status rebuild error:', rebuilt.error)
-        return NextResponse.json({ error: `Failed to update status: ${rebuilt.error.message}` }, { status: 500 })
+        return NextResponse.json({ error: `Failed to update status` }, { status: 500 })
       }
 
       return NextResponse.json({ item: rebuilt.data, message: `Status updated to ${status}` })
@@ -367,9 +365,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid content_type' }, { status: 400 })
     }
 
-    const numericContentId = Number(contentId)
+    const numericContentId = parseContentId(contentId)
 
-    if (!Number.isSafeInteger(numericContentId) || numericContentId <= 0) {
+    if (numericContentId === null) {
       return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
     }
 
@@ -382,7 +380,7 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       console.error('Watchlist remove error:', error)
-      return NextResponse.json({ error: `Failed to remove: ${error.message}` }, { status: 500 })
+      return NextResponse.json({ error: `Failed to remove` }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
