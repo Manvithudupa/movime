@@ -9,6 +9,7 @@ import { useAuth } from '@/components/AuthProvider';
 import Avatar from '@/components/Avatar';
 
 import BottomNav from '@/components/BottomNav';
+import SearchAutocomplete from '@/components/SearchAutocomplete';
 import { VIEW_ROUTES } from '@/lib/routes';
 
 interface NavbarProps {
@@ -36,6 +37,13 @@ export default function Navbar({
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { user, profile, isLoading, isSignedIn, signOut } = useAuth();
   const router = useRouter();
+
+  // Desktop quick-search bar. Live suggestions from SearchAutocomplete go
+  // straight to the details page; picking a plain term (trending/recent text)
+  // or pressing Enter falls back to the full /search page.
+  const [navSearchQuery, setNavSearchQuery] = useState('');
+  const [navSearchFocused, setNavSearchFocused] = useState(false);
+  const navSearchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -114,6 +122,33 @@ export default function Navbar({
     router.refresh();
   };
 
+  const handleNavFocusChange = (focused: boolean) => {
+    setNavSearchFocused(focused);
+    // Clear the quick-search input once it loses focus (selection, outside
+    // click, or Escape) so the next open starts fresh.
+    if (!focused) setNavSearchQuery('');
+  };
+
+  const goToSearchPage = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    navSearchInputRef.current?.blur();
+    setNavSearchFocused(false);
+    setNavSearchQuery('');
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+  };
+
+  const handleNavSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      goToSearchPage(navSearchQuery);
+    } else if (e.key === 'Escape') {
+      navSearchInputRef.current?.blur();
+      setNavSearchFocused(false);
+      setNavSearchQuery('');
+    }
+  };
+
   const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || null;
   const userName = profile?.name || user?.user_metadata?.full_name || user?.email || 'User';
   const userEmail = user?.email || '';
@@ -186,6 +221,9 @@ export default function Navbar({
                   </motion.button>
                 );
               })}
+              {/* Guests only — signed-in users get My List in the profile
+                  dropdown. */}
+              {!isSignedIn && (
               <Link
                 href="/watchlist"
                 className={`relative text-sm font-medium tracking-wide transition-colors duration-150 group ${
@@ -203,6 +241,7 @@ export default function Navbar({
                   />
                 </span>
               </Link>
+              )}
             </nav>
           </div>
 
@@ -239,18 +278,39 @@ export default function Navbar({
           {/* Right side icons & user */}
           <div className="flex items-center space-x-2 sm:space-x-4">
             <div className="flex items-center space-x-1 sm:space-x-2">
-              {/* Hidden on phones: the bottom nav already has a Search tab,
-                  so this icon was duplicate chrome on mobile. */}
-              <Link
-                href="/search"
-                className="hidden sm:inline-flex p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-all duration-100 group"
-                title="Search"
-              >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </Link>
+              {/* Desktop quick-search bar — replaces the old search icon.
+                  Suggestions open the details page directly; phones keep the
+                  dedicated /search page (bottom nav), so the bar is hidden
+                  below sm and on /search itself where the page has its own
+                  input. */}
+              {pathname !== '/search' && (
+                <div className="relative hidden sm:block">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    ref={navSearchInputRef}
+                    value={navSearchQuery}
+                    onChange={(e) => setNavSearchQuery(e.target.value)}
+                    onFocus={() => setNavSearchFocused(true)}
+                    onKeyDown={handleNavSearchKeyDown}
+                    placeholder="Search"
+                    aria-label="Search movies, TV shows and anime"
+                    className="w-44 md:w-56 lg:w-64 pl-9 pr-3 py-1.5 rounded-full bg-white/5 border border-white/10 focus:border-white/40 text-sm text-white placeholder-white/40 outline-none transition-colors"
+                  />
+                  <SearchAutocomplete
+                    query={navSearchQuery}
+                    onSelect={goToSearchPage}
+                    isFocused={navSearchFocused}
+                    onFocusChange={handleNavFocusChange}
+                    inputRef={navSearchInputRef}
+                  />
+                </div>
+              )}
 
+              {/* Guests keep a direct Settings shortcut; signed-in users reach
+                  it (and My List) from the profile dropdown instead. */}
+              {!isSignedIn && (
               <Link
                 href="/settings"
                 className="hidden sm:inline-flex p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-all duration-100 group"
@@ -271,6 +331,7 @@ export default function Navbar({
                   />
                 </svg>
               </Link>
+              )}
             </div>
             
             {/* User Authentication */}
@@ -321,6 +382,21 @@ export default function Navbar({
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
                           Profile
+                        </Link>
+                        <Link
+                          href="/watchlist"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/10 hover:text-white transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                          </svg>
+                          <span className="flex-1">My List</span>
+                          {watchLaterCount > 0 && (
+                            <span className="bg-white/15 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                              {watchLaterCount}
+                            </span>
+                          )}
                         </Link>
                         <Link
                           href="/settings"
