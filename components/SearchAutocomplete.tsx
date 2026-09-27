@@ -24,6 +24,9 @@ interface SearchAutocompleteProps {
   isFocused: boolean
   onFocusChange: (focused: boolean) => void
   inputRef: React.RefObject<HTMLInputElement | null>
+  // "View all results" action. Defaults to navigating to /search?q=…, but
+  // callers already on the search page override it so it doesn't re-navigate.
+  onViewAll?: (query: string) => void
 }
 
 interface AutocompleteSuggestion {
@@ -47,6 +50,7 @@ export default function SearchAutocomplete({
   isFocused,
   onFocusChange,
   inputRef,
+  onViewAll,
 }: SearchAutocompleteProps) {
   const router = useRouter()
   const [liveSuggestions, setLiveSuggestions] = useState<AutocompleteSuggestion[]>([])
@@ -160,6 +164,19 @@ export default function SearchAutocomplete({
     saveRecentSearch(suggestion)
     onSelect(suggestion)
     onFocusChange(false)
+  }
+
+  // Take the user to the full search page for the whole query.
+  const handleViewAll = () => {
+    const trimmed = query.trim()
+    if (!trimmed) return
+    onFocusChange(false)
+    inputRef.current?.blur()
+    if (onViewAll) {
+      onViewAll(trimmed)
+      return
+    }
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`)
   }
 
   // Live TMDB suggestions carry an id + media type, so they open the details
@@ -338,7 +355,25 @@ export default function SearchAutocomplete({
                 <p className="text-white/40 text-sm">Searching for &quot;{query}&quot;...</p>
               </div>
             )}
+
           </div>
+
+          {/* View all results — pinned below the scrolling suggestions so it
+              stays visible no matter how many rows the query returns. */}
+          {query.trim().length >= 2 && (
+            <div className="px-2 py-2 border-t border-white/10 bg-black/40">
+              <button
+                type="button"
+                onClick={handleViewAll}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white/70 hover:text-white rounded-xl hover:bg-white/5 transition-colors"
+              >
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <span className="truncate">View all results for &quot;{query.trim()}&quot;</span>
+              </button>
+            </div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>

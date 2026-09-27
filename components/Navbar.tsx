@@ -301,6 +301,7 @@ export default function Navbar({
                   <SearchAutocomplete
                     query={navSearchQuery}
                     onSelect={goToSearchPage}
+                    onViewAll={goToSearchPage}
                     isFocused={navSearchFocused}
                     onFocusChange={handleNavFocusChange}
                     inputRef={navSearchInputRef}

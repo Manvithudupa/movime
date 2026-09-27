@@ -304,6 +304,12 @@ function SearchPageContent() {
                 inputRef.current?.blur();
                 performSearch(suggestion);
               }}
+              // Already on the search page — results for the query are rendered
+              // below, so just dismiss the dropdown instead of re-navigating.
+              onViewAll={() => {
+                setIsFocused(false);
+                inputRef.current?.blur();
+              }}
               isFocused={isFocused}
               onFocusChange={setIsFocused}
               inputRef={inputRef}
