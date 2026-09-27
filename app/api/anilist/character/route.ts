@@ -97,12 +97,12 @@ export async function GET(request: NextRequest) {
   const id = searchParams.get('id')
 
   if (id) {
-    // Fetch character by ID
-    const numericId = parseInt(id, 10)
+    // Fetch character by ID. Number() rejects trailing garbage that parseInt
+    // would truncate ('12abc' -> 12) and turns 'abc' into NaN — forwarding
+    // either to AniList returns a confusing upstream error instead of a 400.
+    const numericId = Number(id)
 
-    // parseInt('abc') is NaN — forwarding that to AniList returns a confusing
-    // upstream error instead of a clear 400.
-    if (!Number.isInteger(numericId) || numericId <= 0) {
+    if (!Number.isSafeInteger(numericId) || numericId <= 0) {
       return NextResponse.json({ error: 'Invalid character id' }, { status: 400 })
     }
 
@@ -129,13 +129,16 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  if (!query) {
+  // Whitespace-only searches passed the old truthiness check and were sent
+  // upstream; require an actual trimmed term and cap its length so one request
+  // can't send an unbounded GraphQL variable.
+  if (!query || !query.trim()) {
     return NextResponse.json({ error: 'Search query required' }, { status: 400 })
   }
 
-  // Cap the search term so one request can't send an unbounded GraphQL
-  // variable upstream.
-  if (query.length > 100) {
+  const searchTerm = query.trim()
+
+  if (searchTerm.length > 100) {
     return NextResponse.json({ error: 'Search query is too long' }, { status: 400 })
   }
 
@@ -145,7 +148,7 @@ export async function GET(request: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         query: CHARACTER_SEARCH_QUERY,
-        variables: { search: query, page: 1, perPage: 20 }
+        variables: { search: searchTerm, page: 1, perPage: 20 }
       })
     })
     

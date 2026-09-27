@@ -54,17 +54,38 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
+    const body = await request.json().catch(() => ({}))
     const settings = body?.settings
 
     if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
       return NextResponse.json({ error: 'Invalid settings payload' }, { status: 400 })
     }
 
+    // Validate the value type and size of every known key. Restricting the key
+    // names alone still let a client store arbitrarily large strings or nested
+    // objects under them, bloating the profile row and confusing every reader.
+    const isValidSettingValue = (key: string, value: unknown): boolean => {
+      switch (key) {
+        case 'autoPlay':
+          return typeof value === 'boolean'
+        case 'preferredSource':
+          return typeof value === 'string' && value.length <= 100
+        case 'defaultQuality':
+          return typeof value === 'string' && value.length <= 20
+        default:
+          return false
+      }
+    }
+
     // Only persist known keys so a client can't stuff arbitrary JSON into the profile.
     const clean: Record<string, unknown> = {}
     for (const key of VALID_KEYS) {
-      if (key in settings) clean[key] = settings[key]
+      if (key in settings) {
+        if (!isValidSettingValue(key, settings[key])) {
+          return NextResponse.json({ error: `Invalid value for ${key}` }, { status: 400 })
+        }
+        clean[key] = settings[key]
+      }
     }
 
     // Merge with existing settings so a partial save never wipes other prefs.

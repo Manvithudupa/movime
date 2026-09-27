@@ -75,9 +75,12 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const numericContentId = typeof content_id === 'string' ? parseInt(content_id, 10) : content_id
-    
-    if (isNaN(numericContentId)) {
+    // Number() rejects trailing garbage that parseInt silently truncates
+    // ('12abc' -> 12), and the safe-integer + positive bounds reject NaN,
+    // negatives, and values that would overflow the DB integer column.
+    const numericContentId = typeof content_id === 'string' ? Number(content_id) : content_id
+
+    if (typeof numericContentId !== 'number' || !Number.isSafeInteger(numericContentId) || numericContentId <= 0) {
       return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
     }
 
@@ -112,8 +115,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid episode_number' }, { status: 400 })
     }
 
-    const progressPercent = duration_seconds > 0 
-      ? Math.min(Math.round((progress_seconds / duration_seconds) * 100), 100) 
+    // Both fields are optional, so default them before dividing — otherwise a
+    // missing progress_seconds produced NaN, which was then persisted as
+    // progress_percentage and poisoned every reader that expects a number.
+    const safeProgress = typeof progress_seconds === 'number' ? progress_seconds : 0
+    const safeDuration = typeof duration_seconds === 'number' ? duration_seconds : 0
+    const progressPercent = safeDuration > 0
+      ? Math.min(Math.max(Math.round((safeProgress / safeDuration) * 100), 0), 100)
       : 0
 
     // Try to find existing record first (manual upsert pattern).
@@ -247,9 +255,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid content_type' }, { status: 400 })
     }
 
-    const numericContentId = parseInt(contentId, 10)
+    const numericContentId = Number(contentId)
 
-    if (!Number.isInteger(numericContentId) || numericContentId <= 0) {
+    if (!Number.isSafeInteger(numericContentId) || numericContentId <= 0) {
       return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
     }
 

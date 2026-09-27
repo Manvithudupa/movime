@@ -120,10 +120,13 @@ export async function POST(request: NextRequest) {
 
     const finalStatus: WatchStatus = status || 'plan_to_watch'
     
-    // Ensure content_id is a number for the integer column
-    const numericContentId = typeof content_id === 'string' ? parseInt(content_id, 10) : content_id
-    
-    if (isNaN(numericContentId)) {
+    // Ensure content_id is a valid positive integer for the integer column.
+    // Number() rejects trailing garbage that parseInt silently truncates
+    // ('12abc' -> 12); the safe-integer bound rejects negatives, NaN and values
+    // that would overflow the DB column.
+    const numericContentId = typeof content_id === 'string' ? Number(content_id) : content_id
+
+    if (typeof numericContentId !== 'number' || !Number.isSafeInteger(numericContentId) || numericContentId <= 0) {
       return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
     }
 
@@ -274,11 +277,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: `Invalid status: ${status}` }, { status: 400 })
     }
 
-    const numericContentId = typeof content_id === 'string' ? parseInt(content_id, 10) : content_id
+    const numericContentId = typeof content_id === 'string' ? Number(content_id) : content_id
 
     // POST validates this; PATCH used to skip it, so garbage ids went straight
     // into the query and reported "Item not found" instead of a bad request.
-    if (!Number.isInteger(numericContentId) || numericContentId <= 0) {
+    if (typeof numericContentId !== 'number' || !Number.isSafeInteger(numericContentId) || numericContentId <= 0) {
       return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
     }
 
@@ -364,9 +367,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid content_type' }, { status: 400 })
     }
 
-    const numericContentId = parseInt(contentId, 10)
+    const numericContentId = Number(contentId)
 
-    if (!Number.isInteger(numericContentId) || numericContentId <= 0) {
+    if (!Number.isSafeInteger(numericContentId) || numericContentId <= 0) {
       return NextResponse.json({ error: 'Invalid content_id' }, { status: 400 })
     }
 
