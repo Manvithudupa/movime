@@ -3,7 +3,9 @@
 // Logging is routed through one switch so the mapper's step-by-step traces
 // stay quiet in production builds.
 const debugLog = (...args: unknown[]) => {
-  if (process.env.NODE_ENV !== 'production') debugLog(...args);
+  // console.log — calling debugLog here recursed until the stack blew, which
+  // aborted the anime mapping mid-flight in dev builds.
+  if (process.env.NODE_ENV !== 'production') console.log(...args);
 };
 
 // AniList GraphQL queries

@@ -4,7 +4,11 @@ import { availableSources } from './sources';
 // little time in the browser. Route it through one switch that stays quiet in
 // production builds, while console.warn/error remain for real problems.
 const debugLog = (...args: unknown[]) => {
-  if (process.env.NODE_ENV !== 'production') debugLog(...args);
+  // console.log, not debugLog — the self-call recursed until the stack blew,
+  // so every call site threw "Maximum call stack size exceeded" in dev and
+  // aborted whatever it was about to do (fallbacks, anime mapping, season
+  // fetches) while logging it as a failed request.
+  if (process.env.NODE_ENV !== 'production') console.log(...args);
 };
 
 // TMDB API configuration.
