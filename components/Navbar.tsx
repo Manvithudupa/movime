@@ -340,11 +340,10 @@ export default function Navbar({
               <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/10 rounded-full animate-pulse"></div>
             ) : isSignedIn ? (
               <div className="relative" ref={userMenuRef}>
-                {/* Hidden on phones: the bottom nav's "You" tab already opens
-                    the profile there, so showing the avatar twice was
-                    redundant. It stays visible from sm up, where there is no
-                    bottom nav and the dropdown (incl. sign out) is the only
-                    account entry point. */}
+                {/* Hidden on phones: the hamburger menu holds the profile
+                    entry there, so showing the avatar twice was redundant. It
+                    stays visible from sm up, where the dropdown is the only
+                    account entry point (incl. sign out). */}
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="hidden sm:inline-flex focus:outline-none"
@@ -398,6 +397,16 @@ export default function Navbar({
                               {watchLaterCount}
                             </span>
                           )}
+                        </Link>
+                        <Link
+                          href="/history"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/10 hover:text-white transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          History
                         </Link>
                         <Link
                           href="/settings"
@@ -525,6 +534,66 @@ export default function Navbar({
                           {watchLaterCount}
                         </span>
                       )}
+                    </Link>
+                  </motion.div>
+
+                  {/* Watch History Link — the account dropdown that holds this
+                      on desktop is hidden on phones, so the mobile menu needs
+                      its own entry. */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.15, delay: 0.22 }}
+                  >
+                    <Link
+                      href="/history"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-4 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                        currentView === 'history'
+                          ? 'bg-white/10 text-white shadow-sm'
+                          : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                      }`}
+                    >
+                      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>History</span>
+                    </Link>
+                  </motion.div>
+
+                  {/* Account entry point on phones — the bottom nav used to
+                      carry a "You" tab for this, but the bar had too many
+                      tabs. Guests get a sign-in link instead of a profile. */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.15, delay: 0.24 }}
+                  >
+                    <Link
+                      href={isSignedIn ? '/profile' : '/auth/login'}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-4 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                        currentView === 'profile'
+                          ? 'bg-white/10 text-white shadow-sm'
+                          : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                      }`}
+                    >
+                      {isLoading ? (
+                        <div className="w-5 h-5 bg-white/10 rounded-full animate-pulse flex-shrink-0" />
+                      ) : isSignedIn ? (
+                        <Avatar
+                          src={avatarUrl}
+                          alt={userName}
+                          size={20}
+                          fallbackText={userName}
+                          className="rounded-full flex-shrink-0"
+                        />
+                      ) : (
+                        <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      )}
+                      <span>{isSignedIn ? 'Profile' : 'Sign In'}</span>
                     </Link>
                   </motion.div>
 

@@ -4,6 +4,11 @@ import { rateLimitGlobal, rateLimitResponse } from '@/lib/rateLimit'
 import { isSameOrigin } from '@/lib/requestGuard'
 import { parseContentId } from '@/lib/validation'
 
+// The home row only needs a handful of entries, but the history page shows
+// everything, so GET accepts an optional (clamped) limit.
+const DEFAULT_LIMIT = 20
+const MAX_LIMIT = 200
+
 // GET /api/continue-watching - Fetch user's continue watching items
 export async function GET(request: NextRequest) {
   try {
@@ -17,12 +22,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Clamp so a crafted ?limit=100000 can't ask for the whole table.
+    const { searchParams } = new URL(request.url)
+    const requestedLimit = parseInt(searchParams.get('limit') || '', 10)
+    const limit = Number.isInteger(requestedLimit)
+      ? Math.min(Math.max(requestedLimit, 1), MAX_LIMIT)
+      : DEFAULT_LIMIT
+
     const { data, error } = await supabase
       .from('continue_watching')
       .select('*')
       .eq('user_id', user.id)
       .order('updated_at', { ascending: false })
-      .limit(20)
+      .limit(limit)
 
     if (error) {
       console.error('Continue watching fetch error:', error)

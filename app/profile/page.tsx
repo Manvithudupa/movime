@@ -11,7 +11,20 @@ import Navbar from '@/components/Navbar'
 import { SkeletonProfile } from '@/components/SkeletonProfile'
 import { SkeletonPageLayout } from '@/components/SkeletonPageLayout'
 import { getViewPath } from '@/lib/routes'
-import { useWatchlistStore, useContinueWatchingStore } from '@/lib/store'
+import {
+  useWatchlistStore,
+  useContinueWatchingStore,
+  CONTINUE_WATCHING_HISTORY_LIMIT,
+} from '@/lib/store'
+
+interface ProfileStat {
+  title: string
+  value: React.ReactNode
+  subtitle: string
+  icon: React.ReactNode
+  /** Makes the whole card a link to the page behind the number. */
+  href?: string
+}
 
 export default function ProfilePage() {
   const { user: authUser, profile: authProfile, isLoading: authLoading, isSignedIn, refreshProfile, signOut } = useAuth()
@@ -31,7 +44,7 @@ export default function ProfilePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const watchLaterCount = useWatchlistStore((s) => s.count)
   const fetchWatchlist = useWatchlistStore((s) => s.fetch)
-  const continueWatchingCount = useContinueWatchingStore((s) => s.count)
+  const continueWatchingItems = useContinueWatchingStore((s) => s.items)
   const fetchContinueWatching = useContinueWatchingStore((s) => s.fetch)
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
@@ -98,7 +111,9 @@ export default function ProfilePage() {
   useEffect(() => {
     if (isSignedIn) {
       fetchWatchlist(true)
-      fetchContinueWatching(true)
+      // Full window, not the home row's latest-20 cache — the stat cards count
+      // every entry, so a truncated list would under-report them.
+      fetchContinueWatching(true, CONTINUE_WATCHING_HISTORY_LIMIT)
     }
   }, [isSignedIn, fetchWatchlist, fetchContinueWatching])
 
@@ -260,6 +275,70 @@ export default function ProfilePage() {
 
   const animeChar = profile.anime_character
   const avatarToShow = animeChar?.image?.large || profile.avatar_url
+
+  // "Continue Watching" counts what is still in progress, while the history card
+  // counts every entry — they share one continue-watching row per title, so
+  // using the raw total for both made the two numbers look identically wrong.
+  const inProgressCount = continueWatchingItems.filter((item) => !item.is_completed).length
+
+  const profileStats: ProfileStat[] = [
+    {
+      title: 'Continue Watching',
+      value: inProgressCount,
+      subtitle: 'In progress',
+      href: '/',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
+      title: 'Watch History',
+      value: continueWatchingItems.length,
+      subtitle: 'Titles watched',
+      href: '/history',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
+      title: 'Watchlist',
+      value: watchLaterCount,
+      subtitle: 'Saved items',
+      href: '/watchlist',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+        </svg>
+      ),
+    },
+    {
+      title: 'Account',
+      value: 'Free',
+      subtitle: 'Plan',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      ),
+    },
+    {
+      title: 'Member Since',
+      value: profile.created_at
+        ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+        : 'N/A',
+      subtitle: 'Join date',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      ),
+    },
+  ]
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -531,68 +610,43 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8"
         >
-          {[
-            {
-              title: 'Continue Watching',
-              value: continueWatchingCount || 0,
-              subtitle: 'In progress',
-              icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              ),
-            },
-            {
-              title: 'Watchlist',
-              value: watchLaterCount || 0,
-              subtitle: 'Saved items',
-              icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
-              ),
-            },
-            {
-              title: 'Account',
-              value: 'Free',
-              subtitle: 'Plan',
-              icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              ),
-            },
-            {
-              title: 'Member Since',
-              value: profile.created_at
-                ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-                : 'N/A',
-              subtitle: 'Join date',
-              icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              ),
-            },
-          ].map((stat, i) => (
-            <motion.div
-              key={stat.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 * i }}
-              className="bg-white/[0.03] border border-white/10 rounded-xl p-5 hover:bg-white/[0.06] transition-colors"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="text-white">{stat.icon}</div>
-                <h3 className="font-medium text-sm text-gray-300">{stat.title}</h3>
-              </div>
-              <p className="text-2xl sm:text-3xl font-bold text-white">{stat.value}</p>
-              <p className="text-gray-500 text-xs mt-1">{stat.subtitle}</p>
-            </motion.div>
-          ))}
+          {profileStats.map((stat, i) => {
+            const card = (
+              <>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="text-white">{stat.icon}</div>
+                  <h3 className="font-medium text-sm text-gray-300">{stat.title}</h3>
+                  {stat.href && (
+                    <svg className="w-3.5 h-3.5 ml-auto text-gray-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  )}
+                </div>
+                <p className="text-2xl sm:text-3xl font-bold text-white">{stat.value}</p>
+                <p className="text-gray-500 text-xs mt-1">{stat.subtitle}</p>
+              </>
+            )
+
+            return (
+              <motion.div
+                key={stat.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 * i }}
+                className="group bg-white/[0.03] border border-white/10 rounded-xl hover:bg-white/[0.06] transition-colors"
+              >
+                {stat.href ? (
+                  <Link href={stat.href} className="block p-5">
+                    {card}
+                  </Link>
+                ) : (
+                  <div className="p-5">{card}</div>
+                )}
+              </motion.div>
+            )
+          })}
         </motion.div>
 
         {/* Quick Actions */}
@@ -632,8 +686,8 @@ export default function ProfilePage() {
         </motion.div>
 
         {/* Sign Out (mobile only) — the top navbar account dropdown (the
-            only other sign-out UI) is hidden on phones, where the bottom nav
-            already shows the profile avatar, so sign out lives here. */}
+            only other sign-out UI) is hidden on phones, where this page is
+            reached from the hamburger menu instead, so sign out lives here. */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

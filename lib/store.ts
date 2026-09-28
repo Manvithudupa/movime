@@ -196,53 +196,92 @@ export interface ContinueWatchingItem {
 
 const CONTINUE_WATCHING_CACHE_TTL = 30 * 1000 // 30 seconds cache
 
+// The home row only needs the most recent handful, while the history page
+// wants the whole list. Both go through the same endpoint, so the requested
+// size travels with the fetch and is remembered for cache decisions.
+export const CONTINUE_WATCHING_DEFAULT_LIMIT = 20
+export const CONTINUE_WATCHING_HISTORY_LIMIT = 200
+
 interface ContinueWatchingStore {
   items: ContinueWatchingItem[]
   count: number
   lastFetched: number
+  lastLimit: number
   isLoading: boolean
-  fetch: (isSignedIn: boolean) => Promise<void>
+  fetch: (isSignedIn: boolean, limit?: number) => Promise<void>
   upsert: (item: Partial<ContinueWatchingItem>, isSignedIn: boolean) => Promise<void>
   remove: (contentId: number, contentType: string, isSignedIn: boolean, seasonNumber?: number, episodeNumber?: number) => Promise<void>
   clear: () => void
 }
 
+// Tracks the continue-watching request currently on the wire (and how many
+// rows it asked for) so a larger request — the history page — can wait for a
+// smaller one (the home row) instead of being dropped by the isLoading guard
+// and leaving the page with a truncated list.
+let continueWatchingInFlight: Promise<void> | null = null
+let continueWatchingInFlightLimit = 0
+
 export const useContinueWatchingStore = create<ContinueWatchingStore>((set, get) => ({
   items: [],
   count: 0,
   lastFetched: 0,
+  lastLimit: 0,
   isLoading: false,
 
-  fetch: async (isSignedIn: boolean) => {
+  fetch: async (isSignedIn: boolean, limit: number = CONTINUE_WATCHING_DEFAULT_LIMIT) => {
     const state = get()
     const now = Date.now()
 
-    if (state.items.length > 0 && now - state.lastFetched < CONTINUE_WATCHING_CACHE_TTL) {
+    // Skip only when the cache is fresh AND was filled with at least as many
+    // rows as this caller asked for — otherwise the home row's 20-item cache
+    // would make the history page (larger limit) silently show a truncated list.
+    if (
+      state.items.length > 0 &&
+      now - state.lastFetched < CONTINUE_WATCHING_CACHE_TTL &&
+      state.lastLimit >= limit
+    ) {
       return
     }
 
-    if (state.isLoading) return
+    if (continueWatchingInFlight) {
+      if (continueWatchingInFlightLimit >= limit) return
+      // Wait out the smaller request, then run this one so the fuller result wins.
+      await continueWatchingInFlight
+    }
 
     set({ isLoading: true })
 
-    try {
-      if (isSignedIn) {
-        const response = await fetch('/api/continue-watching')
-        if (response.ok) {
-          const data = await response.json()
-          const items = Array.isArray(data) ? data : []
-          set({ items, count: items.length, lastFetched: Date.now(), isLoading: false })
-          return
+    const request = (async () => {
+      try {
+        if (isSignedIn) {
+          const response = await fetch(`/api/continue-watching?limit=${limit}`)
+          if (response.ok) {
+            const data = await response.json()
+            const items = Array.isArray(data) ? data : []
+            set({ items, count: items.length, lastFetched: Date.now(), lastLimit: limit, isLoading: false })
+            return
+          }
         }
+
+        // Try localStorage fallback
+        const saved = readLocalList<ContinueWatchingItem>('continueWatching')
+        set({ items: saved, count: saved.length, lastFetched: Date.now(), lastLimit: limit, isLoading: false })
+      } catch (error) {
+        console.error('Error fetching continue watching:', error)
+        const saved = readLocalList<ContinueWatchingItem>('continueWatching')
+        set({ items: saved, count: saved.length, lastFetched: Date.now(), lastLimit: limit, isLoading: false })
       }
-      
-      // Try localStorage fallback
-      const saved = readLocalList<ContinueWatchingItem>('continueWatching')
-      set({ items: saved, count: saved.length, lastFetched: Date.now(), isLoading: false })
-    } catch (error) {
-      console.error('Error fetching continue watching:', error)
-      const saved = readLocalList<ContinueWatchingItem>('continueWatching')
-      set({ items: saved, count: saved.length, lastFetched: Date.now(), isLoading: false })
+    })()
+
+    continueWatchingInFlight = request
+    continueWatchingInFlightLimit = limit
+    try {
+      await request
+    } finally {
+      if (continueWatchingInFlight === request) {
+        continueWatchingInFlight = null
+        continueWatchingInFlightLimit = 0
+      }
     }
   },
 
@@ -354,7 +393,7 @@ export const useContinueWatchingStore = create<ContinueWatchingStore>((set, get)
   },
 
   clear: () => {
-    set({ items: [], count: 0, lastFetched: 0, isLoading: false })
+    set({ items: [], count: 0, lastFetched: 0, lastLimit: 0, isLoading: false })
     setLocalStorage('continueWatching', [])
   },
 }))

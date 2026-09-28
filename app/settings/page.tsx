@@ -56,35 +56,69 @@ export default function SettingsPage() {
   };
 
   const clearWatchLater = async () => {
-    if (confirm('Are you sure you want to clear your watch later list?')) {
-      const items = useWatchlistStore.getState().items
-      if (isSignedIn) {
-        for (const item of items) {
-          try {
-            await fetch(`/api/watchlist?content_id=${item.content_id}&content_type=${item.content_type}`, {
-              method: 'DELETE',
-            });
-          } catch (error) {
-            console.error('Error clearing watchlist:', error);
-          }
-        }
-      } else {
-        setLocalStorage('watchLater', []);
+    if (!confirm('Are you sure you want to clear your watch later list?')) {
+      return;
+    }
+
+    // Guests have no server copy — localStorage is their store.
+    if (!isSignedIn) {
+      setLocalStorage('watchLater', []);
+      useWatchlistStore.getState().clear();
+      toast.success('Watch later list cleared!');
+      return;
+    }
+
+    // One scoped request instead of the per-item DELETEs this used to loop:
+    // the watchlist route's rate limit cut that loop off on long lists, so
+    // most rows stayed behind while the UI still reported success.
+    try {
+      const response = await fetch('/api/user/data?scope=watchlist', { method: 'DELETE' });
+      if (!response.ok) {
+        toast.error('Failed to clear your watchlist. Please try again.');
+        return;
       }
-      useWatchlistStore.getState().clear()
+      useWatchlistStore.getState().clear();
+      toast.success('Watch later list cleared!');
+    } catch (error) {
+      console.error('Error clearing watchlist:', error);
+      toast.error('Failed to clear your watchlist. Please try again.');
     }
   };
 
-  const clearAllData = () => {
-    if (confirm('Are you sure you want to clear all stored data? This will reset all settings and clear your watch later list.')) {
-      localStorage.clear();
-      // Also reset the in-memory stores so counts/items vanish immediately
-      // instead of lingering until the next page reload.
-      useWatchlistStore.getState().clear();
-      useContinueWatchingStore.getState().clear();
-      // Reload from the server if signed in, else reset to defaults.
-      fetchSettings(!!isSignedIn).then(applySettings);
+  const clearAllData = async () => {
+    if (!confirm('Clear all your data? This erases your watchlist, watch history, and saved settings — on this device and, when signed in, from your account.')) {
+      return;
+    }
+
+    // Clear the account copy first: if that fails, the local data is still
+    // there to retry with, and the user is told the wipe was partial.
+    let serverCleared = true;
+    if (isSignedIn) {
+      try {
+        const response = await fetch('/api/user/data', { method: 'DELETE' });
+        serverCleared = response.ok;
+      } catch (error) {
+        console.error('Error clearing account data:', error);
+        serverCleared = false;
+      }
+    }
+
+    // Local copy — guest data and settings keys live here, and the in-memory
+    // stores are reset so counts/items vanish immediately instead of lingering
+    // until the next page reload.
+    localStorage.clear();
+    useWatchlistStore.getState().clear();
+    useContinueWatchingStore.getState().clear();
+
+    // Rewrites the local settings keys with defaults and, when signed in,
+    // pushes the reset so the synced copy doesn't restore the old preferences.
+    await saveSettings(DEFAULT_SETTINGS, !!isSignedIn);
+    applySettings(DEFAULT_SETTINGS);
+
+    if (serverCleared) {
       toast.success('All data cleared successfully!');
+    } else {
+      toast.error('Cleared this device, but your account data could not be cleared. Please try again.');
     }
   };
 
@@ -235,9 +269,9 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <h3 className="font-medium mb-2">Storage</h3>
+                  <h3 className="font-medium mb-2">All Data</h3>
                   <p className="text-gray-400 text-sm mb-3">
-                    Clear all stored data including settings and watch later list
+                    Erase your watchlist, watch history, and saved settings — on this device and, when signed in, from your account.
                   </p>
                   <button
                     onClick={clearAllData}

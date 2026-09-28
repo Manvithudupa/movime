@@ -79,7 +79,7 @@ A full codebase pass fixed the following (each verified by typecheck, lint, unit
 - **Watchlist** — Status badges keep readable contrast, guest status changes persist to `localStorage` (matching on `content_id` as well as `id`), and the API rejects malformed `content_id` values on `PATCH`/`DELETE` with a `400` instead of a misleading `404`.
 - **Hero PLAY** — Derives the media type from the item instead of assuming `movie`.
 - **Navbar** — The account dropdown closes on outside click, tap, or `Escape`, and dead code was removed.
-- **Mobile navbar declutter** — On phones the top bar now shows only the logo. The avatar, search icon, and sign-in button are hidden below `sm` because the bottom nav already provides You, Search, and (via the profile page) Sign Out; all of them remain on tablet/desktop, where the bottom nav doesn't exist.
+- **Mobile navbar declutter** — On phones the top bar shows only the logo. The avatar, search icon, and sign-in button are hidden below `sm`; the bottom nav keeps Home, Search, Movies, TV, Anime, and My List, while the hamburger menu carries Profile (or Sign In for guests), My List, and History — with Sign Out living on the profile page. All of the top-bar controls remain on tablet/desktop, where the bottom nav doesn't exist.
 - **Caching/dead code** — The legacy API-cache sweep no longer skips entries while deleting, and unused keyframes/animations and an unused export were dropped.
 
 ---
@@ -112,6 +112,7 @@ A design pass tightened the interface into a strict black-and-white system. Veri
 | `/settings` | User preferences (preferred source, default quality, auto-play, data management) |
 | `/profile` | User profile management with anime character picker (requires authentication) |
 | `/watchlist` | Full watchlist page with status filtering (Watching, Completed, Plan to Watch, Dropped) |
+| `/history` | Watch history page, most recently watched first, with type/completed filtering and per-title removal |
 | `/contact` | Contact form with server-side email delivery (Resend) |
 | `/privacy` | Privacy policy |
 | `/terms` | Terms of service |
@@ -135,9 +136,10 @@ A design pass tightened the interface into a strict black-and-white system. Veri
 | `/api/watchlist` | POST | Add item to watchlist (or toggle if exists) |
 | `/api/watchlist` | PATCH | Update item status |
 | `/api/watchlist` | DELETE | Remove item from watchlist |
-| `/api/continue-watching` | GET/POST/DELETE | Fetch, upsert, or remove continue-watching progress |
+| `/api/continue-watching` | GET/POST/DELETE | Fetch (optional `?limit=`, default 20, max 200), upsert, or remove continue-watching progress — backs both the Continue Watching row and `/history` |
 | `/api/user/profile` | GET/PUT | Fetch or update user profile |
 | `/api/user/settings` | GET/PUT | Fetch or save cross-device playback settings (preferred source, quality, auto-play) |
+| `/api/user/data` | DELETE | Clear the signed-in user's watchlist and watch history, with `?scope=watchlist|history` to narrow it — backs “Clear Watch Later” and “Clear All Data” (rate-limited) |
 | `/api/user/delete` | DELETE | Delete the signed-in user's account and data (rate-limited) |
 | `/api/tmdb/[...slug]` | GET | Server-side TMDB proxy — injects the API key and caches responses (rate-limited) |
 | `/api/anilist/character?q=` | GET | Search AniList anime characters |
@@ -352,6 +354,7 @@ movime/
 │   │   ├── continue-watching/  # Continue watching CRUD API (rate-limited)
 │   │   ├── tmdb/        # Server-side TMDB proxy (injects key, caches, rate-limited)
 │   │   ├── user/
+│   │   │   ├── data/    # Bulk clear of watchlist + watch history (rate-limited)
 │   │   │   ├── delete/  # Account deletion API (rate-limited)
 │   │   │   ├── profile/ # User profile API (rate-limited)
 │   │   │   └── settings/ # Cross-device playback settings API (rate-limited)
@@ -359,6 +362,7 @@ movime/
 │   ├── auth/            # Login, signup, forgot/reset password, callback
 │   ├── contact/         # Contact page
 │   ├── details/         # Content detail page (DetailsPageContent.tsx)
+│   ├── history/         # Watch history page (continue-watching data, newest first)
 │   ├── movies/          # Movies page with infinite scroll
 │   ├── privacy/         # Privacy policy
 │   ├── profile/         # User profile page with anime character picker

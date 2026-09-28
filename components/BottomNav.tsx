@@ -4,20 +4,14 @@ import React, { Suspense } from 'react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { useAuth } from '@/components/AuthProvider'
 import { useWatchlistStore } from '@/lib/store'
-import Avatar from '@/components/Avatar'
 
 function BottomNavInner() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { user, profile, isSignedIn, isLoading } = useAuth()
   const watchLaterCount = useWatchlistStore((s) => s.count)
 
   const currentView = searchParams.get('view') || null
-
-  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || null
-  const userName = profile?.name || user?.user_metadata?.full_name || user?.email || 'U'
 
   const handleHomeClick = (e: React.MouseEvent) => {
     if (pathname === '/' && (!currentView || currentView === 'home')) {
@@ -89,32 +83,9 @@ function BottomNavInner() {
       isActive: pathname === '/watchlist',
       badge: watchLaterCount,
     },
-    {
-      label: 'You',
-      href: isSignedIn ? '/profile' : '/auth/login',
-      icon: (active: boolean) => (
-        <div className="relative">
-          {isLoading ? (
-            <div className="w-6 h-6 bg-white/10 rounded-full animate-pulse" />
-          ) : isSignedIn ? (
-            <Avatar
-              src={avatarUrl}
-              alt={userName}
-              size={24}
-              fallbackText={userName}
-              className={`rounded-full border-2 transition-all duration-200 ${
-                active ? 'border-white' : 'border-transparent'
-              }`}
-            />
-          ) : (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          )}
-        </div>
-      ),
-      isActive: pathname === '/profile' || pathname === '/settings',
-    },
+    // Profile deliberately lives in the top hamburger menu instead of here —
+    // the bar was carrying seven tabs on a phone. See the mobile menu in
+    // components/Navbar.tsx.
   ]
 
   return (
