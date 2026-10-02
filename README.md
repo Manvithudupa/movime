@@ -26,7 +26,7 @@
 
 ## ✨ Features
 
-- **🎥 Multi-Source Streaming** — Watch content from 14 verified embed providers with automatic source switching
+- **🎥 Multi-Source Streaming** — Watch content from 16 verified embed providers with automatic source switching
 - **📺 TV Shows & Seasons** — Browse episodes with season selectors and episode detail cards
 - **🐱 Anime Integration** — Dedicated anime section with AniList+TMDB cross-referencing for accurate season/episode mapping
 - **🏠 Anime Hero Banner** — Dedicated anime hero carousel with trailers, genre chips, and watchlist controls
@@ -168,7 +168,7 @@ A design pass tightened the interface into a strict black-and-white system. Veri
 
 ### Streaming Providers (iframe embed)
 
-The platform aggregates from **14 verified embed providers** (each checked to be live): CinemaOS, VidNest, MappleTV, VidSrcRIP, VidSrcSU, VidSrcSBS, VidSrcME, VidSrcNL, VidSrcPM, VidLink, VidEasy, VidFast, VidZee, and CineSrc.
+The platform aggregates from **16 verified embed providers** (each checked to be live): CinemaOS, VidNest, MappleTV, VidSrcRIP, VidSrcSU, VidSrcSBS, VidSrcME, VidSrcNL, VidSrcPM, VidLink, VidEasy, VidFast, VidZee, CineSrc, P-Stream, and Spenflix.
 
 ---
 
@@ -194,7 +194,7 @@ flowchart LR
     ANI[(AniList GraphQL)]
     SUP[(Supabase<br/>Auth + Postgres)]
     RES[(Resend Email)]
-    EMB[14 Embed Providers<br/>iframe players]
+    EMB[16 Embed Providers<br/>iframe players]
 
     UI -->|fetch content| CACHE
     CACHE -->|GET /api/tmdb/...| PXY
@@ -216,7 +216,7 @@ flowchart LR
 
 2. **Anime mapping** — `fetchContentDetails` detects anime (genre/keyword/JP origin) and cross-references **AniList + TMDB** in `lib/animeMapper.ts` to produce accurate season/episode breakdowns, falling back to plain TMDB data when mapping fails.
 
-3. **Watching** — The `/watch` page builds an embed URL from the selected source in `lib/sources.ts` (14 verified providers — dead providers are removed) and renders it in an iframe. Sources flagged `requiresNoSandbox` play unsandboxed (they refuse to play sandboxed); the rest are sandboxed for security. If a source fails, `handleSourceFailure` automatically falls back to the next provider. Progress is saved to the Continue Watching store.
+3. **Watching** — The `/watch` page builds an embed URL from the selected source in `lib/sources.ts` (16 verified providers — dead providers are removed) and renders it in an iframe. Sources flagged `requiresNoSandbox` play unsandboxed (they refuse to play sandboxed); the rest are sandboxed for security. If a source fails, `handleSourceFailure` automatically falls back to the next provider. Progress is saved to the Continue Watching store.
 
 4. **User data** — Zustand stores (`lib/store.ts`) hold watchlist and continue-watching state optimistically, then sync to Supabase via `/api/watchlist` and `/api/continue-watching`. Profiles live in `AuthProvider` and are updated via `/api/user/profile`. Guests use localStorage; signed-in users sync across devices.
 
@@ -420,7 +420,7 @@ movime/
 │   ├── resend.ts        # Lazy Resend client
 │   ├── routes.ts        # View -> route mapping
 │   ├── settings.ts      # Playback settings (localStorage + server sync)
-│   ├── sources.ts       # 14 available embed streaming sources
+│   ├── sources.ts       # 16 available embed streaming sources
 │   ├── store.ts         # Zustand stores (watchlist, continue watching)
 │   ├── supabase/
 │   │   ├── client.ts    # Supabase browser client

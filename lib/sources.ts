@@ -1,7 +1,8 @@
 // Verified working embed providers (re-verified August 2026).
-// Domains that no longer respond (RiveStream, VidLink, 2Embed, 123Embed,
-// VidSrcPM, VidSrcDEV, VidStreamPro) are excluded, as are dead or premium
-// sources — see the commented-out section at the bottom.
+// Domains that no longer respond (RiveStream, 2Embed, 123Embed, VidSrcDEV,
+// VidStreamPro) are excluded, as are dead or premium sources — see the
+// commented-out section at the bottom. VidLink (vidlink.pro) and VidSrcPM
+// (vidsrc.pm), once listed here as dead, were later re-added below.
 //
 // Dead as of the August 2026 audit (removed): MoviesAPI, GoDrive, EmbedSU,
 // Hexa, VidSrcXyz, VidSrcVIP, VidSrcCC, SmashyStream, AutoEmbed, Vidify,
@@ -14,6 +15,11 @@
 //
 // Added August 2026 (verified rendering real players in a browser):
 // VidSrcPM (vidsrc.pm), VidLink (vidlink.pro), and CineSrc (cinesrc.st).
+//
+// Re-added October 2026 with new domains: P-Stream (pstream.cfd, previously
+// iframe.pstream.mov) and Spenflix (spenflix.world, previously
+// spencerdevs.xyz) — both were listed as "domain unresponsive" and have since
+// come back under new hosts.
 export const availableSources = [
     // ── Embed providers ───────────────────────────────────────────────────
     {
@@ -175,9 +181,31 @@ export const availableSources = [
             tv: 'https://cinesrc.st/embed/tv/{id}?s={season}&e={episode}'
         }
     },
+    {
+        id: 'pstream',
+        name: 'P-Stream',
+        isFrench: false,
+        requiresNoSandbox: true,
+        playerType: 'embed',
+        urls: {
+            // movie-web style media routes (TMDB ids); new host of pstream.mov
+            movie: 'https://pstream.cfd/media/tmdb-movie-{id}',
+            tv: 'https://pstream.cfd/media/tmdb-tv-{id}/{season}/{episode}'
+        }
+    },
+    {
+        id: 'spenflix',
+        name: 'Spenflix',
+        isFrench: false,
+        requiresNoSandbox: true,
+        playerType: 'embed',
+        urls: {
+            // same paths as the old spencerdevs.xyz host (TMDB ids)
+            movie: 'https://spenflix.world/movie/{id}',
+            tv: 'https://spenflix.world/tv/{id}/{season}/{episode}'
+        }
+    },
 
     // ── Commented out (dead / premium / untested) ─────────────────────────
-    // { id: 'pstream',   name: 'P-Stream',          ... }  // domain unresponsive
-    // { id: 'spenflix',  name: 'Spenflix',           ... }  // domain unresponsive
     // { id: 'uembed',    name: 'UEmbed (premium)',   ... }  // requires paid API key
 ];
