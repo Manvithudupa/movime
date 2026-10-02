@@ -21,11 +21,9 @@ export const availableSources = [
         name: 'CinemaOS',
         isFrench: false,
         requiresNoSandbox: true,
-        playerType: 'embed',
         urls: {
-            // file-1 URLs verified Aug 2026
-            movie: 'https://cinemaos.tech/movie/watch/{id}',
-            tv: 'https://cinemaos.tech/tv/watch/{id}?season={season}&episode={episode}'
+            movie: 'https://cinemaos.tech/player/{id}',
+            tv: 'https://cinemaos.tech/player/{id}/{season}/{episode}'
         }
     },
     {
