@@ -40,6 +40,15 @@ import { SkeletonPageLayout } from '@/components/SkeletonPageLayout';
 // cross-origin — a same-origin frame could strip its own sandbox, these cannot.)
 const EMBED_SANDBOX = 'allow-scripts allow-same-origin allow-forms allow-presentation allow-popups'
 
+// Minimal shape of the Screen Wake Lock API, which isn't part of the DOM lib.
+type WakeLockSentinelLike = {
+  release: () => Promise<void>;
+  released: boolean;
+};
+type WakeLockNavigator = Navigator & {
+  wakeLock?: { request: (type: 'screen') => Promise<WakeLockSentinelLike> };
+};
+
 function WatchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -65,6 +74,48 @@ function WatchPageContent() {
     });
     return () => { cancelled = true; };
   }, [isSignedIn]);
+
+  // Keep the device screen awake while watching. Without this, the OS sleep
+  // timer (e.g. "10 minutes" in display settings) turns the screen off during
+  // playback, because cross-origin iframe activity doesn't count as user
+  // interaction. The Screen Wake Lock API is best-effort: it needs a secure
+  // context and may be unsupported or denied, and the browser auto-releases
+  // the lock whenever the tab is hidden — so re-acquire it on return.
+  useEffect(() => {
+    if (loading || !content) return;
+    const wakeLock = typeof navigator === 'undefined'
+      ? undefined
+      : (navigator as WakeLockNavigator).wakeLock;
+    if (!wakeLock) return;
+
+    let sentinel: WakeLockSentinelLike | null = null;
+    let disposed = false;
+
+    const request = async () => {
+      if (disposed) return;
+      try {
+        sentinel = await wakeLock.request('screen');
+      } catch {
+        // Unsupported, insecure context, or permission denied — playback still works.
+      }
+    };
+
+    const handleVisibility = () => {
+      // Browsers release the lock on hide; grab it again when we come back.
+      if (document.visibilityState === 'visible') request();
+    };
+
+    request();
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      disposed = true;
+      document.removeEventListener('visibilitychange', handleVisibility);
+      sentinel?.release().catch(() => {});
+      sentinel = null;
+    };
+  }, [loading, content]);
+
   const [selectedSeason, setSelectedSeason] = useState<number>(1);
   const [selectedEpisode, setSelectedEpisode] = useState<number>(1);
   const [seasonData, setSeasonData] = useState<Season | null>(null);

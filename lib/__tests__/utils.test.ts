@@ -10,12 +10,12 @@ import {
 
 describe('getVideoUrl', () => {
   it('replaces placeholders for movies', () => {
-    expect(getVideoUrl('CinemaOS', '123', 'movie')).toBe('https://cinemaos.tech/movie/watch/123')
+    expect(getVideoUrl('CinemaOS', '123', 'movie')).toBe('https://cinemaos.tech/player/123')
   })
 
   it('replaces placeholders for tv with season and episode', () => {
     expect(getVideoUrl('CinemaOS', '123', 'tv', 2, 5)).toBe(
-      'https://cinemaos.tech/tv/watch/123?season=2&episode=5'
+      'https://cinemaos.tech/player/123/2/5'
     )
   })
 
