@@ -15,7 +15,7 @@ export const DIRECT_MATCH_SCORE = 0.72
 // directly or asked for an older year explicitly.
 const MIN_YEAR = 2004
 
-export type ScoredSearchResult<T> = T & { __rel: number }
+type ScoredSearchResult<T> = T & { __rel: number }
 
 export const normalizeSearchText = (value: string): string =>
   value.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
@@ -112,7 +112,7 @@ export function filterRankSearchResults<T extends Record<string, any>>(
 // results. Instead short clips/trailers are demoted to the end, keeping the
 // candidate set identical in both places (TMDB returns a single page, so the
 // move never pushes a title past the display limit).
-export const MIN_DURATION_MIN = 40
+const MIN_DURATION_MIN = 40
 
 export const allowsShortContent = (query: string): boolean =>
   /\b(short|clip|mini|reel)\b/i.test(query)

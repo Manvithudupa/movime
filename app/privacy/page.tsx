@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { getViewPath } from '@/lib/routes';
 import Navbar from '@/components/Navbar';

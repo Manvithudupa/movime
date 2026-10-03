@@ -25,7 +25,7 @@ import ContentCard from '@/components/ContentCard';
 import { SkeletonGrid } from '@/components/SkeletonCard';
 import { SkeletonHero } from '@/components/SkeletonHero';
 
-export type BrowseCategory = 'movies' | 'tv' | 'anime';
+type BrowseCategory = 'movies' | 'tv' | 'anime';
 
 interface BrowseContentProps {
   category: BrowseCategory;

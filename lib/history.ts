@@ -3,8 +3,8 @@ import type { ContinueWatchingItem } from './store'
 // Watch-history presentation helpers. Kept out of the page component so the
 // date bucketing (which has real day-boundary edge cases) can be unit tested.
 
-export const HISTORY_GROUPS = ['Today', 'Yesterday', 'Earlier'] as const
-export type HistoryGroupLabel = typeof HISTORY_GROUPS[number]
+const HISTORY_GROUPS = ['Today', 'Yesterday', 'Earlier'] as const
+type HistoryGroupLabel = typeof HISTORY_GROUPS[number]
 
 /** Milliseconds since epoch for when an entry was last watched (0 if unusable). */
 const watchedAt = (item: ContinueWatchingItem): number => {
@@ -12,7 +12,7 @@ const watchedAt = (item: ContinueWatchingItem): number => {
   return Number.isFinite(time) ? time : 0
 }
 
-export const byNewestFirst = (a: ContinueWatchingItem, b: ContinueWatchingItem): number =>
+const byNewestFirst = (a: ContinueWatchingItem, b: ContinueWatchingItem): number =>
   watchedAt(b) - watchedAt(a)
 
 const startOfDay = (date: Date): number =>

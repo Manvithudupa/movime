@@ -7,7 +7,7 @@ export const PROXY_BASE =
   process.env.NEXT_PUBLIC_IMAGE_PROXY || 'https://images.weserv.nl/?url='
 
 // Domains that should NOT be proxied
-export const NO_PROXY_DOMAINS = ['anilist.co']
+const NO_PROXY_DOMAINS = ['anilist.co']
 
 // SECURITY: only these image hosts are ever rendered. Everything else is
 // replaced with a transparent pixel. This closes the open-proxy hole where a
@@ -18,7 +18,7 @@ export const NO_PROXY_DOMAINS = ['anilist.co']
 // from loading tracking pixels in the user's browser. Mirror the hosts in
 // next.config.js images.remotePatterns plus the AniList CDN used for character
 // avatars.
-export const ALLOWED_IMAGE_HOSTS: string[] = [
+const ALLOWED_IMAGE_HOSTS: string[] = [
   'image.tmdb.org',
   'anilist.co',
   'lh3.googleusercontent.com',

@@ -10,7 +10,7 @@ export interface CastMember {
   gender?: number;
 }
 
-export interface Credits {
+interface Credits {
   cast: CastMember[];
   crew?: CastMember[];
 }
@@ -121,23 +121,6 @@ export interface Episode {
   vote_average: number;
 }
 
-export interface StreamingSource {
-  id: string;
-  name: string;
-  description?: string;
-  isFrench?: boolean;
-  requiresNoSandbox?: boolean;
-  /**
-   * 'embed' = third-party iframe embed (may contain ads)
-   * 'native' = direct HLS/video stream played in native player (no ads)
-   */
-  playerType?: 'embed' | 'native';
-  urls: {
-    movie?: string;
-    tv?: string;
-  };
-}
-
 export interface ContentItem {
   id: number;
   title?: string;
@@ -154,7 +137,7 @@ export interface ContentItem {
   status?: string;
 }
 
-export interface WatchLaterItem {
+interface WatchLaterItem {
   id: number;
   type: 'movie' | 'tv';
   title: string;

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { getLocalStorage, setLocalStorage } from './utils';
 
-export interface WatchlistItem {
+interface WatchlistItem {
   id: string | number
   content_id: number
   content_type: 'movie' | 'tv'

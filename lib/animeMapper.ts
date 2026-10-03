@@ -114,7 +114,7 @@ export const searchAniListAnime = async (title: string) => {
 };
 
 // Get detailed anime data from AniList by ID
-export const getAniListAnimeDetails = async (aniListId: number) => {
+const getAniListAnimeDetails = async (aniListId: number) => {
   try {
     const response = await fetch(ANILIST_API_URL, {
       method: 'POST',
@@ -136,7 +136,7 @@ export const getAniListAnimeDetails = async (aniListId: number) => {
 };
 
 // Extract season breakdown from AniList data
-export const extractAniListSeasons = (aniListData: Record<string, any>): AniListSeason[] => {
+const extractAniListSeasons = (aniListData: Record<string, any>): AniListSeason[] => {
   if (!aniListData) return [];
   
   const seasons: AniListSeason[] = [];

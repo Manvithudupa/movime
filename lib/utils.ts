@@ -16,7 +16,7 @@ const debugLog = (...args: unknown[]) => {
 // so the API key never ships in the client bundle. The proxy injects the key
 // server-side (TMDB_API_KEY, falling back to NEXT_PUBLIC_TMDB_API_KEY) and
 // caches responses for 10 minutes.
-export const TMDB_PROXY_BASE = '/api/tmdb';
+const TMDB_PROXY_BASE = '/api/tmdb';
 export const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 const API_CACHE_TTL_MS = 10 * 60 * 1000;        // 10 min default
@@ -224,7 +224,7 @@ const ANILIST_SEARCH_QUERY = `
   }
 `;
 
-export const isAnimeContent = (item: Record<string, any>): boolean => {
+const isAnimeContent = (item: Record<string, any>): boolean => {
   if (!item) return false;
   
   const genres = item.genres || [];
@@ -842,7 +842,7 @@ export const blockedMovieIds = [
 ];
 
 // Adult filter
-export const adultContentKeywords = [
+const adultContentKeywords = [
   'xxx', 'porn', 'erotic', 'explicit', 'adult', 'sex', 'nude', 'naked', 
   'sensual', 'intimate', 'seductive', 'temptation', 'desire', 'passion',
   'lust', 'sexual', 'sexuality', 'arousal', 'provocative', 'steamy',
@@ -858,7 +858,7 @@ const adultKeywordPatterns: RegExp[] = adultContentKeywords.map(
   (keyword) => new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
 );
 
-export const isAdultContent = (item: Record<string, any>): boolean => {
+const isAdultContent = (item: Record<string, any>): boolean => {
   if (!item) return false;
 
   const title = item.title || item.name || '';

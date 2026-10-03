@@ -28,8 +28,7 @@ export default function Navbar({
   searchQuery, // eslint-disable-line @typescript-eslint/no-unused-vars
   watchLaterCount,
   onViewChange,
-  onSearchToggle, // eslint-disable-line @typescript-eslint/no-unused-vars
-  onSearchChange
+  onSearchToggle // eslint-disable-line @typescript-eslint/no-unused-vars
 }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);

@@ -18,8 +18,7 @@ export function parseContentId(value: unknown): number | null {
 }
 
 // The only keys that may be stored in a profile's playback-settings JSONB column.
-export const VALID_SETTING_KEYS = ['preferredSource', 'defaultQuality', 'autoPlay'] as const
-export type ValidSettingKey = typeof VALID_SETTING_KEYS[number]
+const VALID_SETTING_KEYS = ['preferredSource', 'defaultQuality', 'autoPlay'] as const
 
 /**
  * Validates one setting's value. Restricting the key *names* alone still let a
@@ -40,7 +39,7 @@ export function isValidSettingValue(key: string, value: unknown): boolean {
   }
 }
 
-export type PickSettingsResult =
+type PickSettingsResult =
   | { ok: true; value: Record<string, unknown> }
   | { ok: false; invalidKey: string }
 
