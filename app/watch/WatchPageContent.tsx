@@ -120,12 +120,11 @@ function WatchPageContent() {
   const [selectedEpisode, setSelectedEpisode] = useState<number>(1);
   const [seasonData, setSeasonData] = useState<Season | null>(null);
   const [securityLevel] = useState<'secure' | 'balanced' | 'permissive'>('balanced');
-  const [showSearch, setShowSearch] = useState(false);
+  const [showSearch] = useState(false);
   const watchLaterCount = useWatchlistStore((s) => s.count);
   const fetchWatchlist = useWatchlistStore((s) => s.fetch);
   const upsertContinueWatching = useContinueWatchingStore((s) => s.upsert);
   const fetchContinueWatching = useContinueWatchingStore((s) => s.fetch);
-  const [searchQuery, setSearchQuery] = useState('');
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [iframeKey, setIframeKey] = useState(0);
   const contentId = searchParams.get('id');
@@ -304,11 +303,8 @@ function WatchPageContent() {
       <SkeletonPageLayout
         currentView="watch"
         showSearch={showSearch}
-        searchQuery={searchQuery}
         watchLaterCount={watchLaterCount}
         onViewChange={(view) => router.push(getViewPath(view))}
-        onSearchToggle={() => setShowSearch(!showSearch)}
-        onSearchChange={(q) => setSearchQuery(q)}
       >
         <SkeletonWatch isTV={contentType === 'tv'} />
       </SkeletonPageLayout>
@@ -347,11 +343,8 @@ function WatchPageContent() {
       <Navbar
         currentView="watch"
         showSearch={showSearch}
-        searchQuery={searchQuery}
         watchLaterCount={watchLaterCount}
         onViewChange={(view) => router.push(getViewPath(view))}
-        onSearchToggle={() => setShowSearch(!showSearch)}
-        onSearchChange={(q) => setSearchQuery(q)}
       />
 
       {/* Top bar */}

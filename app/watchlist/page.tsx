@@ -27,8 +27,7 @@ export default function WatchlistPage() {
   const { isSignedIn } = useAuth()
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<WatchStatus | 'all'>('all')
-  const [showSearch, setShowSearch] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [showSearch] = useState(false)
   const storeItems = useWatchlistStore((s) => s.items)
   const watchLaterCount = useWatchlistStore((s) => s.count)
   const fetchWatchlist = useWatchlistStore((s) => s.fetch)
@@ -47,8 +46,6 @@ export default function WatchlistPage() {
     })),
   [storeItems])
 
-  const handleSearchToggle = () => setShowSearch(!showSearch)
-  const handleSearchChange = (query: string) => setSearchQuery(query)
   const handleViewChange = (view: string) => router.push(getViewPath(view))
 
   useEffect(() => {
@@ -198,11 +195,8 @@ export default function WatchlistPage() {
       <Navbar
         currentView="watchlist"
         showSearch={showSearch}
-        searchQuery={searchQuery}
         watchLaterCount={watchLaterCount}
         onViewChange={handleViewChange}
-        onSearchToggle={handleSearchToggle}
-        onSearchChange={handleSearchChange}
       />
 
       {/* Toast notification */}

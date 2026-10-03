@@ -21,11 +21,8 @@ export default function AboutPage() {
       <Navbar
         currentView="about"
         showSearch={false}
-        searchQuery={''}
         watchLaterCount={watchLaterCount}
         onViewChange={handleViewChange}
-        onSearchToggle={() => {}}
-        onSearchChange={() => {}}
       />
 
       {/* Hero Section */}

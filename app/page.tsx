@@ -454,7 +454,6 @@ function HomePageContent() {
       <Navbar
         currentView={currentView}
         showSearch={false}
-        searchQuery={searchQuery}
         watchLaterCount={watchLater.length}
         onViewChange={(view) => {
           setCurrentView(view);
@@ -465,8 +464,6 @@ function HomePageContent() {
           setSelectedGenre('all');
           setSelectedYear('all');
         }}
-        onSearchToggle={() => { router.push('/search'); }}
-        onSearchChange={setSearchQuery}
       />
 
       {/* Hero Section - Only show on home page */}

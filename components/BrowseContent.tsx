@@ -293,11 +293,8 @@ export default function BrowseContent({
       <Navbar
         currentView={category}
         showSearch={false}
-        searchQuery=""
         watchLaterCount={watchLater.length}
         onViewChange={() => {}}
-        onSearchToggle={() => router.push('/search')}
-        onSearchChange={() => {}}
       />
 
       {/* Anime Hero Banner - only on the anime page */}

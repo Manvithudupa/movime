@@ -315,11 +315,8 @@ function SearchPageContent() {
       <Navbar
         currentView="search"
         showSearch={true}
-        searchQuery={query}
         watchLaterCount={watchLaterCount}
         onViewChange={(view) => router.push(getViewPath(view))}
-        onSearchToggle={() => {}}
-        onSearchChange={onQueryChange}
       />
 
       <main className="pt-28 pb-20 px-4 max-w-6xl mx-auto w-full">

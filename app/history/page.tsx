@@ -155,8 +155,7 @@ export default function HistoryPage() {
   const { isSignedIn } = useAuth()
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<HistoryFilter>('all')
-  const [showSearch, setShowSearch] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [showSearch] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
   const items = useContinueWatchingStore((s) => s.items)
@@ -166,8 +165,6 @@ export default function HistoryPage() {
   const fetchWatchlist = useWatchlistStore((s) => s.fetch)
 
   const handleViewChange = (view: string) => router.push(getViewPath(view))
-  const handleSearchToggle = () => setShowSearch(!showSearch)
-  const handleSearchChange = (query: string) => setSearchQuery(query)
 
   useEffect(() => {
     let cancelled = false
@@ -225,11 +222,8 @@ export default function HistoryPage() {
       <Navbar
         currentView="history"
         showSearch={showSearch}
-        searchQuery={searchQuery}
         watchLaterCount={watchLaterCount}
         onViewChange={handleViewChange}
-        onSearchToggle={handleSearchToggle}
-        onSearchChange={handleSearchChange}
       />
 
       <AnimatePresence>

@@ -6,11 +6,8 @@ import Navbar from '@/components/Navbar';
 interface SkeletonPageLayoutProps {
   currentView: string;
   showSearch: boolean;
-  searchQuery: string;
   watchLaterCount: number;
   onViewChange: (view: string) => void;
-  onSearchToggle: () => void;
-  onSearchChange: (query: string) => void;
   /** The page's loading skeleton(s) rendered below the Navbar. */
   children?: React.ReactNode;
 }
@@ -23,11 +20,8 @@ interface SkeletonPageLayoutProps {
 export function SkeletonPageLayout({
   currentView,
   showSearch,
-  searchQuery,
   watchLaterCount,
   onViewChange,
-  onSearchToggle,
-  onSearchChange,
   children,
 }: SkeletonPageLayoutProps) {
   return (
@@ -35,11 +29,8 @@ export function SkeletonPageLayout({
       <Navbar
         currentView={currentView}
         showSearch={showSearch}
-        searchQuery={searchQuery}
         watchLaterCount={watchLaterCount}
         onViewChange={onViewChange}
-        onSearchToggle={onSearchToggle}
-        onSearchChange={onSearchChange}
       />
       {children}
     </div>

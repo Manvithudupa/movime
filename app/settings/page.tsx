@@ -23,8 +23,7 @@ export default function SettingsPage() {
   const [defaultQuality, setDefaultQuality] = useState(DEFAULT_SETTINGS.defaultQuality);
   const [autoPlay, setAutoPlay] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [showSearch, setShowSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch] = useState(false);
   const watchLaterCount = useWatchlistStore((s) => s.count);
   const fetchWatchlist = useWatchlistStore((s) => s.fetch);
 
@@ -127,27 +126,13 @@ export default function SettingsPage() {
     router.push(getViewPath(view));
   };
 
-  const handleSearchToggle = () => {
-    setShowSearch(!showSearch);
-  };
-
-  const handleSearchChange = (query: string) => {
-    setSearchQuery(query);
-    if (query) {
-      router.push(`/search?q=${encodeURIComponent(query)}`);
-    }
-  };
-
   if (loading) {
     return (
       <SkeletonPageLayout
         currentView="settings"
         showSearch={showSearch}
-        searchQuery={searchQuery}
         watchLaterCount={watchLaterCount}
         onViewChange={handleViewChange}
-        onSearchToggle={handleSearchToggle}
-        onSearchChange={handleSearchChange}
       >
         <SkeletonSettings />
       </SkeletonPageLayout>
@@ -159,11 +144,8 @@ export default function SettingsPage() {
       <Navbar
         currentView="settings"
         showSearch={showSearch}
-        searchQuery={searchQuery}
         watchLaterCount={watchLaterCount}
         onViewChange={handleViewChange}
-        onSearchToggle={handleSearchToggle}
-        onSearchChange={handleSearchChange}
       />
 
       <main className="pt-24 pb-8">

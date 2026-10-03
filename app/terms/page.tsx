@@ -20,11 +20,8 @@ export default function TermsOfService() {
       <Navbar
         currentView="terms"
         showSearch={false}
-        searchQuery={''}
         watchLaterCount={watchLaterCount}
         onViewChange={handleViewChange}
-        onSearchToggle={() => {}}
-        onSearchChange={() => {}}
       />
 
       {/* Main Content */}

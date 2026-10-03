@@ -40,8 +40,7 @@ export default function ProfilePage() {
     location: '',
     website: '',
   })
-  const [showSearch, setShowSearch] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [showSearch] = useState(false)
   const watchLaterCount = useWatchlistStore((s) => s.count)
   const fetchWatchlist = useWatchlistStore((s) => s.fetch)
   const continueWatchingItems = useContinueWatchingStore((s) => s.items)
@@ -59,13 +58,6 @@ export default function ProfilePage() {
       router.push('/auth/login')
     }
   }, [authLoading, isSignedIn, router])
-
-  const handleSearchToggle = () => {
-    setShowSearch(!showSearch)
-    if (!showSearch) setSearchQuery('')
-  }
-
-  const handleSearchChange = (query: string) => setSearchQuery(query)
 
   const handleViewChange = (view: string) => router.push(getViewPath(view))
 
@@ -260,11 +252,8 @@ export default function ProfilePage() {
       <SkeletonPageLayout
         currentView="profile"
         showSearch={showSearch}
-        searchQuery={searchQuery}
         watchLaterCount={watchLaterCount}
         onViewChange={handleViewChange}
-        onSearchToggle={handleSearchToggle}
-        onSearchChange={handleSearchChange}
       >
         <SkeletonProfile />
       </SkeletonPageLayout>
@@ -343,14 +332,11 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-black text-white">
       <Navbar
-        currentView="profile"
-        showSearch={showSearch}
-        searchQuery={searchQuery}
-        watchLaterCount={watchLaterCount}
-        onViewChange={handleViewChange}
-        onSearchToggle={handleSearchToggle}
-        onSearchChange={handleSearchChange}
-      />
+      currentView="profile"
+      showSearch={showSearch}
+      watchLaterCount={watchLaterCount}
+      onViewChange={handleViewChange}
+    />
 
       <div className="max-w-5xl mx-auto px-4 py-32 pt-40">
         {/* Toast notification */}

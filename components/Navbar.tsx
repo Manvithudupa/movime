@@ -15,20 +15,15 @@ import { VIEW_ROUTES } from '@/lib/routes';
 interface NavbarProps {
   currentView: string;
   showSearch: boolean;
-  searchQuery: string;
   watchLaterCount: number;
   onViewChange: (view: string) => void;
-  onSearchToggle: () => void;
-  onSearchChange: (query: string) => void;
 }
 
 export default function Navbar({
   currentView,
   showSearch,
-  searchQuery, // eslint-disable-line @typescript-eslint/no-unused-vars
   watchLaterCount,
-  onViewChange,
-  onSearchToggle // eslint-disable-line @typescript-eslint/no-unused-vars
+  onViewChange
 }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);

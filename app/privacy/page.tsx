@@ -19,11 +19,8 @@ export default function PrivacyPolicy() {
       <Navbar
         currentView="privacy"
         showSearch={false}
-        searchQuery={''}
         watchLaterCount={watchLaterCount}
         onViewChange={handleViewChange}
-        onSearchToggle={() => {}}
-        onSearchChange={() => {}}
       />
 
       {/* Main Content */}

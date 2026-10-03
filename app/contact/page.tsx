@@ -74,11 +74,8 @@ export default function ContactPage() {
       <Navbar
         currentView="contact"
         showSearch={false}
-        searchQuery={''}
         watchLaterCount={watchLaterCount}
         onViewChange={handleViewChange}
-        onSearchToggle={() => {}}
-        onSearchChange={() => {}}
       />
 
       {/* Hero Section */}

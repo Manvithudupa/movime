@@ -435,13 +435,10 @@ function DetailsPageContent() {
   if (loading) {
     return (
       <SkeletonPageLayout
-        currentView="details"
-        showSearch={false}
-        searchQuery={''}
-        watchLaterCount={watchLaterCount}
-        onViewChange={() => {}}
-        onSearchToggle={() => { router.push('/search'); }}
-        onSearchChange={() => {}}
+      currentView="details"
+      showSearch={false}
+      watchLaterCount={watchLaterCount}
+      onViewChange={() => {}}
       >
         {/* Back to Home Button — same fixed position as the loaded page */}
         <div className="fixed top-16 sm:top-24 left-2 sm:left-4 z-50">
@@ -466,11 +463,8 @@ function DetailsPageContent() {
         <Navbar
           currentView="details"
           showSearch={false}
-          searchQuery={''}
           watchLaterCount={watchLaterCount}
           onViewChange={() => {}}
-          onSearchToggle={() => { router.push('/search'); }}
-          onSearchChange={() => {}}
         />
         <div className="pt-24 flex items-center justify-center min-h-screen">
           <div className="text-center">
@@ -491,13 +485,10 @@ function DetailsPageContent() {
   return (
   <div className="min-h-screen bg-black text-white">
       <Navbar
-        currentView="details"
-        showSearch={false}
-        searchQuery={''}
-        watchLaterCount={watchLaterCount}
-        onViewChange={() => {}}
-        onSearchToggle={() => { router.push('/search'); }}
-        onSearchChange={() => {}}
+      currentView="details"
+      showSearch={false}
+      watchLaterCount={watchLaterCount}
+      onViewChange={() => {}}
       />
 
       {/* Hero Section — YouTube trailer embed with backdrop fallback */}
