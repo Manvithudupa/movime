@@ -71,8 +71,19 @@ describe('filterAdultContent', () => {
     expect(filterAdultContent(items, true)).toHaveLength(1)
   })
 
-  it('filters by overview keywords', () => {
-    const items = [{ id: 1, title: 'Documentary', overview: 'an intimate portrait of penguins' }]
+  it('keeps mainstream titles whose synopsis uses suggestive words', () => {
+    // Overviews routinely use suggestive-but-innocent language. "Murder in
+    // Mahim" (a crime drama) is "...secrets of desire, greed and despair" and
+    // used to be hidden from search because of the word "desire".
+    const items = [
+      { id: 1, title: 'Documentary', overview: 'an intimate portrait of penguins' },
+      { id: 2, name: 'Murder in Mahim', overview: 'they uncover secrets of desire, greed and despair' },
+    ]
+    expect(filterAdultContent(items)).toHaveLength(2)
+  })
+
+  it('still filters explicit keywords in the overview', () => {
+    const items = [{ id: 1, title: 'Nothing Suspicious', overview: 'a hardcore porn feature' }]
     expect(filterAdultContent(items)).toHaveLength(0)
   })
 

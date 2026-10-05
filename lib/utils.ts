@@ -842,21 +842,39 @@ export const blockedMovieIds = [
 ];
 
 // Adult filter
-const adultContentKeywords = [
-  'xxx', 'porn', 'erotic', 'explicit', 'adult', 'sex', 'nude', 'naked', 
-  'sensual', 'intimate', 'seductive', 'temptation', 'desire', 'passion',
-  'lust', 'sexual', 'sexuality', 'arousal', 'provocative', 'steamy',
-  'sensuous', 'sultry', 'kinky', 'fetish', 'escort', 'stripper',
-  'brothel', 'prostitute', 'call girl', 'gigolo', 'swinger'
+//
+// Keywords are split by how trustworthy they are as an adult signal. Words
+// like "desire", "intimate" or "passion" routinely appear in the synopses of
+// mainstream titles — "Murder in Mahim" is "...secrets of desire, greed and
+// despair" — so scanning overviews for them hid legitimate shows. Only the
+// explicit terms are matched against synopses; the ambiguous ones count just
+// when they appear in the title itself.
+const explicitAdultKeywords = [
+  'xxx', 'porn', 'pornographic', 'erotic', 'erotica', 'nude', 'naked',
+  'hentai', 'fetish', 'kinky', 'brothel', 'prostitute', 'call girl',
+  'gigolo', 'swinger', 'stripper'
+];
+
+const suggestiveAdultKeywords = [
+  'explicit', 'adult', 'sex', 'sexual', 'sexuality', 'sensual', 'sensuous',
+  'seductive', 'sultry', 'steamy', 'provocative', 'intimate', 'desire',
+  'passion', 'lust', 'arousal', 'temptation', 'escort'
 ];
 
 // Word-boundary matchers, built once. A plain substring check wrongly flagged
 // legitimate titles that merely CONTAIN a keyword — "Sex Education", "Essex
 // Boys", "Sussex", "Middlesex" or "Adulthood" were all hidden from browsing.
 // Boundaries keep the real matches ("Sex Tape") while dropping those.
-const adultKeywordPatterns: RegExp[] = adultContentKeywords.map(
-  (keyword) => new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
-);
+const toWholeWordPatterns = (keywords: string[]): RegExp[] =>
+  keywords.map(
+    (keyword) => new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+  );
+
+const explicitAdultPatterns = toWholeWordPatterns(explicitAdultKeywords);
+const suggestiveAdultPatterns = toWholeWordPatterns(suggestiveAdultKeywords);
+
+const matchesAny = (patterns: RegExp[], text: string): boolean =>
+  patterns.some((pattern) => pattern.test(text));
 
 const isAdultContent = (item: Record<string, any>): boolean => {
   if (!item) return false;
@@ -864,9 +882,11 @@ const isAdultContent = (item: Record<string, any>): boolean => {
   const title = item.title || item.name || '';
   const overview = item.overview || '';
 
-  const hasAdultKeywords = adultKeywordPatterns.some(
-    (pattern) => pattern.test(title) || pattern.test(overview)
-  );
+  // Explicit terms count anywhere; ambiguous ones only in the title.
+  const hasAdultKeywords =
+    matchesAny(explicitAdultPatterns, title) ||
+    matchesAny(explicitAdultPatterns, overview) ||
+    matchesAny(suggestiveAdultPatterns, title);
 
   // TMDB's own explicit flag is authoritative.
   return hasAdultKeywords || item.adult === true;
