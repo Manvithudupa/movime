@@ -104,14 +104,39 @@ describe('filterRankSearchResults', () => {
     expect(ids(ranked)).toEqual([1])
   })
 
-  it('hides reality shows unless the query mentions reality', () => {
+  it('hides reality shows the query only loosely matches', () => {
+    const results = [
+      item({ id: 1, title: 'Inter stellar reality', genre_ids: [10764] }),
+      item({ id: 2, title: 'Interstellar' }),
+    ]
+
+    // id 1 clears the relevance threshold but is not a direct match, so the
+    // reality filter still applies.
+    expect(ids(filterRankSearchResults(results, 'interstellar'))).toEqual([2])
+  })
+
+  it('keeps reality shows when the query explicitly asks for reality', () => {
+    const results = [item({ id: 1, title: 'Reality Interstellar', genre_ids: [10764] })]
+
+    expect(ids(filterRankSearchResults(results, 'reality interstellar'))).toEqual([1])
+  })
+
+  it('keeps a reality show the user named directly', () => {
     const results = [
       item({ id: 1, title: 'Reality Show Dune', genre_ids: [10764] }),
       item({ id: 2, title: 'Dune' }),
     ]
 
-    expect(ids(filterRankSearchResults(results, 'dune'))).toEqual([2])
-    expect(ids(filterRankSearchResults(results, 'reality dune'))).toContain(1)
+    // "Dune" is a whole word in the reality title, so it is a direct match and
+    // the catalogue-quality filter must not hide it.
+    expect(ids(filterRankSearchResults(results, 'dune'))).toEqual([1, 2])
+  })
+
+  it('keeps a direct match even when a short query threshold would drop it', () => {
+    // A 3-letter query demands 0.86, but "Mahim" matching as a "contains" tier
+    // is only 0.72 — still a direct answer to what the user typed.
+    const results = [item({ id: 1, title: 'Mahim', release_date: '2024-05-10' })]
+    expect(ids(filterRankSearchResults(results, 'him'))).toEqual([1])
   })
 
   it('sorts by relevance, then popularity', () => {

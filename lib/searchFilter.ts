@@ -91,6 +91,9 @@ export function filterRankSearchResults<T extends Record<string, any>>(
   const wantsReality = /\breality\b/i.test(qLower)
   if (!wantsReality) {
     items = items.filter((item: any) => {
+      // A title the user named directly is never hidden by a catalogue-quality
+      // filter — the same rule the year cutoff follows below.
+      if (isDirectMatch(item)) return true
       if (item.genre_ids?.includes(10764)) return false
       const title = (item.title || item.name || '').toLowerCase()
       if (title.includes('reality')) return false
@@ -98,8 +101,11 @@ export function filterRankSearchResults<T extends Record<string, any>>(
     })
   }
 
+  // Direct matches bypass the relevance threshold too, so naming a title is
+  // always enough to see it even for a short query whose tighter threshold
+  // would otherwise drop a "contains" match.
   const minScore = minimumRelevanceScore(query)
-  items = items.filter((item) => item.__rel >= minScore)
+  items = items.filter((item) => item.__rel >= minScore || isDirectMatch(item))
   items.sort(
     (a, b) => b.__rel - a.__rel || ((b.popularity || 0) - (a.popularity || 0))
   )
