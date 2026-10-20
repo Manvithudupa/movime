@@ -1,8 +1,7 @@
 // Verified working embed providers (re-verified August 2026).
-// Domains that no longer respond (RiveStream, 2Embed, 123Embed, VidSrcDEV,
-// VidStreamPro) are excluded, as are dead or premium sources — see the
-// commented-out section at the bottom. VidLink (vidlink.pro) and VidSrcPM
-// (vidsrc.pm), once listed here as dead, were later re-added below.
+// Domains that no longer respond (RiveStream, VidLink, 2Embed, 123Embed,
+// VidSrcPM, VidSrcDEV, VidStreamPro) are excluded, as are dead or premium
+// sources — see the commented-out section at the bottom.
 //
 // Dead as of the August 2026 audit (removed): MoviesAPI, GoDrive, EmbedSU,
 // Hexa, VidSrcXyz, VidSrcVIP, VidSrcCC, SmashyStream, AutoEmbed, Vidify,
@@ -15,11 +14,6 @@
 //
 // Added August 2026 (verified rendering real players in a browser):
 // VidSrcPM (vidsrc.pm), VidLink (vidlink.pro), and CineSrc (cinesrc.st).
-//
-// Re-added October 2026 with new domains: P-Stream (pstream.cfd, previously
-// iframe.pstream.mov) and Spenflix (spenflix.world, previously
-// spencerdevs.xyz) — both were listed as "domain unresponsive" and have since
-// come back under new hosts.
 export const availableSources = [
     // ── Embed providers ───────────────────────────────────────────────────
     {
@@ -28,8 +22,8 @@ export const availableSources = [
         isFrench: false,
         requiresNoSandbox: true,
         urls: {
-            movie: 'https://cinemaos.tech/player/{id}',
-            tv: 'https://cinemaos.tech/player/{id}/{season}/{episode}'
+            movie: 'https://cinemaos.in/player/{id}',
+            tv: 'https://cinemaos.in/player/{id}/{season}/{episode}'
         }
     },
     {
@@ -51,20 +45,9 @@ export const availableSources = [
         requiresNoSandbox: true,
         playerType: 'embed',
         urls: {
-            // file-1 domain (mapple.rip) kept as verified
-            movie: 'https://mapple.rip/watch/movie/{id}?autoPlay=true&theme=#9900ff',
-            tv: 'https://mapple.rip/watch/tv/{id}-{season}-{episode}?nextButton=true&autoPlay=true&theme=#9900ff'
-        }
-    },
-    {
-        id: 'vidsrcrip',
-        name: 'VidSrcRIP',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidsrc.rip/embed/movie/{id}',
-            tv: 'https://vidsrc.rip/embed/tv/{id}/{season}/{episode}'
+            // file-1 domain (mapple.fun) kept as verified
+            movie: 'https://mapple.fun/watch/movie/{id}?autoPlay=true&theme=#9900ff',
+            tv: 'https://mapple.fun/watch/tv/{id}-{season}-{episode}?nextButton=true&autoPlay=true&theme=#9900ff'
         }
     },
     {
@@ -90,25 +73,14 @@ export const availableSources = [
         }
     },
     {
-        id: 'vidsrcme',
-        name: 'VidSrcME',
+        id: 'vidsrcsh',
+        name: 'VidSrcSH',
         isFrench: false,
         requiresNoSandbox: true,
         playerType: 'embed',
         urls: {
-            movie: 'https://vidsrcme.ru/embed/movie/{id}',
-            tv: 'https://vidsrcme.ru/embed/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'vidsrcnl',
-        name: 'VidSrcNL',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidsrc.nl/embed/movie/{id}',
-            tv: 'https://vidsrc.nl/embed/tv/{id}/{season}/{episode}'
+            movie: 'https://vidsrc.sh/embed/movie/{id}',
+            tv: 'https://vidsrc.sh/embed/tv/{id}/{season}/{episode}'
         }
     },
     {
@@ -133,17 +105,6 @@ export const availableSources = [
             // verified live Aug 2026 (renders a real <video> player)
             movie: 'https://vidlink.pro/movie/{id}',
             tv: 'https://vidlink.pro/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'videasy',
-        name: 'VidEasy (4K)',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://player.videasy.net/movie/{id}?color=8834ec',
-            tv: 'https://player.videasy.net/tv/{id}/{season}/{episode}?color=8834ec'
         }
     },
     {
@@ -181,31 +142,9 @@ export const availableSources = [
             tv: 'https://cinesrc.st/embed/tv/{id}?s={season}&e={episode}'
         }
     },
-    {
-        id: 'pstream',
-        name: 'P-Stream',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            // movie-web style media routes (TMDB ids); new host of pstream.mov
-            movie: 'https://pstream.cfd/media/tmdb-movie-{id}',
-            tv: 'https://pstream.cfd/media/tmdb-tv-{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'spenflix',
-        name: 'Spenflix',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            // same paths as the old spencerdevs.xyz host (TMDB ids)
-            movie: 'https://spenflix.world/movie/{id}',
-            tv: 'https://spenflix.world/tv/{id}/{season}/{episode}'
-        }
-    },
 
     // ── Commented out (dead / premium / untested) ─────────────────────────
+    // { id: 'pstream',   name: 'P-Stream',          ... }  // domain unresponsive
+    // { id: 'spenflix',  name: 'Spenflix',           ... }  // domain unresponsive
     // { id: 'uembed',    name: 'UEmbed (premium)',   ... }  // requires paid API key
 ];
