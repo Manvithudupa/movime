@@ -127,6 +127,11 @@ function WatchPageContent() {
   const fetchContinueWatching = useContinueWatchingStore((s) => s.fetch);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [iframeKey, setIframeKey] = useState(0);
+  // The player iframe has no reliable cross-origin "ready" signal, so the
+  // skeleton is shown until its load event fires. A source that errors shows
+  // an inline failure state instead of silently rendering an empty frame.
+  const [iframeLoading, setIframeLoading] = useState(true);
+  const [sourceFailed, setSourceFailed] = useState(false);
   const contentId = searchParams.get('id');
   const contentType = searchParams.get('type') as 'movie' | 'tv';
   const seasonParamStr = searchParams.get('season');
@@ -135,6 +140,13 @@ function WatchPageContent() {
   const episodeFromQuery = episodeParamStr ? parseInt(episodeParamStr, 10) : undefined;
 
   const initFromQueryRef = useRef(false);
+
+  // A different source (or an explicit retry of the same one) starts a fresh
+  // load, so clear the previous failure and show the player skeleton again.
+  useEffect(() => {
+    setIframeLoading(true);
+    setSourceFailed(false);
+  }, [currentSource.id, iframeKey]);
 
   useEffect(() => {
     if (contentId && contentType) loadContent();
@@ -313,12 +325,12 @@ function WatchPageContent() {
 
   if (!content) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <main id="main-content" className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Content Not Found</h1>
           <Link href="/" className="text-white hover:text-gray-300">Return to Home</Link>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -347,6 +359,7 @@ function WatchPageContent() {
         onViewChange={(view) => router.push(getViewPath(view))}
       />
 
+      <main id="main-content">
       {/* Top bar */}
       <div className="pt-16 bg-black">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3">
@@ -359,7 +372,7 @@ function WatchPageContent() {
             </svg>
             <span>Details</span>
           </Link>
-          <span className="text-gray-600">/</span>
+          <span className="text-muted-foreground">/</span>
           <span className="text-white font-medium text-sm line-clamp-1">{contentTitle}</span>
           {contentType === 'tv' && (
             <span className="text-gray-400 text-sm shrink-0">
@@ -381,25 +394,56 @@ function WatchPageContent() {
           <div className="flex flex-col xl:flex-row gap-0">
             {/* Player */}
             <div className="flex-1 min-w-0">
-              <div className="aspect-video w-full bg-black">
+              <div className="relative aspect-video w-full bg-black" aria-busy={iframeLoading}>
               {getCurrentVideoUrl() ? (
-                <iframe
-                  key={iframeKey}
-                  src={getCurrentVideoUrl()}
-                  className="w-full h-full"
-                  allowFullScreen
-                  onError={handleSourceFailure}
-                  // SECURITY: never leak the full watch URL (or anything else)
-                  // to third-party embed providers via the Referer header.
-                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="no-referrer"
-                  loading="lazy"
-                  sandbox={currentSource.requiresNoSandbox ? undefined : EMBED_SANDBOX}
-                  title="Player"
-                  style={{ border: 'none', background: '#000' }}
-                />
+                <>
+                  <iframe
+                    key={iframeKey}
+                    src={getCurrentVideoUrl()}
+                    className="w-full h-full"
+                    allowFullScreen
+                    onLoad={() => setIframeLoading(false)}
+                    onError={() => {
+                      setIframeLoading(false)
+                      setSourceFailed(true)
+                    }}
+                    // SECURITY: never leak the full watch URL (or anything else)
+                    // to third-party embed providers via the Referer header.
+                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                    sandbox={currentSource.requiresNoSandbox ? undefined : EMBED_SANDBOX}
+                    title="Player"
+                    style={{ border: 'none', background: '#000' }}
+                  />
+
+                  {/* Skeleton while the embed loads — the player area keeps its
+                      aspect ratio, so nothing jumps when the frame appears. */}
+                  {iframeLoading && !sourceFailed && (
+                    <div className="absolute inset-0 bg-black" aria-hidden="true">
+                      <div className="absolute inset-0 skeleton-shimmer" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border border-white/20 backdrop-blur-sm" />
+                      </div>
+                    </div>
+                  )}
+
+                  {sourceFailed && (
+                    <div className="absolute inset-0 z-10 bg-black/95 flex flex-col items-center justify-center gap-4 px-6 text-center">
+                      <p className="text-sm sm:text-base text-muted-foreground">
+                        This source didn&apos;t load. Try another source.
+                      </p>
+                      <button
+                        onClick={handleSourceFailure}
+                        className="bg-white text-black hover:bg-gray-100 font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors"
+                      >
+                        Try next source
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">Loading video…</div>
+                <div className="w-full h-full skeleton-shimmer" aria-label="Loading video" />
               )}
                </div>
             </div>
@@ -414,7 +458,7 @@ function WatchPageContent() {
                     </svg>
                     Sources
                   </span>
-                  <span className="text-[10px] text-gray-500 uppercase tracking-wider">Switch if not working</span>
+                  <span className="text-xs text-gray-500 uppercase tracking-wider">Switch if not working</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {availableSources
@@ -429,12 +473,13 @@ function WatchPageContent() {
                             : 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
                         }`}
                         title={source.playerType === 'native' ? 'Native player - no ads' : 'Third-party embed - ads may appear'}
+                        aria-pressed={currentSource.id === source.id}
                       >
                         <span>{source.name}</span>
                       </button>
                     ))}
                 </div>
-                <p className="text-[11px] text-gray-600 mt-3 leading-relaxed">
+                <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
                   If a source has low quality or doesn&apos;t work, try another one.
                 </p>
 
@@ -444,7 +489,7 @@ function WatchPageContent() {
                     <svg className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 4h.01M20.5 12a8.5 8.5 0 11-17 0 8.5 8.5 0 0117 0zm-8.5-6h.01M12 9v4" />
                     </svg>
-                    <p className="text-[11px] text-blue-300/80 leading-relaxed">
+                    <p className="text-xs text-blue-300/80 leading-relaxed">
                       These sources use third-party embeds which may show ads. For the best experience, 
                       install <strong>uBlock Origin</strong> (free ad blocker) in your browser.
                     </p>
@@ -587,7 +632,7 @@ function WatchPageContent() {
                           )}
 
                           {isActive && (
-                            <div className="absolute top-2 left-2 z-10 bg-white text-black text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                            <div className="absolute top-2 left-2 z-10 bg-white text-black text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
                               Now Playing
                             </div>
                           )}
@@ -687,7 +732,7 @@ function WatchPageContent() {
                           sizes="144px"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs">No Image</div>
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No Image</div>
                       )}
                     </div>
                     <p className="text-xs text-gray-400 mt-1 line-clamp-2 group-hover:text-white transition-colors">{recTitle}</p>
@@ -699,6 +744,7 @@ function WatchPageContent() {
         )}
       </div>
 
+      </main>
       <Footer />
     </motion.div>
   );

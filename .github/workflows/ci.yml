@@ -25,7 +25,7 @@ env:
   NEXT_PUBLIC_SUPABASE_URL: https://your-project-id.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
   SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role
-  NEXT_PUBLIC_TMDB_API_KEY: ci_placeholder_tmdb_key
+  TMDB_API_KEY: ci_placeholder_tmdb_key
   RESEND_API_KEY: ci_placeholder_resend_key
   CONTACT_TO_EMAIL: ci@example.com
 

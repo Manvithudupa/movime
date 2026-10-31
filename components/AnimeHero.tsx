@@ -275,7 +275,7 @@ export default function AnimeHero({
                 {getReleaseYear(currentAnime) && (
                   <span>{getReleaseYear(currentAnime)}</span>
                 )}
-                <span className="bg-white/10 text-white font-semibold px-2 py-1 rounded-sm text-[10px] sm:text-[11px] leading-none">
+                <span className="bg-white/10 text-white font-semibold px-2 py-1 rounded-sm text-xs sm:text-xs leading-none">
                   Anime
                 </span>
                 {getGenres(currentAnime)[0] && (
@@ -463,7 +463,7 @@ export default function AnimeHero({
                 </div>
               )}
               <div className="bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded shadow-lg">
-                <span className="text-white font-bold text-[10px]">ANIME</span>
+                <span className="text-white font-bold text-xs">ANIME</span>
               </div>
               {currentAnime.vote_average > 0 && (
                 <div className="flex items-center gap-1">
@@ -490,7 +490,7 @@ export default function AnimeHero({
                 {getGenres(currentAnime).map((genreName, idx) => (
                   <span
                     key={`${genreName}-${idx}`}
-                    className="bg-black/50 backdrop-blur-sm text-white px-2.5 py-0.5 rounded-full text-[10px] font-medium border border-white/20"
+                    className="bg-black/50 backdrop-blur-sm text-white px-2.5 py-0.5 rounded-full text-xs font-medium border border-white/20"
                   >
                     {genreName}
                   </span>
@@ -577,7 +577,7 @@ export default function AnimeHero({
                     <path d="M8 5v10l7-5z" />
                   </svg>
                 </span>
-                <span className="text-[11px] font-medium tracking-wide">
+                <span className="text-xs font-medium tracking-wide">
                   Watch Trailer
                 </span>
               </motion.button>

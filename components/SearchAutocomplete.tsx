@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { searchContent, TMDB_IMAGE_BASE_URL, getLocalStorage, setLocalStorage } from '@/lib/utils'
@@ -129,27 +129,6 @@ export default function SearchAutocomplete({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [inputRef, onFocusChange])
 
-  // Build the suggestions list
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const suggestions = useMemo((): AutocompleteSuggestion[] => {
-    if (query.trim().length >= 2) {
-      // Filtered recent matching query + TMDB live suggestions
-      const filteredRecent = recentSearches
-        .filter(r => r.label.toLowerCase().includes(query.toLowerCase()) && r.label.toLowerCase() !== query.toLowerCase())
-        .slice(0, 3)
-        .map(r => ({ type: 'recent' as const, label: r.label, id: r.id, mediaType: r.mediaType }))
-      return [...filteredRecent, ...liveSuggestions]
-    }
-
-    // Empty query: recent + trending
-    const recent = recentSearches.slice(0, 5).map(r => ({ type: 'recent' as const, label: r.label, id: r.id, mediaType: r.mediaType }))
-    const trending = TRENDING_KEYWORDS
-      .filter(t => !recentSearches.slice(0, 5).some(r => r.label === t))
-      .slice(0, 5)
-      .map(t => ({ type: 'trending' as const, label: t }))
-    return [...recent, ...trending]
-  }, [query, recentSearches, liveSuggestions])
-
   const saveRecentSearch = (label: string, id?: number, mediaType?: string) => {
     const trimmed = label.trim()
     if (!trimmed) return
@@ -232,7 +211,7 @@ export default function SearchAutocomplete({
           className="absolute top-full left-0 right-0 mt-2 bg-black/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50"
           style={{ originY: 'top' }}
         >
-          <div className="py-2 max-h-[70vh] overflow-y-auto scrollbar-hide">
+          <div className="py-2 max-h-[70vh] overflow-y-auto">
             {/* Empty query: Recent + Trending */}
             {query.trim().length < 2 && (
               <>
@@ -240,10 +219,10 @@ export default function SearchAutocomplete({
                 {recentSearches.length > 0 && (
                   <div className="px-2">
                     <div className="flex items-center justify-between px-3 py-2">
-                      <span className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Recent</span>
+                      <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Recent</span>
                       <button
                         onClick={clearRecentSearches}
-                        className="text-[10px] text-white/30 hover:text-white/60 transition-colors"
+                        className="text-xs text-muted-foreground hover:text-white/60 transition-colors"
                       >
                         Clear all
                       </button>
@@ -262,7 +241,7 @@ export default function SearchAutocomplete({
                         }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors rounded-xl text-gray-300 hover:bg-white/5 hover:text-white group cursor-pointer"
                       >
-                        <svg className="w-4 h-4 flex-shrink-0 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 flex-shrink-0 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span className="flex-1 truncate text-left">{recent.label}</span>
@@ -271,7 +250,7 @@ export default function SearchAutocomplete({
                           className="p-1 rounded-full hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
                           aria-label={`Remove ${recent.label} from recent searches`}
                         >
-                          <svg className="w-3.5 h-3.5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3.5 h-3.5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
@@ -283,7 +262,7 @@ export default function SearchAutocomplete({
                 {/* Trending pills */}
                 <div className="px-2 mt-1">
                   <div className="flex items-center px-3 py-2">
-                    <span className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Trending</span>
+                    <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Trending</span>
                   </div>
                   <div className="flex flex-wrap gap-2 px-3 pb-1">
                     {TRENDING_KEYWORDS.slice(0, 8).map((term) => (
@@ -304,7 +283,7 @@ export default function SearchAutocomplete({
             {query.trim().length >= 2 && liveSuggestions.length > 0 && (
               <div className="px-2">
                 <div className="flex items-center px-3 py-2">
-                  <span className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">Suggestions</span>
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Suggestions</span>
                 </div>
                 {liveSuggestions.map((suggestion) => (
                   <button
@@ -324,14 +303,14 @@ export default function SearchAutocomplete({
                       </div>
                     ) : (
                       <div className="w-8 h-12 rounded-lg flex-shrink-0 bg-white/5 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
                         </svg>
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="truncate font-medium">{suggestion.label}</p>
-                      <div className="flex items-center gap-2 text-xs text-white/40">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span className="capitalize">{suggestion.mediaType}</span>
                         {suggestion.year && (
                           <>
@@ -341,7 +320,7 @@ export default function SearchAutocomplete({
                         )}
                       </div>
                     </div>
-                    <svg className="w-4 h-4 flex-shrink-0 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 flex-shrink-0 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
@@ -352,7 +331,7 @@ export default function SearchAutocomplete({
             {/* Searching indicator */}
             {query.trim().length >= 2 && liveSuggestions.length === 0 && (
               <div className="px-6 py-8 text-center">
-                <p className="text-white/40 text-sm">Searching for &quot;{query}&quot;...</p>
+                <p className="text-muted-foreground text-sm">Searching for &quot;{query}&quot;...</p>
               </div>
             )}
 

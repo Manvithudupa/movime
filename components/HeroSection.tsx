@@ -296,7 +296,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
                 <span>{formatReleaseYear(currentMovie.release_date)}</span>
               )}
               {getCertification(currentMovie) && (
-                <span className="bg-white/10 text-white font-semibold px-2 py-1 rounded-sm text-[10px] sm:text-[11px] leading-none">
+                <span className="bg-white/10 text-white font-semibold px-2 py-1 rounded-sm text-xs sm:text-xs leading-none">
                   {getCertification(currentMovie)}
                 </span>
               )}
@@ -431,7 +431,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
               
               {getCertification(currentMovie) && (
                 <div className="bg-white/10 backdrop-blur-sm px-1.5 py-0.5 rounded shadow-lg">
-                  <span className="text-white font-bold text-[10px]">{getCertification(currentMovie)}</span>
+                  <span className="text-white font-bold text-xs">{getCertification(currentMovie)}</span>
                 </div>
               )}
               
@@ -454,7 +454,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
               {currentMovie.genres?.slice(0, 3).map((genre: { id: number; name: string }) => (
                 <span 
                   key={genre.id} 
-                  className="bg-black/50 backdrop-blur-sm text-white px-2.5 py-0.5 rounded-full text-[10px] font-medium border border-white/20"
+                  className="bg-black/50 backdrop-blur-sm text-white px-2.5 py-0.5 rounded-full text-xs font-medium border border-white/20"
                 >
                   {genre.name}
                 </span>
@@ -520,7 +520,7 @@ export default function HeroSection({ onWatchNow, onMoreDetails, onAddToWatchLat
                 <span className="w-8 h-8 rounded-full flex items-center justify-center border border-white/50 group-hover:border-white transition-colors">
                   <svg className="w-3.5 h-3.5 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M8 5v10l7-5z"/></svg>
                 </span>
-                <span className="text-[11px] font-medium tracking-wide">Watch Trailer</span>
+                <span className="text-xs font-medium tracking-wide">Watch Trailer</span>
               </motion.button>
             )}
           </motion.div>

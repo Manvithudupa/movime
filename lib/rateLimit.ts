@@ -125,6 +125,23 @@ function getRedisClient(): Redis | null {
   return redisClient
 }
 
+// Fixed-window counter, executed atomically in Redis. INCR and EXPIRE must be
+// one operation: doing them as two round-trips leaves a window where the key
+// exists without a TTL if the second call fails, which would rate-limit that
+// IP forever. The TTL check also repairs a key that somehow lost its expiry.
+const RATE_LIMIT_SCRIPT = `
+local current = redis.call('INCR', KEYS[1])
+if current == 1 then
+  redis.call('EXPIRE', KEYS[1], ARGV[1])
+end
+local ttl = redis.call('TTL', KEYS[1])
+if ttl < 0 then
+  redis.call('EXPIRE', KEYS[1], ARGV[1])
+  ttl = tonumber(ARGV[1])
+end
+return {current, ttl}
+`
+
 /**
  * Rate limit that is enforced across all serverless instances when Upstash
  * Redis is configured, and falls back to the in-memory limiter otherwise
@@ -142,13 +159,13 @@ export async function rateLimitGlobal(
   const windowSeconds = Math.max(1, Math.ceil(options.windowMs / 1000))
 
   try {
-    const count = await redis.incr(key)
-    if (count === 1) {
-      // Fixed window: reset the counter when the window elapses.
-      await redis.expire(key, windowSeconds)
-    }
+    const [count, ttl] = (await redis.eval(
+      RATE_LIMIT_SCRIPT,
+      [key],
+      [String(windowSeconds)]
+    )) as [number, number]
+
     if (count > options.limit) {
-      const ttl = await redis.ttl(key)
       return { success: false, remaining: 0, retryAfterSeconds: Math.max(ttl, 1) }
     }
     return { success: true, remaining: Math.max(options.limit - count, 0), retryAfterSeconds: 0 }

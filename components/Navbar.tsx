@@ -310,6 +310,7 @@ export default function Navbar({
                 href="/settings"
                 className="hidden sm:inline-flex p-1.5 sm:p-2 hover:bg-white/10 rounded-full transition-all duration-100 group"
                 title="Settings"
+                aria-label="Settings"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -387,7 +388,7 @@ export default function Navbar({
                           </svg>
                           <span className="flex-1">My List</span>
                           {watchLaterCount > 0 && (
-                            <span className="bg-white/15 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                            <span className="bg-white/15 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
                               {watchLaterCount}
                             </span>
                           )}

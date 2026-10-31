@@ -73,6 +73,7 @@ export default function AniListCharacterPicker({ onSelect, onClose, currentChara
           <h3 className="text-xl font-bold text-white">Choose an Anime Character</h3>
           <button
             onClick={onClose}
+            aria-label="Close character picker"
             className="p-2 hover:bg-white/10 rounded-full transition-colors"
           >
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +135,7 @@ export default function AniListCharacterPicker({ onSelect, onClose, currentChara
                         {character.name.full}
                       </p>
                       {character.name.native && (
-                        <p className="text-gray-300 text-[10px] line-clamp-1 mt-0.5">
+                        <p className="text-gray-300 text-xs line-clamp-1 mt-0.5">
                           {character.name.native}
                         </p>
                       )}
@@ -156,7 +157,7 @@ export default function AniListCharacterPicker({ onSelect, onClose, currentChara
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <p className="text-gray-400">No characters found for &quot;{searchQuery}&quot;</p>
-              <p className="text-gray-600 text-sm mt-1">Try a different name or check the spelling</p>
+              <p className="text-muted-foreground text-sm mt-1">Try a different name or check the spelling</p>
             </div>
           ) : (
             <div className="text-center py-12">
@@ -164,7 +165,7 @@ export default function AniListCharacterPicker({ onSelect, onClose, currentChara
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               <p className="text-gray-400">Start typing to search for anime characters</p>
-              <p className="text-gray-600 text-sm mt-1">Choose your favorite character as your avatar</p>
+              <p className="text-muted-foreground text-sm mt-1">Choose your favorite character as your avatar</p>
             </div>
           )}
         </div>

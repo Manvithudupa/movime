@@ -10,7 +10,7 @@
 export function SkeletonSettings() {
   return (
     <div aria-hidden="true">
-      <main className="pt-24 pb-8">
+      <div className="pt-24 pb-8">
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Page header */}
           <div className="mb-8">
@@ -78,7 +78,7 @@ export function SkeletonSettings() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

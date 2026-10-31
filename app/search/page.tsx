@@ -319,7 +319,7 @@ function SearchPageContent() {
         onViewChange={(view) => router.push(getViewPath(view))}
       />
 
-      <main className="pt-28 pb-20 px-4 max-w-6xl mx-auto w-full">
+      <main id="main-content" className="pt-28 pb-20 px-4 max-w-6xl mx-auto w-full">
         <div className="flex flex-col items-center text-center mb-6">
           {query.length === 0 && !showingGenre ? (
             <>

@@ -4,7 +4,6 @@ import React, { memo, useRef, useCallback } from 'react';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { TMDB_IMAGE_BASE_URL } from '@/lib/utils';
 import type { ContentItem } from '@/lib/types';
 import { SkeletonSection } from '@/components/SkeletonCard';
@@ -20,12 +19,15 @@ interface ContentSectionProps {
   isLoading?: boolean;
 }
 
-const ContentCard = memo(({ 
-  item, 
-  onAddToWatchLater, 
-  isInWatchLater 
-}: { 
-  item: ContentItem | any, 
+// Local compact card for the horizontal rails. Like ContentCard, the card
+// itself is a real <Link> (stretched-link pattern) and the controls sit above
+// it, so there is no router.push click handler or manual key handling.
+const RailCard = memo(({
+  item,
+  onAddToWatchLater,
+  isInWatchLater
+}: {
+  item: ContentItem | any,
   onAddToWatchLater: (item: ContentItem) => void,
   isInWatchLater: (item: ContentItem) => boolean
 }) => {
@@ -33,36 +35,21 @@ const ContentCard = memo(({
   const posterPath = item.poster_path || item.poster;
   const rating = item.vote_average || 0;
   const type = item.type || item.media_type || (item.title ? 'movie' : 'tv');
-  const router = useRouter();
-
-  const handleCardClick = () => {
-    router.push(`/details?id=${item.id}&type=${type}`);
-  };
+  const detailsHref = `/details?id=${item.id}&type=${type}`;
+  const saved = isInWatchLater(item);
 
   return (
-    <motion.div 
+    <motion.div
       className="group relative bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden"
-      whileHover={{ 
-        scale: 1.03, 
+      whileHover={{
+        scale: 1.03,
         y: -5,
-        transition: { duration: 0.2, ease: "easeOut" }
+        transition: { duration: 0.2, ease: 'easeOut' }
       }}
       whileTap={{ scale: 0.98 }}
       initial={false}
       animate={{ opacity: 1 }}
-      style={{ willChange: "transform" }}
-      onClick={handleCardClick}
-      onKeyDown={(e) => {
-        // Don't swallow Enter/Space for the inner Watch / Details links
-        if ((e.target as HTMLElement).closest('a, button')) return;
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleCardClick();
-        }
-      }}
-      tabIndex={0}
-      role="button"
-      aria-label={`View details for ${itemTitle}`}
+      style={{ willChange: 'transform' }}
     >
       <div className="relative aspect-[2/3]">
         {posterPath ? (
@@ -76,43 +63,50 @@ const ContentCard = memo(({
           />
         ) : (
           <div className="w-full h-full bg-white/5 flex items-center justify-center">
-            <span className="text-gray-400 text-sm">No Image</span>
+            <span className="text-muted-foreground text-sm">No Image</span>
           </div>
         )}
-        
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-        
+
+        {/* Stretched link — below the controls. */}
+        <Link
+          href={detailsHref}
+          className="absolute inset-0 z-10"
+          aria-label={`View details for ${itemTitle}`}
+        >
+          <span className="sr-only">{itemTitle}</span>
+        </Link>
+
+        {/* Gradient overlay (visual only) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+
         {/* Bookmark icon */}
         <motion.button
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            onAddToWatchLater(item);
-          }}
-          className="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-sm rounded-full p-2 transition-colors duration-200 hover:bg-black/80 opacity-0 group-hover:opacity-100"
+          onClick={() => onAddToWatchLater(item)}
+          aria-label={saved ? `Remove ${itemTitle} from My List` : `Add ${itemTitle} to My List`}
+          aria-pressed={saved}
+          className="absolute top-3 right-3 z-30 bg-black/60 backdrop-blur-sm rounded-full p-2 transition-colors duration-200 hover:bg-black/80 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
-          <svg 
+          <svg
             className={`w-4 h-4 transition-colors ${
-              isInWatchLater(item) ? 'text-white fill-current' : 'text-white'
-            }`} 
-            fill={isInWatchLater(item) ? 'currentColor' : 'none'} 
-            stroke="currentColor" 
+              saved ? 'text-white fill-current' : 'text-white'
+            }`}
+            fill={saved ? 'currentColor' : 'none'}
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" 
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
             />
           </svg>
         </motion.button>
-        
-        {/* Content overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white opacity-0 group-hover:opacity-100 transition-all duration-200">
+
+        {/* Content overlay — visual only; links are re-enabled individually. */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-all duration-200 pointer-events-none z-20">
           <h4 className="font-semibold text-xs sm:text-sm mb-1 line-clamp-2">{itemTitle}</h4>
           {rating > 0 && (
             <div className="flex items-center space-x-1 mb-2">
@@ -122,12 +116,11 @@ const ContentCard = memo(({
               <span className="text-xs">{rating.toFixed(1)}</span>
             </div>
           )}
-          
-          <div className="flex items-center gap-1.5">
+
+          <div className="flex items-center gap-1.5 pointer-events-auto">
             <Link
               href={`/watch?id=${item.id}&type=${type}`}
-              onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center px-2.5 py-1 bg-white text-black rounded-lg transition-colors text-xs font-medium"
+              className="relative z-30 inline-flex items-center px-2.5 py-1 bg-white text-black rounded-lg transition-colors text-xs font-medium"
             >
               <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M8 5v10l7-5z"/>
@@ -135,9 +128,8 @@ const ContentCard = memo(({
               Watch
             </Link>
             <Link
-              href={`/details?id=${item.id}&type=${type}`}
-              onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center px-2.5 py-1 bg-white/10 backdrop-blur-sm text-white border border-white/30 rounded-lg transition-colors text-xs font-medium"
+              href={detailsHref}
+              className="relative z-30 inline-flex items-center px-2.5 py-1 bg-white/10 backdrop-blur-sm text-white border border-white/30 rounded-lg transition-colors text-xs font-medium"
             >
               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -151,13 +143,13 @@ const ContentCard = memo(({
   );
 });
 
-ContentCard.displayName = 'ContentCard';
+RailCard.displayName = 'RailCard';
 
-export default function ContentSection({ 
-  title, 
-  subtitle, 
-  content, 
-  onAddToWatchLater, 
+export default function ContentSection({
+  title,
+  subtitle,
+  content,
+  onAddToWatchLater,
   isInWatchLater,
   sectionId,
   onViewAll,
@@ -184,32 +176,33 @@ export default function ContentSection({
   if (content.length === 0) return null;
 
   return (
-    <motion.section 
+    <motion.section
       className="mb-8 sm:mb-10 md:mb-12"
       initial={false}
       animate={{ opacity: 1 }}
+      aria-labelledby={`section-${sectionId}`}
     >
       <div className="flex items-center justify-between mb-4 sm:mb-5 md:mb-6 px-4">
         <div>
-          <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-1">
+          <h2 id={`section-${sectionId}`} className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-1">
             {title}
           </h2>
           {subtitle && (
-            <p className="text-gray-400 text-xs sm:text-sm md:text-base">
+            <p className="text-muted-foreground text-xs sm:text-sm md:text-base">
               {subtitle}
             </p>
           )}
         </div>
         {onViewAll && (
-          <button 
+          <button
             onClick={onViewAll}
             className="text-white hover:text-gray-300 transition-colors text-xs sm:text-sm font-medium flex items-center group"
           >
             View All
-            <svg 
+            <svg
               className="w-3 sm:w-4 h-3 sm:h-4 ml-1 transition-transform group-hover:translate-x-1"
-              fill="none" 
-              stroke="currentColor" 
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -217,16 +210,15 @@ export default function ContentSection({
           </button>
         )}
       </div>
-      
-      <div className="episodes-slider group relative">
+
+      {/* Edge fades come from the shared .episodes-slider styles. */}
+      <div className="episodes-slider group/rail relative">
+
         {/* Left scroll arrow */}
         <div className="absolute top-1/2 -left-4 transform -translate-y-1/2 z-20 scroll-button hidden md:block">
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              scrollByCards(-1);
-            }}
-            aria-label="Scroll left"
+            onClick={() => scrollByCards(-1)}
+            aria-label={`Scroll ${title} left`}
             className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,15 +227,18 @@ export default function ContentSection({
           </button>
         </div>
 
-        <div ref={scrollRef} className="overflow-x-auto scrollbar-hide pb-4 px-4">
+        <div
+          ref={scrollRef}
+          className="overflow-x-auto scrollbar-hide pb-4 px-4"
+        >
           <div className="flex space-x-4 w-max">
             {content.slice(0, 15).map((item, index) => (
-              <div 
-                key={`${sectionId}-${item.id}-${index}`} 
+              <div
+                key={`${sectionId}-${item.id}-${index}`}
                 className="w-32 sm:w-36 md:w-40 lg:w-48 flex-shrink-0"
               >
-                <ContentCard 
-                  item={item} 
+                <RailCard
+                  item={item}
                   onAddToWatchLater={onAddToWatchLater}
                   isInWatchLater={isInWatchLater}
                 />
@@ -252,17 +247,11 @@ export default function ContentSection({
           </div>
         </div>
 
-        {/* Right edge fade */}
-        <div className="absolute top-0 right-0 h-full w-20 bg-gradient-to-l from-black to-transparent pointer-events-none" />
-
         {/* Right scroll arrow */}
         <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 z-20 scroll-button hidden md:block">
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              scrollByCards(1);
-            }}
-            aria-label="Scroll right"
+            onClick={() => scrollByCards(1)}
+            aria-label={`Scroll ${title} right`}
             className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

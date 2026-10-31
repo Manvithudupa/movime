@@ -499,6 +499,7 @@ function HomePageContent() {
               </h2>
               <p className="text-gray-400 text-sm mt-1">Pick up where you left off</p>
             </div>
+            <div className="episodes-slider group relative">
             <div className="flex overflow-x-auto scrollbar-hide gap-4 pb-4">
               {continueWatching.slice(0, 10).map((item) => {
                 const href = item.content_type === 'tv'
@@ -527,7 +528,7 @@ function HomePageContent() {
                           sizes="160px"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs">No Image</div>
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No Image</div>
                       )}
                       
                       {/* Progress bar at bottom */}
@@ -562,6 +563,7 @@ function HomePageContent() {
                         }}
                         className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200"
                         title="Remove from continue watching"
+                        aria-label={`Remove ${item.title} from continue watching`}
                       >
                         <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -572,13 +574,13 @@ function HomePageContent() {
                       {item.title}
                     </p>
                     {item.content_type === 'tv' && item.episode_number && (
-                      <p className="text-[10px] text-gray-500 line-clamp-1">
+                      <p className="text-xs text-gray-500 line-clamp-1">
                         S{item.season_number || 1} · E{item.episode_number}
                         {item.episode_title && ` · ${item.episode_title}`}
                       </p>
                     )}
                     {item.progress_percentage > 0 && (
-                      <p className="text-[10px] text-gray-500 mt-0.5">
+                      <p className="text-xs text-gray-500 mt-0.5">
                         {item.progress_percentage >= 90 ? 'Almost done' : `${item.progress_percentage}% watched`}
                       </p>
                     )}
@@ -586,12 +588,43 @@ function HomePageContent() {
                 );
               })}
             </div>
+
+            {/* Rail scroll controls */}
+            <div className="absolute top-1/2 -left-4 -translate-y-1/2 z-20 scroll-button hidden md:block">
+              <button
+                onClick={(e) => {
+                  const container = e.currentTarget.parentElement?.parentElement?.querySelector('.overflow-x-auto');
+                  container?.scrollBy({ left: -400, behavior: 'smooth' });
+                }}
+                aria-label="Scroll continue watching left"
+                className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            </div>
+            <div className="absolute top-1/2 -right-4 -translate-y-1/2 z-20 scroll-button hidden md:block">
+              <button
+                onClick={(e) => {
+                  const container = e.currentTarget.parentElement?.parentElement?.querySelector('.overflow-x-auto');
+                  container?.scrollBy({ left: 400, behavior: 'smooth' });
+                }}
+                aria-label="Scroll continue watching right"
+                className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+            </div>
           </div>
         </div>
       ) : null)}
 
       {/* Main content */}
-      <main className={mainClassName}>
+      <main id="main-content" className={mainClassName}>
         <div className="px-4 sm:px-6 lg:px-8">
           {/* Filters */}
           {currentView !== 'home' && (

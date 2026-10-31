@@ -110,7 +110,7 @@ export default function Footer() {
             <p className="text-gray-400 text-xs sm:text-sm">
               © {new Date().getFullYear()} Movime. All rights reserved.
             </p>
-            <span className="hidden sm:inline text-gray-600 text-xs">•</span>
+            <span className="hidden sm:inline text-muted-foreground text-xs">•</span>
             <div className="flex items-center space-x-1">
               {[
                 { href: "/privacy", label: "Privacy Policy" },
@@ -121,7 +121,7 @@ export default function Footer() {
                   <Link href={link.href} className="text-gray-400 hover:text-white text-xs sm:text-sm transition-colors">
                     {link.label}
                   </Link>
-                  {index < 2 && <span className="text-gray-600 text-xs">•</span>}
+                  {index < 2 && <span className="text-muted-foreground text-xs">•</span>}
                 </React.Fragment>
               ))}
             </div>

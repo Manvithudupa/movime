@@ -135,7 +135,7 @@ export default function ShareButton({
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.9 }}
-            className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap px-2.5 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-[10px] text-white shadow-xl z-50"
+            className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap px-2.5 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-xs text-white shadow-xl z-50"
           >
             Link copied!
           </motion.div>

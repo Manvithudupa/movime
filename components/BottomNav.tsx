@@ -1,20 +1,17 @@
 'use client'
 
-import React, { Suspense } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useWatchlistStore } from '@/lib/store'
 
-function BottomNavInner() {
+export default function BottomNav() {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const watchLaterCount = useWatchlistStore((s) => s.count)
 
-  const currentView = searchParams.get('view') || null
-
   const handleHomeClick = (e: React.MouseEvent) => {
-    if (pathname === '/' && (!currentView || currentView === 'home')) {
+    if (pathname === '/') {
       e.preventDefault()
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
@@ -30,7 +27,7 @@ function BottomNavInner() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 0 : 1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
       ),
-      isActive: pathname === '/' && (!currentView || currentView === 'home'),
+      isActive: pathname === '/',
     },
     {
       label: 'Search',
@@ -90,6 +87,7 @@ function BottomNavInner() {
 
   return (
     <motion.nav
+      aria-label="Primary"
       className="fixed bottom-0 left-0 right-0 z-50 sm:hidden"
       initial={{ y: 100 }}
       animate={{ y: 0 }}
@@ -105,6 +103,7 @@ function BottomNavInner() {
                 key={item.label}
                 href={item.href}
                 onClick={item.onClick}
+                aria-current={active ? 'page' : undefined}
                 className="relative flex flex-col items-center gap-0.5 min-w-0 px-1 py-1 rounded-xl transition-all duration-150 group"
               >
                 <div className={`relative flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200 ${
@@ -114,15 +113,15 @@ function BottomNavInner() {
                 }`}>
                   {item.icon(active)}
                   {item.badge !== undefined && item.badge > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-white text-black text-[10px] font-bold rounded-full px-1 shadow-lg">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-white text-black text-xs font-bold rounded-full px-1 shadow-lg">
                       {item.badge > 99 ? '99+' : item.badge}
                     </span>
                   )}
                 </div>
-                <span className={`text-[10px] font-medium transition-all duration-200 ${
+                <span className={`text-xs font-medium transition-all duration-200 ${
                   active
                     ? 'text-white'
-                    : 'text-white/40 group-hover:text-white/60'
+                    : 'text-muted-foreground group-hover:text-white/60'
                 }`}>
                   {item.label}
                 </span>
@@ -148,13 +147,5 @@ function BottomNavInner() {
         </div>
       </div>
     </motion.nav>
-  )
-}
-
-export default function BottomNav() {
-  return (
-    <Suspense fallback={null}>
-      <BottomNavInner />
-    </Suspense>
   )
 }

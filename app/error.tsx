@@ -21,7 +21,7 @@ export default function Error({
   }, [error])
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+    <main id="main-content" className="min-h-screen bg-black text-white flex items-center justify-center px-4">
       <div className="w-full max-w-md text-center">
         <h1 className="text-2xl font-semibold mb-2">Something went wrong</h1>
         <p className="text-gray-400 text-sm mb-6">
@@ -42,6 +42,6 @@ export default function Error({
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

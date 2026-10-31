@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/AuthProvider'
 import Image from '@/components/ProxyImage'
 
-export default function ResetPasswordPage() {
+function ResetPasswordPageContent() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -258,5 +258,15 @@ function ResetPasswordContent() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Every state of this page (loading, invalid session, success) is wrapped in
+// one main landmark so the skip link always lands on real content.
+export default function ResetPasswordPage() {
+  return (
+    <main id="main-content">
+      <ResetPasswordPageContent />
+    </main>
   )
 }

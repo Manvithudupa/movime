@@ -93,7 +93,7 @@ export default function AnnouncementPopup() {
                   <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-wide">
                     Welcome to Movime
                   </h2>
-                  <span className="mt-3 inline-block px-3 py-1 text-[10px] sm:text-xs font-semibold uppercase tracking-widest rounded-full border border-white/15 bg-white/5 text-white/60">
+                  <span className="mt-3 inline-block px-3 py-1 text-xs sm:text-xs font-semibold uppercase tracking-widest rounded-full border border-white/15 bg-white/5 text-white/60">
                     Updated UI
                   </span>
                   <div className="mt-3 w-12 h-[2px] rounded-full bg-white/20" />
@@ -155,7 +155,7 @@ export default function AnnouncementPopup() {
 
                   {/* Share & recommend - prominent */}
                   <div className="bg-white/[0.03] rounded-xl p-5 border border-white/[0.06] text-center">
-                    <svg className="w-5 h-5 mx-auto mb-2 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 mx-auto mb-2 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                     </svg>
                     <p className="text-gray-200 text-sm font-medium">

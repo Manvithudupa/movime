@@ -316,7 +316,7 @@ export default function BrowseContent({
       )}
 
       {/* Main content */}
-      <main className={mainClassName}>
+      <main id="main-content" className={mainClassName}>
         <div className="px-4 sm:px-6 lg:px-8">
           {/* Section title */}
           <div className="mb-6">

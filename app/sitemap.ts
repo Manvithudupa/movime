@@ -18,9 +18,9 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
 ]
 
 async function fetchPopular(type: 'movie' | 'tv', limit: number): Promise<MetadataRoute.Sitemap> {
-  // Server-side only — prefer the server-only key, fall back to the legacy
-  // public key for old deployments.
-  const apiKey = process.env.TMDB_API_KEY || process.env.NEXT_PUBLIC_TMDB_API_KEY
+  // Server-side only. The key must never be exposed through a NEXT_PUBLIC_
+  // variable, which would inline it into the client bundle.
+  const apiKey = process.env.TMDB_API_KEY
   if (!apiKey) return []
 
   try {

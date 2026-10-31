@@ -23,6 +23,7 @@ export default function PrivacyPolicy() {
         onViewChange={handleViewChange}
       />
 
+      <main id="main-content">
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-32 pt-40">{/* Added pt-40 to account for navbar */}
         <div className="prose prose-invert max-w-none">
@@ -216,6 +217,7 @@ export default function PrivacyPolicy() {
           </div>
         </div>
       </div>
+      </main>
     </div>
   );
 }

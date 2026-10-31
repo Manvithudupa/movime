@@ -268,10 +268,6 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 # TMDB (required for movie/TV/anime data). All TMDB requests are proxied
 # server-side through /api/tmdb, so the key never ships in the client bundle.
 TMDB_API_KEY=your_tmdb_key
-# Legacy fallback (deprecated): only used when TMDB_API_KEY is unset. Because
-# it starts with NEXT_PUBLIC_ it ships in the client bundle — remove it once
-# TMDB_API_KEY is set.
-# NEXT_PUBLIC_TMDB_API_KEY=your_tmdb_key
 
 # Resend (required for the contact form)
 RESEND_API_KEY=re_your_resend_key

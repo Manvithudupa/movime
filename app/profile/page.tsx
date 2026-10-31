@@ -338,6 +338,7 @@ export default function ProfilePage() {
       onViewChange={handleViewChange}
     />
 
+      <main id="main-content">
       <div className="max-w-5xl mx-auto px-4 py-32 pt-40">
         {/* Toast notification */}
         <AnimatePresence>
@@ -387,6 +388,7 @@ export default function ProfilePage() {
                   onClick={() => setShowCharacterPicker(true)}
                   className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-full cursor-pointer"
                   title="Choose anime avatar"
+                  aria-label="Choose anime character avatar"
                 >
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -399,6 +401,7 @@ export default function ProfilePage() {
                       e.stopPropagation();
                       removeCharacter();
                     }}
+                    aria-label="Remove anime character avatar"
                     className="absolute -top-1 -right-1 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full p-1.5 border border-white/20 transition-all opacity-0 group-hover:opacity-100"
                     title="Remove anime avatar"
                   >
@@ -605,7 +608,7 @@ export default function ProfilePage() {
                   <div className="text-white">{stat.icon}</div>
                   <h3 className="font-medium text-sm text-gray-300">{stat.title}</h3>
                   {stat.href && (
-                    <svg className="w-3.5 h-3.5 ml-auto text-gray-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 ml-auto text-muted-foreground group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   )}
@@ -822,6 +825,7 @@ export default function ProfilePage() {
           currentCharacter={profile.anime_character as any}
         />
       )}
+      </main>
     </div>
   )
 }

@@ -466,7 +466,7 @@ function DetailsPageContent() {
           watchLaterCount={watchLaterCount}
           onViewChange={() => {}}
         />
-        <div className="pt-24 flex items-center justify-center min-h-screen">
+        <main id="main-content" className="pt-24 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Content Not Found</h1>
             <p className="text-gray-400 mb-6">The content you are looking for could not be found.</p>
@@ -477,7 +477,7 @@ function DetailsPageContent() {
               Back to Home
             </Link>
           </div>
-        </div>
+        </main>
       </div>
     );
   }
@@ -491,6 +491,7 @@ function DetailsPageContent() {
       onViewChange={() => {}}
       />
 
+      <main id="main-content">
       {/* Hero Section — YouTube trailer embed with backdrop fallback */}
       <div className="relative h-[50vh] sm:h-[56vh] md:h-[62vh] overflow-hidden bg-black">
         <div className="absolute inset-0">
@@ -597,7 +598,7 @@ function DetailsPageContent() {
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-300 mb-4 sm:mb-5">
                 {getReleaseYear() && <span>{getReleaseYear()}</span>}
                 {getCertification() && (
-                  <span className="bg-white/10 text-white font-semibold px-2 py-1 rounded-sm text-[10px] sm:text-[11px] leading-none">{getCertification()}</span>
+                  <span className="bg-white/10 text-white font-semibold px-2 py-1 rounded-sm text-xs sm:text-xs leading-none">{getCertification()}</span>
                 )}
                 {getRuntime() && <span>{getRuntime()}</span>}
                 {getPrimaryGenre() && <span>{getPrimaryGenre()}</span>}
@@ -765,7 +766,7 @@ function DetailsPageContent() {
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="mb-6 sm:mb-8">
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-wide text-white">Top Billed Cast</h2>
-              <span className="text-[10px] sm:text-xs uppercase tracking-widest text-gray-400">Starring in {getTitle()}</span>
+              <span className="text-xs sm:text-xs uppercase tracking-widest text-gray-400">Starring in {getTitle()}</span>
             </div>
             <div className="episodes-slider group relative">
               <div className="overflow-x-auto scrollbar-hide">
@@ -801,7 +802,7 @@ function DetailsPageContent() {
                           <h3 className="text-xs sm:text-sm font-semibold leading-snug line-clamp-1 group-hover/cast:text-white transition-colors">
                             {member.name}
                           </h3>
-                          <p className="text-[10px] sm:text-[11px] text-gray-400 line-clamp-2 leading-snug">
+                          <p className="text-xs sm:text-xs text-gray-400 line-clamp-2 leading-snug">
                             {member.character || member.known_for_department || '—'}
                           </p>
                         </div>
@@ -817,6 +818,7 @@ function DetailsPageContent() {
                     const container = e.currentTarget.parentElement?.parentElement?.querySelector('.overflow-x-auto');
                     container?.scrollBy({ left: -400, behavior: 'smooth' });
                   }}
+                  aria-label="Scroll left"
                   className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
@@ -829,6 +831,7 @@ function DetailsPageContent() {
                     const container = e.currentTarget.parentElement?.parentElement?.querySelector('.overflow-x-auto');
                     container?.scrollBy({ left: 400, behavior: 'smooth' });
                   }}
+                  aria-label="Scroll right"
                   className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -983,7 +986,7 @@ function DetailsPageContent() {
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-6 sm:mb-8">
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-wide text-white">Recommended for You</h2>
-              <span className="text-[10px] sm:text-xs uppercase tracking-widest text-gray-400">Based on this {contentType === 'movie' ? 'movie' : 'show'}</span>
+              <span className="text-xs sm:text-xs uppercase tracking-widest text-gray-400">Based on this {contentType === 'movie' ? 'movie' : 'show'}</span>
             </div>
             <div className="episodes-slider group relative">
               <div className="overflow-x-auto scrollbar-hide">
@@ -1009,7 +1012,7 @@ function DetailsPageContent() {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
                           {item.vote_average > 0 && (
-                            <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm rounded-md px-2 py-1 text-[10px] sm:text-xs font-semibold flex items-center gap-1">
+                            <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm rounded-md px-2 py-1 text-xs sm:text-xs font-semibold flex items-center gap-1">
                               <svg className="w-2.5 sm:w-3 h-2.5 sm:h-3 text-yellow-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                               {item.vote_average.toFixed(1)}
                             </div>
@@ -1017,7 +1020,7 @@ function DetailsPageContent() {
                         </div>
                         <div className="p-2.5 sm:p-3 space-y-1">
                           <h3 className="text-xs sm:text-sm font-semibold leading-snug line-clamp-2 group-hover/card:text-white transition-colors">{title}</h3>
-                          <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-gray-400">
+                          <div className="flex items-center justify-between text-xs sm:text-xs text-gray-400">
                             <span>{year}</span>
                             {item.vote_average > 0 && (
                               <span className="text-gray-300">★ {item.vote_average.toFixed(1)}</span>
@@ -1036,6 +1039,7 @@ function DetailsPageContent() {
                     const container = e.currentTarget.parentElement?.parentElement?.querySelector('.overflow-x-auto');
                     container?.scrollBy({ left: -400, behavior: 'smooth' });
                   }}
+                  aria-label="Scroll left"
                   className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
@@ -1048,6 +1052,7 @@ function DetailsPageContent() {
                     const container = e.currentTarget.parentElement?.parentElement?.querySelector('.overflow-x-auto');
                     container?.scrollBy({ left: 400, behavior: 'smooth' });
                   }}
+                  aria-label="Scroll right"
                   className="bg-black/80 hover:bg-black text-white rounded-full p-3 shadow-xl backdrop-blur-sm border border-white/20 hover:scale-110 transition-all duration-200"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -1057,6 +1062,7 @@ function DetailsPageContent() {
           </div>
         </div>
       )}
+      </main>
     </div>
   );
 }

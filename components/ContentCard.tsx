@@ -4,7 +4,6 @@ import React, { memo } from 'react';
 import Image from '@/components/ProxyImage';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { TMDB_IMAGE_BASE_URL } from '@/lib/utils';
 import type { ContentItem } from '@/lib/types';
 
@@ -14,32 +13,27 @@ interface ContentCardProps {
   isInWatchLater: (item: ContentItem) => boolean;
 }
 
-// Memoized ContentCard shared by the home page and category pages
-const ContentCard = memo(({ 
-  item, 
-  addToWatchLater, 
-  isInWatchLater 
+// Memoized ContentCard shared by the home page and category pages.
+//
+// The whole card is a real <Link> via the stretched-link pattern: an absolutely
+// positioned Link covers the card, and the interactive controls (bookmark,
+// WATCH, Details) sit above it. This keeps native link behaviour (open in new
+// tab, status bar URL, prefetch) without a router.push onClick or manual
+// Enter/Space key handling.
+const ContentCard = memo(({
+  item,
+  addToWatchLater,
+  isInWatchLater
 }: ContentCardProps) => {
   const title = item.title || item.name || '';
   const posterPath = item.poster_path || item.poster;
   const rating = item.vote_average || 0;
   const type = item.type || item.media_type || (item.title ? 'movie' : 'tv');
-  const router = useRouter();
   const detailsHref = `/details?id=${item.id}&type=${type}`;
-
-  const handleCardClick = () => {
-    router.push(detailsHref);
-  };
-
-  // Prefetch the detail page as soon as the user shows intent. The card is a
-  // div (it contains its own buttons/links), so Next can't prefetch it
-  // automatically the way it does for <Link>.
-  const prefetchDetails = () => {
-    if (item?.id != null) router.prefetch(detailsHref);
-  };
+  const saved = isInWatchLater(item);
 
   return (
-    <motion.div 
+    <motion.div
       className="group relative bg-white/[0.03] border border-white/10 rounded-xl overflow-hidden card-hover"
       initial={false}
       whileHover={{
@@ -48,22 +42,8 @@ const ContentCard = memo(({
         scale: 1.03,
         transition: { duration: 0.2 },
       }}
-      whileTap={{ scale: 0.95 }}
+      whileTap={{ scale: 0.98 }}
       style={{ willChange: 'transform' }}
-      onClick={handleCardClick}
-      onMouseEnter={prefetchDetails}
-      onFocus={prefetchDetails}
-      onKeyDown={(e) => {
-        // Don't swallow Enter/Space for the inner WATCH / Details links
-        if ((e.target as HTMLElement).closest('a, button')) return;
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleCardClick();
-        }
-      }}
-      tabIndex={0}
-      role="button"
-      aria-label={`View details for ${title}`}
     >
       <div className="relative aspect-[5/7]">
         {posterPath ? (
@@ -77,16 +57,25 @@ const ContentCard = memo(({
           />
         ) : (
           <div className="w-full h-full bg-white/5 flex items-center justify-center">
-            <span className="text-gray-400">No Image</span>
+            <span className="text-muted-foreground">No Image</span>
           </div>
         )}
-        
+
+        {/* Stretched link — covers the card but sits below every control. */}
+        <Link
+          href={detailsHref}
+          className="absolute inset-0 z-10"
+          aria-label={`View details for ${title}`}
+        >
+          <span className="sr-only">{title}</span>
+        </Link>
+
         {/* Status Badge — the palette mirrors STATUS_INFO so a badge reads the
-            same here and on the watchlist. Every variant is now white-backed
-            with black text; the old plan-to-watch badge was white text on a
-            translucent white pill, which washed out over bright posters. */}
+            same here and on the watchlist. Every variant is white-backed
+            with black text. Non-interactive, so it must not intercept clicks
+            intended for the stretched link. */}
         {item.status && (
-          <div className={`absolute top-3 left-3 z-10 px-2 py-0.5 rounded-full text-[10px] font-semibold shadow-lg ${
+          <div className={`absolute top-3 left-3 z-20 pointer-events-none px-2 py-0.5 rounded-full text-xs font-semibold shadow-lg ${
             item.status === 'watching' ? 'bg-white text-black' :
             item.status === 'completed' ? 'bg-white/80 text-black' :
             item.status === 'plan_to_watch' ? 'bg-white/55 text-black' :
@@ -98,40 +87,39 @@ const ContentCard = memo(({
              '✕ Dropped'}
           </div>
         )}
-        
+
         {/* Bookmark icon */}
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            addToWatchLater(item);
-          }}
-          className="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-sm rounded-full p-2 transition-all duration-200 hover:bg-black/80"
+          onClick={() => addToWatchLater(item)}
+          aria-label={saved ? `Remove ${title} from My List` : `Add ${title} to My List`}
+          aria-pressed={saved}
+          className="absolute top-3 right-3 z-30 bg-black/60 backdrop-blur-sm rounded-full p-2 transition-all duration-200 hover:bg-black/80"
         >
           {/* Saved state is the filled bookmark, not a red one — red is
               reserved for destructive actions across the site. */}
-          <svg 
+          <svg
             className={`w-5 h-5 transition-colors ${
-              isInWatchLater(item) ? 'text-white fill-current' : 'text-white/80'
-            }`} 
-            fill={isInWatchLater(item) ? 'currentColor' : 'none'} 
-            stroke="currentColor" 
+              saved ? 'text-white fill-current' : 'text-white/80'
+            }`}
+            fill={saved ? 'currentColor' : 'none'}
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" 
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
             />
           </svg>
         </button>
-        
-        {/* Hover overlay with details */}
-        <div className="card-overlay absolute inset-0 flex flex-col justify-end p-4 text-white">
+
+        {/* Hover overlay with details — visual only; its links are re-enabled
+            individually so they sit above the stretched link. */}
+        <div className="card-overlay absolute inset-0 z-20 pointer-events-none flex flex-col justify-end p-4 text-white">
           <div className="space-y-2">
             <h3 className="font-bold text-sm leading-tight">{title}</h3>
-            
+
             {rating > 0 && (
               <div className="flex items-center space-x-1">
                 <svg className="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
@@ -140,12 +128,11 @@ const ContentCard = memo(({
                 <span className="text-sm font-semibold">{rating.toFixed(1)}/10</span>
               </div>
             )}
-            
-            <div className="flex items-center gap-2 mt-3">
+
+            <div className="flex items-center gap-2 mt-3 pointer-events-auto">
               <Link
                 href={`/watch?id=${item.id}&type=${type}`}
-                onClick={(e) => e.stopPropagation()}
-                className="flex-1 bg-white hover:bg-gray-100 text-black py-1.5 rounded-md text-xs font-bold transition-colors flex items-center justify-center gap-1"
+                className="relative z-30 flex-1 bg-white hover:bg-gray-100 text-black py-1.5 rounded-md text-xs font-bold transition-colors flex items-center justify-center gap-1"
               >
                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M8 5v10l7-5z"/>
@@ -153,10 +140,9 @@ const ContentCard = memo(({
                 WATCH
               </Link>
               <Link
-                href={`/details?id=${item.id}&type=${type}`}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white p-1.5 rounded-md transition-colors"
-                title="View Details"
+                href={detailsHref}
+                className="relative z-30 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white p-1.5 rounded-md transition-colors"
+                aria-label={`View details for ${title}`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

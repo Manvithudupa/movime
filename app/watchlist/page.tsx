@@ -213,7 +213,7 @@ export default function WatchlistPage() {
         )}
       </AnimatePresence>
 
-      <main className="pt-28 pb-20 px-4 max-w-7xl mx-auto">
+      <main id="main-content" className="pt-28 pb-20 px-4 max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -335,7 +335,7 @@ export default function WatchlistPage() {
                     )}
 
                     {/* Status badge */}
-                    <div className={`absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-semibold ${getStatusStyle(item.status)}`}>
+                    <div className={`absolute top-2 left-2 px-2 py-0.5 rounded text-xs font-semibold ${getStatusStyle(item.status)}`}>
                       {STATUS_OPTIONS.find(s => s.value === item.status)?.icon}{' '}
                       {STATUS_OPTIONS.find(s => s.value === item.status)?.label}
                     </div>
@@ -446,11 +446,11 @@ export default function WatchlistPage() {
                     </h3>
                   </Link>
                   <div className="flex items-center gap-1 mt-1">
-                    <span className="text-[10px] text-gray-500 uppercase tracking-wider">
+                    <span className="text-xs text-gray-500 uppercase tracking-wider">
                       {item.content_type}
                     </span>
-                    <span className="text-[10px] text-gray-600">•</span>
-                    <span className="text-[10px] text-gray-500">
+                    <span className="text-xs text-muted-foreground">•</span>
+                    <span className="text-xs text-gray-500">
                       {item.added_at ? new Date(item.added_at).toLocaleDateString() : ''}
                     </span>
                   </div>

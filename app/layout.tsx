@@ -89,6 +89,15 @@ export default function RootLayout({
       </head>
 
       <body>
+        {/* First focusable element on the page — lets keyboard users bypass
+            the navbar and land directly on the page content. */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-white focus:text-black focus:px-4 focus:py-2 focus:rounded-md focus:font-medium"
+        >
+          Skip to main content
+        </a>
+
         <Script id="sw-register" strategy="afterInteractive">
           {`
             if ('serviceWorker' in navigator) {

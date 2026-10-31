@@ -81,7 +81,7 @@ function HistoryRow({ item, index, onRemove }: {
             sizes="96px"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs">
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
             No Image
           </div>
         )}
@@ -102,13 +102,13 @@ function HistoryRow({ item, index, onRemove }: {
             {item.episode_title && ` · ${item.episode_title}`}
           </p>
         )}
-        <p className="text-[11px] text-gray-500 mt-1 flex items-center gap-1.5 flex-wrap">
+        <p className="text-xs text-gray-500 mt-1 flex items-center gap-1.5 flex-wrap">
           <span>{formatRelativeTime(item.updated_at)}</span>
-          <span className="text-gray-600">•</span>
+          <span className="text-muted-foreground">•</span>
           <span className="uppercase tracking-wider">{item.content_type}</span>
           {percent > 0 && (
             <>
-              <span className="text-gray-600">•</span>
+              <span className="text-muted-foreground">•</span>
               <span>{isFinished ? 'Finished' : `${percent}% watched`}</span>
             </>
           )}
@@ -239,7 +239,7 @@ export default function HistoryPage() {
         )}
       </AnimatePresence>
 
-      <main className="pt-28 pb-20 px-4 max-w-5xl mx-auto">
+      <main id="main-content" className="pt-28 pb-20 px-4 max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -315,7 +315,7 @@ export default function HistoryPage() {
               <section key={group.label}>
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3 px-1">
                   {group.label}
-                  <span className="ml-2 text-gray-600">{group.items.length}</span>
+                  <span className="ml-2 text-muted-foreground">{group.items.length}</span>
                 </h2>
                 <div className="space-y-3">
                   {group.items.map((item, index) => (

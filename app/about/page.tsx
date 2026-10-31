@@ -25,6 +25,7 @@ export default function AboutPage() {
         onViewChange={handleViewChange}
       />
 
+      <main id="main-content">
       {/* Hero Section */}
       <div className="py-32 pt-40">
         <div className="max-w-6xl mx-auto px-4 text-center">
@@ -218,6 +219,7 @@ export default function AboutPage() {
         </div>
       </div>
 
+      </main>
       <Footer />
     </div>
   );

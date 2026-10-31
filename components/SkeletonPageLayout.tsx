@@ -32,7 +32,7 @@ export function SkeletonPageLayout({
         watchLaterCount={watchLaterCount}
         onViewChange={onViewChange}
       />
-      {children}
+      <main id="main-content">{children}</main>
     </div>
   );
 }

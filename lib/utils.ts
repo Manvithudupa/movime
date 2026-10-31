@@ -13,9 +13,8 @@ const debugLog = (...args: unknown[]) => {
 
 // TMDB API configuration.
 // SECURITY: all TMDB requests go through the server-side proxy at /api/tmdb
-// so the API key never ships in the client bundle. The proxy injects the key
-// server-side (TMDB_API_KEY, falling back to NEXT_PUBLIC_TMDB_API_KEY) and
-// caches responses for 10 minutes.
+// so the API key never ships in the client bundle. The proxy injects the
+// server-only TMDB_API_KEY and caches responses for an hour.
 const TMDB_PROXY_BASE = '/api/tmdb';
 export const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
@@ -481,11 +480,11 @@ export const fetchContentDetails = async (id: string, type: 'movie' | 'tv') => {
       const response = await fetch(
         `${TMDB_PROXY_BASE}/${type}/${id}?append_to_response=images,videos,credits,similar,keywords,${extra}&language=en-US&include_image_language=en,null`
       );
-      // The proxy maps upstream errors (404, rate limits, etc.) to a 502 with
-      // an error body. Return null instead of treating that body as content,
-      // so callers render their "Content Not Found" state. All callers already
-      // tolerate null (hero filters it, search uses optional chaining, season
-      // details checks for it).
+      // Upstream failures (404, rate limits, other errors) return an error
+      // body. Return null instead of treating that body as content, so callers
+      // render their "Content Not Found" state. All callers already tolerate
+      // null (hero filters it, search uses optional chaining, season details
+      // checks for it).
       if (!response.ok) {
         console.warn(`[fetchContentDetails] ${type} ${id} failed with status ${response.status}`);
         return null;

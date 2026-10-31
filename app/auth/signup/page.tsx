@@ -68,7 +68,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+    <main id="main-content" className="min-h-screen bg-black text-white flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -165,6 +165,6 @@ export default function SignupPage() {
           </p>
         </div>
       </div>
-    </div>
+    </main>
   )
 }
