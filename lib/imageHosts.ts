@@ -4,7 +4,7 @@
 // reused from server routes as well as components.
 
 export const PROXY_BASE =
-  process.env.NEXT_PUBLIC_IMAGE_PROXY || 'https://images.weserv.nl/?url='
+  process.env.NEXT_PUBLIC_IMAGE_PROXY || 'https://serveproxy.com/?url='
 
 // Domains that should NOT be proxied
 const NO_PROXY_DOMAINS = ['anilist.co']
@@ -12,7 +12,7 @@ const NO_PROXY_DOMAINS = ['anilist.co']
 // SECURITY: only these image hosts are ever rendered. Everything else is
 // replaced with a transparent pixel. This closes the open-proxy hole where a
 // user-controlled URL (avatar_url, localStorage poster_path) was wrapped in
-// the configured image proxy (images.weserv.nl or a custom
+// the configured image proxy (serveproxy.com or a custom
 // NEXT_PUBLIC_IMAGE_PROXY) and fetched from any host — a relay/SSRF vector when
 // a self-hosted proxy is configured. It also stops arbitrary external hosts
 // from loading tracking pixels in the user's browser. Mirror the hosts in

@@ -27,7 +27,7 @@ describe('isAllowedImageSrc', () => {
     // through the allowlist instead of being trusted as same-origin. With
     // images.unoptimized set, an unchecked value here is fetched directly.
     expect(isAllowedImageSrc('//evil.com/tracker.gif')).toBe(false)
-    expect(isAllowedImageSrc('//images.weserv.nl/?url=https://evil.com')).toBe(false)
+    expect(isAllowedImageSrc('//serveproxy.com/?url=https://evil.com')).toBe(false)
   })
 
   it('accepts allowlisted absolute URLs', () => {

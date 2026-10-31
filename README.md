@@ -279,7 +279,7 @@ CONTACT_TO_EMAIL=you@example.com
 RESEND_EMAIL_FROM=Movime <onboarding@resend.dev>
 
 # Optional: image proxy for privacy/caching of TMDB images
-NEXT_PUBLIC_IMAGE_PROXY=https://images.weserv.nl/?url=
+NEXT_PUBLIC_IMAGE_PROXY=https://serveproxy.com/?url=
 
 # Optional: global (cross-instance) API rate limiting via Upstash Redis.
 # Without these, rate limits are enforced per serverless instance.
@@ -507,7 +507,7 @@ The `{id}`, `{season}`, and `{episode}` placeholders are automatically replaced.
 
 ### Image Proxy
 
-Images from TMDB are proxied through `https://images.weserv.nl/?url=` by default to improve privacy and caching. Configure via `NEXT_PUBLIC_IMAGE_PROXY`. AniList images bypass the proxy.
+Images from TMDB are proxied through `https://serveproxy.com/?url=` by default to improve privacy and caching. Configure via `NEXT_PUBLIC_IMAGE_PROXY`. AniList images bypass the proxy.
 
 ---
 
