@@ -21,7 +21,7 @@ const CONTENT_SECURITY_POLICY = [
   "media-src 'self' blob: https:",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.themoviedb.org https://graphql.anilist.co https://vitals.vercel-insights.com https://images.weserv.nl https://*.sentry.io https://*.ingest.sentry.io",
   // The watch page iframes these embed providers (see lib/sources.ts).
-  "frame-src https://cinemaos.tech https://vidnest.fun https://mapple.rip https://vidsrc.rip https://vidsrc.su https://vidsrc.sbs https://vidsrcme.ru https://vidsrc.nl https://vidsrc.pm https://vidlink.pro https://player.videasy.net https://vidfast.pro https://player.vidzee.wtf https://cinesrc.st https://pstream.cfd https://spenflix.world https://www.youtube.com https://www.youtube-nocookie.com",
+  "frame-src https://cinemaos.in https://vidnest.fun https://mapple.rip https://vidsrc.rip https://vidsrc.su https://vidsrc.sbs https://vidsrcme.ru https://vidsrc.nl https://vidsrc.pm https://vidlink.pro https://player.videasy.net https://vidfast.pro https://player.vidzee.wtf https://cinesrc.st https://pstream.cfd https://spenflix.world https://www.youtube.com https://www.youtube-nocookie.com",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
   "base-uri 'self'",

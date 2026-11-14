@@ -28,8 +28,11 @@ export const availableSources = [
         isFrench: false,
         requiresNoSandbox: true,
         urls: {
-            movie: 'https://cinemaos.in/player/{id}',
-            tv: 'https://cinemaos.in/player/{id}/{season}/{episode}'
+            // .in is the live host (cinemaos.tech is DNS-blocked in some
+            // regions). Its own play buttons link to these /watch routes;
+            // /player is the legacy embed path.
+            movie: 'https://cinemaos.in/watch/movie/{id}',
+            tv: 'https://cinemaos.in/watch/tv/{id}?season={season}&episode={episode}'
         }
     },
     {

@@ -169,7 +169,7 @@ This document catalogs every technology, tool, library, and skill used in the Mo
 
 | Source | Domain | Type | Sandbox |
 |--------|--------|------|---------|
-| CinemaOS | cinemaos.tech | Movie/TV | Requires NoSandbox |
+| CinemaOS | cinemaos.in | Movie/TV | Requires NoSandbox |
 | VidNest | vidnest.fun | Movie/TV | Requires NoSandbox |
 | MappleTV | mapple.rip | Movie/TV | Requires NoSandbox |
 | VidSrcRIP | vidsrc.rip | Movie/TV | Requires NoSandbox |
