@@ -1,25 +1,17 @@
-// Verified working embed providers (re-verified August 2026).
-// Domains that no longer respond (RiveStream, 2Embed, 123Embed, VidSrcDEV,
-// VidStreamPro) are excluded, as are dead or premium sources — see the
-// commented-out section at the bottom. VidLink (vidlink.pro) and VidSrcPM
-// (vidsrc.pm), once listed here as dead, were later re-added below.
+// Verified working embed providers (re-audited November 14, 2026).
 //
-// Dead as of the August 2026 audit (removed): MoviesAPI, GoDrive, EmbedSU,
-// Hexa, VidSrcXyz, VidSrcVIP, VidSrcCC, SmashyStream, AutoEmbed, Vidify,
-// Flicky, Vidora, StreamFlix, VidJoy, and Frembed.
+// Only sources that rendered a playable movie (TMDB 550) and TV episode
+// (TMDB 1399 S1E1) inside a cross-origin iframe are kept. Removed in this
+// audit because they no longer work: VidSrcRIP/SBS/ME/NL/PM/SU (dead or
+// rotated domains; vidsrc.su has no TV servers), VidEasy (shut down), VidFast
+// and CineSrc (stuck loading), P-Stream (CSP frame-ancestors 'self'), and
+// Spenflix (its new host serves a bot challenge instead of a player).
+// VidSpark was added after verifying both modes. FilmU and VidRift were
+// added in the same way during the follow-up pass.
 //
-// Removed August 2026 (multiembed.mov now refuses cross-origin iframe
-// embedding — Cloudflare challenge sends X-Frame-Options: SAMEORIGIN, so the
-// watch page iframe gets "refused to connect"): SuperEmbed and MultiEmbed
-// (both multiembed.mov, which redirects to streamingnow.mov).
-//
-// Added August 2026 (verified rendering real players in a browser):
-// VidSrcPM (vidsrc.pm), VidLink (vidlink.pro), and CineSrc (cinesrc.st).
-//
-// Re-added October 2026 with new domains: P-Stream (pstream.cfd, previously
-// iframe.pstream.mov) and Spenflix (spenflix.world, previously
-// spencerdevs.xyz) — both were listed as "domain unresponsive" and have since
-// come back under new hosts.
+// Earlier removals (Aug 2026): MoviesAPI, GoDrive, EmbedSU, Hexa, VidSrcXyz,
+// VidSrcVIP, VidSrcCC, SmashyStream, AutoEmbed, Vidify, Flicky, Vidora,
+// StreamFlix, VidJoy, Frembed, SuperEmbed, and MultiEmbed.
 export const availableSources = [
     // ── Embed providers ───────────────────────────────────────────────────
     {
@@ -42,9 +34,10 @@ export const availableSources = [
         requiresNoSandbox: true,
         playerType: 'embed',
         urls: {
-            // file-1 URLs include ?server=gama param (verified)
+            // Movie playback needs server=gama; the TV route 404s with that
+            // param, so it is left off there.
             movie: 'https://vidnest.fun/movie/{id}?server=gama',
-            tv: 'https://vidnest.fun/tv/{id}/{season}/{episode}?server=gama'
+            tv: 'https://vidnest.fun/tv/{id}/{season}/{episode}'
         }
     },
     {
@@ -60,70 +53,15 @@ export const availableSources = [
         }
     },
     {
-        id: 'vidsrcrip',
-        name: 'VidSrcRIP',
+        id: 'vidspark',
+        name: 'VidSpark',
         isFrench: false,
         requiresNoSandbox: true,
         playerType: 'embed',
         urls: {
-            movie: 'https://vidsrc.rip/embed/movie/{id}',
-            tv: 'https://vidsrc.rip/embed/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'vidsrcsu',
-        name: 'VidSrcSU',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidsrc.su/embed/movie/{id}',
-            tv: 'https://vidsrc.su/embed/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'vidsrcsbs',
-        name: 'VidSrcSBS',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidsrc.sbs/embed/movie/{id}',
-            tv: 'https://vidsrc.sbs/embed/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'vidsrcme',
-        name: 'VidSrcME',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidsrcme.ru/embed/movie/{id}',
-            tv: 'https://vidsrcme.ru/embed/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'vidsrcnl',
-        name: 'VidSrcNL',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidsrc.nl/embed/movie/{id}',
-            tv: 'https://vidsrc.nl/embed/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'vidsrcpm',
-        name: 'VidSrcPM',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            // verified live Aug 2026 (renders a real player iframe)
-            movie: 'https://vidsrc.pm/embed/movie/{id}',
-            tv: 'https://vidsrc.pm/embed/tv/{id}/{season}/{episode}'
+            // verified Nov 2026 (renders a real player for movies and TV)
+            movie: 'https://vidspark.to/movie/{id}',
+            tv: 'https://vidspark.to/tv/{id}/{season}/{episode}'
         }
     },
     {
@@ -139,28 +77,6 @@ export const availableSources = [
         }
     },
     {
-        id: 'videasy',
-        name: 'VidEasy (4K)',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://player.videasy.net/movie/{id}?color=8834ec',
-            tv: 'https://player.videasy.net/tv/{id}/{season}/{episode}?color=8834ec'
-        }
-    },
-    {
-        id: 'vidfast',
-        name: 'VidFast (4K)',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            movie: 'https://vidfast.pro/movie/{id}',
-            tv: 'https://vidfast.pro/tv/{id}/{season}/{episode}'
-        }
-    },
-    {
         id: 'vidzee',
         name: 'VidZee',
         isFrench: false,
@@ -172,43 +88,31 @@ export const availableSources = [
         }
     },
     {
-        id: 'cinesrc',
-        name: 'CineSrc',
+        id: 'filmu',
+        name: 'FilmU',
         isFrench: false,
         requiresNoSandbox: true,
         playerType: 'embed',
         urls: {
-            // verified live Aug 2026 (renders a real <video> player for both
-            // movies and TV in a cross-origin iframe; TV uses s/e query params)
-            movie: 'https://cinesrc.st/embed/movie/{id}',
-            tv: 'https://cinesrc.st/embed/tv/{id}?s={season}&e={episode}'
+            // verified Nov 2026: movie and episode both render a real <video>
+            movie: 'https://embed.filmu.in/movie/{id}',
+            tv: 'https://embed.filmu.in/tv/{id}/{season}/{episode}'
         }
     },
     {
-        id: 'pstream',
-        name: 'P-Stream',
+        id: 'vidrift',
+        name: 'VidRift',
         isFrench: false,
         requiresNoSandbox: true,
         playerType: 'embed',
         urls: {
-            // movie-web style media routes (TMDB ids); new host of pstream.mov
-            movie: 'https://pstream.cfd/media/tmdb-movie-{id}',
-            tv: 'https://pstream.cfd/media/tmdb-tv-{id}/{season}/{episode}'
-        }
-    },
-    {
-        id: 'spenflix',
-        name: 'Spenflix',
-        isFrench: false,
-        requiresNoSandbox: true,
-        playerType: 'embed',
-        urls: {
-            // same paths as the old spencerdevs.xyz host (TMDB ids)
-            movie: 'https://spenflix.world/movie/{id}',
-            tv: 'https://spenflix.world/tv/{id}/{season}/{episode}'
+            // verified Nov 2026: both modes play; movie needs autoplay
+            movie: 'https://embed.vidrift.net/embed/movie/{id}?autoplay=1',
+            tv: 'https://embed.vidrift.net/embed/tv/{id}/{season}/{episode}?autoplay=1'
         }
     },
 
-    // ── Commented out (dead / premium / untested) ─────────────────────────
-    // { id: 'uembed',    name: 'UEmbed (premium)',   ... }  // requires paid API key
+    // ── Removed in the November 2026 audit ────────────────────────────────
+    // VidSrc family, VidEasy, VidFast, CineSrc, P-Stream, and Spenflix — see
+    // the header comment for why each was dropped.
 ];

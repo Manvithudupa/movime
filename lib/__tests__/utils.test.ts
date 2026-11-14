@@ -35,8 +35,24 @@ describe('getVideoUrl', () => {
   })
 
   it('does not add a quality param to bare-path URLs', () => {
-    expect(getVideoUrl('vidsrcrip', '123', 'movie', undefined, undefined, '720p')).toBe(
-      'https://vidsrc.rip/embed/movie/123'
+    expect(getVideoUrl('vidlink', '123', 'movie', undefined, undefined, '720p')).toBe(
+      'https://vidlink.pro/movie/123'
+    )
+  })
+
+  it('builds the VidSpark TV URL with season and episode', () => {
+    expect(getVideoUrl('vidspark', '123', 'tv', 2, 5)).toBe(
+      'https://vidspark.to/tv/123/2/5'
+    )
+  })
+
+  it('builds the FilmU movie URL', () => {
+    expect(getVideoUrl('filmu', '123', 'movie')).toBe('https://embed.filmu.in/movie/123')
+  })
+
+  it('builds the VidRift TV URL with autoplay', () => {
+    expect(getVideoUrl('vidrift', '123', 'tv', 2, 5)).toBe(
+      'https://embed.vidrift.net/embed/tv/123/2/5?autoplay=1'
     )
   })
 

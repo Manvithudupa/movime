@@ -174,7 +174,7 @@ for (const { route, check, expect } of ROUTES) {
       url.includes('youtube.com') || url.includes('fonts.g') ||
       // Third-party video embeds are unreachable in CI — abort fast instead
       // of letting the iframes hang page load.
-      /(vidsrc|cinemaos|vidnest|mapple|cinesrc|videasy|vidfast|vidzee)/.test(url)
+      /(cinemaos|vidnest|mapple|vidspark|vidlink|vidzee|filmu|vidrift)/.test(url)
     ) {
       req.abort()
     } else {
