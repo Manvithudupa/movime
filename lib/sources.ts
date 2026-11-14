@@ -28,8 +28,8 @@ export const availableSources = [
         isFrench: false,
         requiresNoSandbox: true,
         urls: {
-            movie: 'https://cinemaos.tech/player/{id}',
-            tv: 'https://cinemaos.tech/player/{id}/{season}/{episode}'
+            movie: 'https://cinemaos.in/player/{id}',
+            tv: 'https://cinemaos.in/player/{id}/{season}/{episode}'
         }
     },
     {
